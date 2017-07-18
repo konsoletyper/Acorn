@@ -11,16 +11,8 @@
       <module fileurl="file://$PROJECT_DIR$/AcornUiJsBackend/AcornUiJsBackend.iml" filepath="$PROJECT_DIR$/AcornUiJsBackend/AcornUiJsBackend.iml" />
       <module fileurl="file://$PROJECT_DIR$/AcornUiLwjglBackend/AcornUiLwjglBackend.iml" filepath="$PROJECT_DIR$/AcornUiLwjglBackend/AcornUiLwjglBackend.iml" />
       <module fileurl="file://$PROJECT_DIR$/AcornUtils/AcornUtils.iml" filepath="$PROJECT_DIR$/AcornUtils/AcornUtils.iml" />
-      <module fileurl="file://$PROJECT_DIR$/Examples/BasicExample/core/BasicExampleCore.iml" filepath="$PROJECT_DIR$/Examples/BasicExample/core/BasicExampleCore.iml" group="Examples/BasicExample" />
-      <module fileurl="file://$PROJECT_DIR$/Examples/BasicExample/js/BasicExampleJs.iml" filepath="$PROJECT_DIR$/Examples/BasicExample/js/BasicExampleJs.iml" group="Examples/BasicExample" />
-      <module fileurl="file://$PROJECT_DIR$/Examples/BasicExample/jvm/BasicExampleJvm.iml" filepath="$PROJECT_DIR$/Examples/BasicExample/jvm/BasicExampleJvm.iml" group="Examples/BasicExample" />
       <module fileurl="file://$PROJECT_DIR$/Tools/BuildTasks/BuildTasks.iml" filepath="$PROJECT_DIR$/Tools/BuildTasks/BuildTasks.iml" group="Tools" />
       <module fileurl="file://$PROJECT_DIR$/Tools/BuildTool/BuildTool.iml" filepath="$PROJECT_DIR$/Tools/BuildTool/BuildTool.iml" group="Tools" />
-      <module fileurl="file://$PROJECT_DIR$/Examples/HelloDom/core/HelloDomCore.iml" filepath="$PROJECT_DIR$/Examples/HelloDom/core/HelloDomCore.iml" group="Examples/HelloDom" />
-      <module fileurl="file://$PROJECT_DIR$/Examples/HelloDom/js/HelloDomJs.iml" filepath="$PROJECT_DIR$/Examples/HelloDom/js/HelloDomJs.iml" group="Examples/HelloDom" />
-      <module fileurl="file://$PROJECT_DIR$/Examples/StarField/core/StarFieldCore.iml" filepath="$PROJECT_DIR$/Examples/StarField/core/StarFieldCore.iml" group="Examples/StarField" />
-      <module fileurl="file://$PROJECT_DIR$/Examples/StarField/js/StarFieldJs.iml" filepath="$PROJECT_DIR$/Examples/StarField/js/StarFieldJs.iml" group="Examples/StarField" />
-      <module fileurl="file://$PROJECT_DIR$/Examples/StarField/jvm/StarFieldJvm.iml" filepath="$PROJECT_DIR$/Examples/StarField/jvm/StarFieldJvm.iml" group="Examples/StarField" />
     </modules>
   </component>
 </project>

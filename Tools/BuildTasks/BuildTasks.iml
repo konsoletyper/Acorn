@@ -11,24 +11,26 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="com.google.javascript:closure-compiler:v20170521" level="project" />
     <orderEntry type="library" name="KotlinCompiler" level="project" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/packr.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" scope="TEST" name="junit:junit:4.12" level="project" />
-    <orderEntry type="library" scope="TEST" name="org.mockito:mockito-core:1.10.19" level="project" />
     <orderEntry type="module" module-name="AcornTexturePackerCore" />
     <orderEntry type="module" module-name="AcornTexturePackerJvm" />
     <orderEntry type="module" module-name="AcornUiCore" />
     <orderEntry type="module" module-name="AcornUiLwjglBackend" />
     <orderEntry type="module" module-name="AcornUtils" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/lib" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/lib" />
+        </SOURCES>
+        <jarDirectory url="file://$MODULE_DIR$/lib" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/lib" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
   </component>
 </module>

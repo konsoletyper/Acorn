@@ -1,10 +1,6 @@
-/dist
-/out
+dist
+out
+lib
 /www
-/Examples
-/Scratchpad
 /.idea/workspace.xml
 /Tools/BuildTasks/testOut
-/AcornUiLwjglBackend/lib/lwjgl-release-3.1.1-custom
-/lib
-/Tools/BuildTasks/lib
