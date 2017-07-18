@@ -1,0 +1,8 @@
+/dist
+/out
+/www
+/Examples
+/Scratchpad
+/.idea/workspace.xml
+/Tools/BuildTasks/testOut
+/AcornUiLwjglBackend/lib/lwjgl-release-3.1.1-custom

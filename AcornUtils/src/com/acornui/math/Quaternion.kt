@@ -1,0 +1,963 @@
+/*
+ * Derived from LibGDX by Nicholas Bilyk
+ * https://github.com/libgdx
+ * Copyright 2011 See https://github.com/libgdx/libgdx/blob/master/AUTHORS
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.acornui.math
+
+interface QuaternionRo {
+
+	val x: Float
+	val y: Float
+	val z: Float
+	val w: Float
+
+	/**
+	 * @return the euclidian length of this quaternion
+	 */
+	fun len(): Float
+
+	/**
+	 * Get the pole of the gimbal lock, if any.
+	 * @return positive (+1) for north pole, negative (-1) for south pole, zero (0) when no gimbal lock
+	 */
+	fun getGimbalPole(): Int
+
+	/**
+	 * Get the roll euler angle in radians, which is the rotation around the z axis. Requires that this quaternion is normalized.
+	 * @return the rotation around the z axis in radians (between -PI and +PI)
+	 */
+	fun getRollRad(): Float
+
+	/**
+	 * Get the pitch euler angle in radians, which is the rotation around the x axis. Requires that this quaternion is normalized.
+	 * @return the rotation around the x axis in radians (between -(PI/2) and +(PI/2))
+	 */
+	fun getPitchRad(): Float
+
+	/**
+	 * Get the yaw euler angle in radians, which is the rotation around the y axis. Requires that this quaternion is normalized.
+	 * @return the rotation around the y axis in radians (between -PI and +PI)
+	 */
+	fun getYawRad(): Float
+
+	/**
+	 * @return the length of this quaternion without square root
+	 */
+	fun len2(): Float
+
+	/**
+	 * Fills a 4x4 matrix with the rotation matrix represented by this quaternion.
+	 *
+	 * @param out Matrix to fill
+	 */
+	fun toMatrix(out: MutableList<Float>)
+
+	/**
+	 * @return If this quaternion is an identity Quaternion
+	 */
+	fun isIdentity(): Boolean
+
+	/**
+	 * @return If this quaternion is an identity Quaternion
+	 */
+	fun isIdentity(tolerance: Float): Boolean
+
+	/**
+	 * Get the dot product between this and the other quaternion (commutative).
+	 * @param other the other quaternion.
+	 * @return the dot product of this and the other quaternion.
+	 */
+	fun dot(other: Quaternion): Float
+
+	/**
+	 * Get the dot product between this and the other quaternion (commutative).
+	 * @param x the x component of the other quaternion
+	 * @param y the y component of the other quaternion
+	 * @param z the z component of the other quaternion
+	 * @param w the w component of the other quaternion
+	 * @return the dot product of this and the other quaternion.
+	 */
+	fun dot(x: Float, y: Float, z: Float, w: Float): Float
+
+	/**
+	 * Get the axis-angle representation of the rotation in radians. The supplied vector will receive the axis (x, y and z values)
+	 * of the rotation and the value returned is the angle in radians around that axis. Note that this method will alter the
+	 * supplied vector, the existing value of the vector is ignored. </p> This will normalize this quaternion if needed. The
+	 * received axis is a unit vector. However, if this is an identity quaternion (no rotation), then the length of the axis may be
+	 * zero.
+	 *
+	 * @param axis vector which will receive the axis
+	 * @return the angle in radians
+	 * @see <a href="http://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation">wikipedia</a>
+	 * @see <a href="http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle">calculation</a>
+	 */
+	fun getAxisAngleRad(axis: Vector3): Float
+
+	/**
+	 * Get the angle in radians of the rotation this quaternion represents. Does not normalize the quaternion. Use
+	 * {@link #getAxisAngleRad(Vector3)} to get both the axis and the angle of this rotation. Use
+	 * {@link #getAngleAroundRad(Vector3)} to get the angle around a specific axis.
+	 * @return the angle in radians of the rotation
+	 */
+	fun getAngleRad(): Float
+
+	/**
+	 * Get the swing rotation and twist rotation for the specified axis. The twist rotation represents the rotation around the
+	 * specified axis. The swing rotation represents the rotation of the specified axis itself, which is the rotation around an
+	 * axis perpendicular to the specified axis.
+	 * </p>
+	 * The swing and twist rotation can be used to reconstruct the original quaternion: this = swing * twist
+	 *
+	 * @param axisX the X component of the normalized axis for which to get the swing and twist rotation
+	 * @param axisY the Y component of the normalized axis for which to get the swing and twist rotation
+	 * @param axisZ the Z component of the normalized axis for which to get the swing and twist rotation
+	 * @param swing will receive the swing rotation: the rotation around an axis perpendicular to the specified axis
+	 * @param twist will receive the twist rotation: the rotation around the specified axis
+	 * @see <a href="http://www.euclideanspace.com/maths/geometry/rotations/for/decomposition">calculation</a>
+	 */
+	fun getSwingTwist(axisX: Float, axisY: Float, axisZ: Float, swing: Quaternion, twist: Quaternion)
+
+	/**
+	 * Get the swing rotation and twist rotation for the specified axis. The twist rotation represents the rotation around the
+	 * specified axis. The swing rotation represents the rotation of the specified axis itself, which is the rotation around an
+	 * axis perpendicular to the specified axis.
+	 * </p>
+	 * The swing and twist rotation can be used to reconstruct the original quaternion: this = swing * twist
+	 *
+	 * @param axis the normalized axis for which to get the swing and twist rotation
+	 * @param swing will receive the swing rotation: the rotation around an axis perpendicular to the specified axis
+	 * @param twist will receive the twist rotation: the rotation around the specified axis
+	 * @see <a href="http://www.euclideanspace.com/maths/geometry/rotations/for/decomposition">calculation</a>
+	 */
+	fun getSwingTwist(axis: Vector3, swing: Quaternion, twist: Quaternion)
+
+	/**
+	 * Get the angle in radians of the rotation around the specified axis. The axis must be normalized.
+	 * @param axisX the x component of the normalized axis for which to get the angle
+	 * @param axisY the y component of the normalized axis for which to get the angle
+	 * @param axisZ the z component of the normalized axis for which to get the angle
+	 * @return the angle in radians of the rotation around the specified axis
+	 */
+	fun getAngleAroundRad(axisX: Float, axisY: Float, axisZ: Float): Float
+
+	/**
+	 * Get the angle in radians of the rotation around the specified axis. The axis must be normalized.
+	 * @param axis the normalized axis for which to get the angle
+	 * @return the angle in radians of the rotation around the specified axis
+	 */
+	fun getAngleAroundRad(axis: Vector3): Float
+
+}
+
+/**
+ * A simple Quaternion class. (May be an oxymoron)
+ * @see <a href="http://en.wikipedia.org/wiki/Quaternion">http://en.wikipedia.org/wiki/Quaternion</a>
+ * @author badlogicgames@gmail.com
+ * @author vesuvio
+ * @author xoppa */
+
+data class Quaternion(
+		override var x: Float = 0f,
+		override var y: Float = 0f,
+		override var z: Float = 0f,
+		override var w: Float = 1f
+) : QuaternionRo {
+
+	/**
+	 * Sets the components of the quaternion
+	 * @param x The x-component
+	 * @param y The y-component
+	 * @param z The z-component
+	 * @param w The w-component
+	 * @return This quaternion for chaining
+	 */
+	fun set(x: Float, y: Float, z: Float, w: Float): Quaternion {
+		this.x = x
+		this.y = y
+		this.z = z
+		this.w = w
+		return this
+	}
+
+	/**
+	 * Sets the quaternion components from the given quaternion.
+	 * @param quaternion The quaternion.
+	 * @return This quaternion for chaining.
+	 */
+	fun set(quaternion: Quaternion): Quaternion {
+		return this.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
+	}
+
+	/**
+	 * @return the euclidian length of this quaternion
+	 */
+	override fun len(): Float {
+		return Math.sqrt(x * x + y * y + z * z + w * w.toDouble()).toFloat()
+	}
+
+	override fun toString(): String {
+		return "[$x|$y|$z|$w]"
+	}
+
+	/**
+	 * Sets the quaternion to the given euler angles in radians.
+	 * @param yaw the rotation around the y axis in radians
+	 * @param pitch the rotation around the x axis in radians
+	 * @param roll the rotation around the z axis in radians
+	 * @return this quaternion
+	 */
+	fun setEulerAnglesRad(yaw: Float, pitch: Float, roll: Float): Quaternion {
+		val hr = roll * 0.5f
+		val shr = MathUtils.sin(hr)
+		val chr = MathUtils.cos(hr)
+		val hp = pitch * 0.5f
+		val shp = MathUtils.sin(hp)
+		val chp = MathUtils.cos(hp)
+		val hy = yaw * 0.5f
+		val shy = MathUtils.sin(hy)
+		val chy = MathUtils.cos(hy)
+		val chy_shp = chy * shp
+		val shy_chp = shy * chp
+		val chy_chp = chy * chp
+		val shy_shp = shy * shp
+
+		x = (chy_shp * chr) + (shy_chp * shr) // cos(yaw/2) * sin(pitch/2) * cos(roll/2) + sin(yaw/2) * cos(pitch/2) * sin(roll/2)
+		y = (shy_chp * chr) - (chy_shp * shr) // sin(yaw/2) * cos(pitch/2) * cos(roll/2) - cos(yaw/2) * sin(pitch/2) * sin(roll/2)
+		z = (chy_chp * shr) - (shy_shp * chr) // cos(yaw/2) * cos(pitch/2) * sin(roll/2) - sin(yaw/2) * sin(pitch/2) * cos(roll/2)
+		w = (chy_chp * chr) + (shy_shp * shr) // cos(yaw/2) * cos(pitch/2) * cos(roll/2) + sin(yaw/2) * sin(pitch/2) * sin(roll/2)
+		return this
+	}
+
+	/**
+	 * Get the pole of the gimbal lock, if any.
+	 * @return positive (+1) for north pole, negative (-1) for south pole, zero (0) when no gimbal lock
+	 */
+	override fun getGimbalPole(): Int {
+		val t = y * x + z * w
+		return if (t > 0.499f) 1 else (if (t < -0.499f) -1 else 0)
+	}
+
+	/**
+	 * Get the roll euler angle in radians, which is the rotation around the z axis. Requires that this quaternion is normalized.
+	 * @return the rotation around the z axis in radians (between -PI and +PI)
+	 */
+	override fun getRollRad(): Float {
+		val pole = getGimbalPole()
+		return if (pole == 0) MathUtils.atan2(2f * (w * z + y * x), 1f - 2f * (x * x + z * z)) else pole.toFloat() * 2f * MathUtils.atan2(y, w)
+	}
+
+	/**
+	 * Get the pitch euler angle in radians, which is the rotation around the x axis. Requires that this quaternion is normalized.
+	 * @return the rotation around the x axis in radians (between -(PI/2) and +(PI/2))
+	 */
+	override fun getPitchRad(): Float {
+		val pole = getGimbalPole()
+		return if (pole == 0) Math.asin(MathUtils.clamp(2f * (w * x - z * y), -1f, 1f).toDouble()).toFloat() else pole.toFloat() * PI * 0.5f
+	}
+
+	/**
+	 * Get the yaw euler angle in radians, which is the rotation around the y axis. Requires that this quaternion is normalized.
+	 * @return the rotation around the y axis in radians (between -PI and +PI)
+	 */
+	override fun getYawRad(): Float {
+		return if (getGimbalPole() == 0) MathUtils.atan2(2f * (y * w + x * z), 1f - 2f * (y * y + x * x)) else 0f
+	}
+
+	/**
+	 * @return the length of this quaternion without square root
+	 */
+	override fun len2(): Float {
+		return x * x + y * y + z * z + w * w
+	}
+
+	/**
+	 * Normalizes this quaternion to unit length
+	 * @return the quaternion for chaining
+	 */
+	fun nor(): Quaternion {
+		var len = len2()
+		if (len != 0f && !MathUtils.isEqual(len, 1f)) {
+			len = Math.sqrt(len.toDouble()).toFloat()
+			w /= len
+			x /= len
+			y /= len
+			z /= len
+		}
+		return this
+	}
+
+	/**
+	 * Conjugate the quaternion.
+	 *
+	 * @return This quaternion for chaining
+	 */
+	fun conjugate(): Quaternion {
+		x = -x
+		y = -y
+		z = -z
+		return this
+	}
+
+	// TODO : this would better fit into the vector3 class
+	/**
+	 * Transforms the given vector using this quaternion
+	 *
+	 * @param v Vector to transform
+	 */
+	fun transform(v: Vector3): Vector3 {
+		tmp2.set(this)
+		tmp2.conjugate()
+		tmp2.mulLeft(tmp1.set(v.x, v.y, v.z, 0f)).mulLeft(this)
+
+		v.x = tmp2.x
+		v.y = tmp2.y
+		v.z = tmp2.z
+		return v
+	}
+
+	/**
+	 * Multiplies this quaternion with another one in the form of this = this * other
+	 *
+	 * @param other Quaternion to multiply with
+	 * @return This quaternion for chaining
+	 */
+	fun mul(other: Quaternion): Quaternion {
+		val newX = this.w * other.x + this.x * other.w + this.y * other.z - this.z * other.y
+		val newY = this.w * other.y + this.y * other.w + this.z * other.x - this.x * other.z
+		val newZ = this.w * other.z + this.z * other.w + this.x * other.y - this.y * other.x
+		val newW = this.w * other.w - this.x * other.x - this.y * other.y - this.z * other.z
+		this.x = newX
+		this.y = newY
+		this.z = newZ
+		this.w = newW
+		return this
+	}
+
+	fun times(other: Quaternion): Quaternion {
+		return copy().mul(other)
+	}
+
+	/**
+	 * Multiplies this quaternion with another one in the form of this = this * other
+	 *
+	 * @param x the x component of the other quaternion to multiply with
+	 * @param y the y component of the other quaternion to multiply with
+	 * @param z the z component of the other quaternion to multiply with
+	 * @param w the w component of the other quaternion to multiply with
+	 * @return This quaternion for chaining
+	 */
+	fun mul(x: Float, y: Float, z: Float, w: Float): Quaternion {
+		val newX = this.w * x + this.x * w + this.y * z - this.z * y
+		val newY = this.w * y + this.y * w + this.z * x - this.x * z
+		val newZ = this.w * z + this.z * w + this.x * y - this.y * x
+		val newW = this.w * w - this.x * x - this.y * y - this.z * z
+		this.x = newX
+		this.y = newY
+		this.z = newZ
+		this.w = newW
+		return this
+	}
+
+	/**
+	 * Multiplies this quaternion with another one in the form of this = other * this
+	 *
+	 * @param other Quaternion to multiply with
+	 * @return This quaternion for chaining
+	 */
+	fun mulLeft(other: Quaternion): Quaternion {
+		val newX = other.w * this.x + other.x * this.w + other.y * this.z - other.z * y
+		val newY = other.w * this.y + other.y * this.w + other.z * this.x - other.x * z
+		val newZ = other.w * this.z + other.z * this.w + other.x * this.y - other.y * x
+		val newW = other.w * this.w - other.x * this.x - other.y * this.y - other.z * z
+		this.x = newX
+		this.y = newY
+		this.z = newZ
+		this.w = newW
+		return this
+	}
+
+	/**
+	 * Multiplies this quaternion with another one in the form of this = other * this
+	 *
+	 * @param x the x component of the other quaternion to multiply with
+	 * @param y the y component of the other quaternion to multiply with
+	 * @param z the z component of the other quaternion to multiply with
+	 * @param w the w component of the other quaternion to multiply with
+	 * @return This quaternion for chaining
+	 */
+	fun mulLeft(x: Float, y: Float, z: Float, w: Float): Quaternion {
+		val newX = w * this.x + x * this.w + y * this.z - z * y
+		val newY = w * this.y + y * this.w + z * this.x - x * z
+		val newZ = w * this.z + z * this.w + x * this.y - y * x
+		val newW = w * this.w - x * this.x - y * this.y - z * z
+		this.x = newX
+		this.y = newY
+		this.z = newZ
+		this.w = newW
+		return this
+	}
+
+	/**
+	 * Add the x,y,z,w components of the passed in quaternion to the ones of this quaternion
+	 */
+	fun add(quaternion: Quaternion): Quaternion {
+		this.x += quaternion.x
+		this.y += quaternion.y
+		this.z += quaternion.z
+		this.w += quaternion.w
+		return this
+	}
+
+	fun plus(quaternion: Quaternion): Quaternion {
+		return copy().plus(quaternion)
+	}
+
+	/**
+	 * Add the x,y,z,w components of the passed in quaternion to the ones of this quaternion
+	 */
+	fun add(qx: Float, qy: Float, qz: Float, qw: Float): Quaternion {
+		this.x += qx
+		this.y += qy
+		this.z += qz
+		this.w += qw
+		return this
+	}
+
+	// TODO : the matrix4 set(quaternion) doesn't set the last row+col of the matrix to 0,0,0,1 so... that's why there is this
+	// method
+	/**
+	 * Fills a 4x4 matrix with the rotation matrix represented by this quaternion.
+	 *
+	 * @param out Matrix to fill
+	 */
+	override fun toMatrix(out: MutableList<Float>) {
+		val xx = x * x
+		val xy = x * y
+		val xz = x * z
+		val xw = x * w
+		val yy = y * y
+		val yz = y * z
+		val yw = y * w
+		val zz = z * z
+		val zw = z * w
+		// Set matrix from quaternion
+		out[0] = 1f - 2f * (yy + zz)
+		out[4] = 2f * (xy - zw)
+		out[8] = 2f * (xz + yw)
+		out[12] = 0f
+		out[1] = 2f * (xy + zw)
+		out[5] = 1f - 2f * (xx + zz)
+		out[9] = 2f * (yz - xw)
+		out[13] = 0f
+		out[2] = 2f * (xz - yw)
+		out[6] = 2f * (yz + xw)
+		out[10] = 1f - 2f * (xx + yy)
+		out[14] = 0f
+		out[3] = 0f
+		out[7] = 0f
+		out[11] = 0f
+		out[15] = 1f
+	}
+
+	/**
+	 * Sets the quaternion to an identity Quaternion
+	 * @return this quaternion for chaining
+	 */
+	fun idt(): Quaternion {
+		return this.set(0f, 0f, 0f, 1f)
+	}
+
+	/**
+	 * @return If this quaternion is an identity Quaternion
+	 */
+	override fun isIdentity(): Boolean {
+		return MathUtils.isZero(x) && MathUtils.isZero(y) && MathUtils.isZero(z) && MathUtils.isEqual(w, 1f)
+	}
+
+	/**
+	 * @return If this quaternion is an identity Quaternion
+	 */
+	override fun isIdentity(tolerance: Float): Boolean {
+		return MathUtils.isZero(x, tolerance) && MathUtils.isZero(y, tolerance) && MathUtils.isZero(z, tolerance) && MathUtils.isEqual(w, 1f, tolerance)
+	}
+
+	/**
+	 * Sets the quaternion components from the given axis and angle around that axis.
+	 *
+	 * @param axis The axis
+	 * @param radians The angle in radians
+	 * @return This quaternion for chaining.
+	 */
+	fun setFromAxis(axis: Vector3Ro, radians: Float): Quaternion {
+		return setFromAxis(axis.x, axis.y, axis.z, radians)
+	}
+
+	/**
+	 * Sets the quaternion components from the given axis and angle around that axis.
+	 * @param x X direction of the axis
+	 * @param y Y direction of the axis
+	 * @param z Z direction of the axis
+	 * @param radians The angle in radians
+	 * @return This quaternion for chaining.
+	 */
+	fun setFromAxis(x: Float, y: Float, z: Float, radians: Float): Quaternion {
+		var d = Vector3.len(x, y, z)
+		if (d == 0f) return idt()
+		d = 1f / d
+		val l_ang = radians
+		val l_sin = MathUtils.sin(l_ang / 2.0f)
+		val l_cos = MathUtils.cos(l_ang / 2.0f)
+		return this.set(d * x * l_sin, d * y * l_sin, d * z * l_sin, l_cos).nor()
+	}
+
+	/**
+	 * Sets the Quaternion from the given matrix, optionally removing any scaling.
+	 */
+	fun setFromMatrix(matrix: Matrix4, normalizeAxes: Boolean = false): Quaternion {
+		return setFromAxes(matrix.values[0], matrix.values[4], matrix.values[8], matrix.values[1], matrix.values[5], matrix.values[9], matrix.values[2], matrix.values[6], matrix.values[10], normalizeAxes)
+	}
+
+	/**
+	 * Sets the Quaternion from the given matrix, optionally removing any scaling.
+	 */
+	fun setFromMatrix(normalizeAxes: Boolean, matrix: Matrix3): Quaternion {
+		return setFromAxes(matrix.values[Matrix3.M00], matrix.values[Matrix3.M01], matrix.values[Matrix3.M02], matrix.values[Matrix3.M10], matrix.values[Matrix3.M11], matrix.values[Matrix3.M12], matrix.values[Matrix3.M20], matrix.values[Matrix3.M21], matrix.values[Matrix3.M22], normalizeAxes)
+	}
+
+	/**
+	 * Sets the Quaternion from the given rotation matrix, which must not contain scaling.
+	 */
+	fun setFromMatrix(matrix: Matrix3): Quaternion {
+		return setFromMatrix(false, matrix)
+	}
+
+	/**
+	 * <p>
+	 * Sets the Quaternion from the given x-, y- and z-axis which have to be orthonormal.
+	 * </p>
+	 *
+	 * <p>
+	 * Taken from Bones framework for JPCT, see http://www.aptalkarga.com/bones/ which in turn took it from Graphics Gem code at
+	 * ftp://ftp.cis.upenn.edu/pub/graphics/shoemake/quatut.ps.Z.
+	 * </p>
+	 *
+	 * @param xx x-axis x-coordinate
+	 * @param xy x-axis y-coordinate
+	 * @param xz x-axis z-coordinate
+	 * @param yx y-axis x-coordinate
+	 * @param yy y-axis y-coordinate
+	 * @param yz y-axis z-coordinate
+	 * @param zx z-axis x-coordinate
+	 * @param zy z-axis y-coordinate
+	 * @param zz z-axis z-coordinate
+	 */
+	fun setFromAxes(xx: Float, xy: Float, xz: Float, yx: Float, yy: Float, yz: Float, zx: Float, zy: Float, zz: Float): Quaternion {
+		return setFromAxes(xx, xy, xz, yx, yy, yz, zx, zy, zz, false)
+	}
+
+	/**
+	 * <p>
+	 * Sets the Quaternion from the given x-, y- and z-axis.
+	 * </p>
+	 *
+	 * <p>
+	 * Taken from Bones framework for JPCT, see http://www.aptalkarga.com/bones/ which in turn took it from Graphics Gem code at
+	 * ftp://ftp.cis.upenn.edu/pub/graphics/shoemake/quatut.ps.Z.
+	 * </p>
+	 *
+	 * @param normalizeAxes whether to normalize the axes (necessary when they contain scaling)
+	 * @param xx x-axis x-coordinate
+	 * @param xy x-axis y-coordinate
+	 * @param xz x-axis z-coordinate
+	 * @param yx y-axis x-coordinate
+	 * @param yy y-axis y-coordinate
+	 * @param yz y-axis z-coordinate
+	 * @param zx z-axis x-coordinate
+	 * @param zy z-axis y-coordinate
+	 * @param zz z-axis z-coordinate
+	 */
+	@Suppress("NAME_SHADOWING") fun setFromAxes(xx: Float, xy: Float, xz: Float, yx: Float, yy: Float, yz: Float, zx: Float, zy: Float, zz: Float, normalizeAxes: Boolean = false): Quaternion {
+		var xx = xx
+		var xy = xy
+		var xz = xz
+		var yy = yy
+		var yz = yz
+		var zx = zx
+		var zy = zy
+		var zz = zz
+		if (normalizeAxes) {
+			val lx = 1f / Vector3.len(xx, xy, xz)
+			val ly = 1f / Vector3.len(yx, yy, yz)
+			val lz = 1f / Vector3.len(zx, zy, zz)
+			xx *= lx
+			xy *= lx
+			xz *= lx
+			yz *= ly
+			yy *= ly
+			yz *= ly
+			zx *= lz
+			zy *= lz
+			zz *= lz
+		}
+		// the trace is the sum of the diagonal elements; see
+		// http://mathworld.wolfram.com/MatrixTrace.html
+		val t = xx + yy + zz
+
+		// we protect the division by s by ensuring that s>=1
+		if (t >= 0) {
+			// |w| >= .5
+			var s = Math.sqrt((t + 1).toDouble()).toFloat() // |s|>=1 ...
+			w = 0.5f * s
+			s = 0.5f / s // so this division isn't bad
+			x = (zy - yz) * s
+			y = (xz - zx) * s
+			z = (yx - xy) * s
+		} else if ((xx > yy) && (xx > zz)) {
+			var s = Math.sqrt(1.0 + xx.toDouble() - yy.toDouble() - zz.toDouble()).toFloat() // |s|>=1
+			x = s * 0.5f // |x| >= .5
+			s = 0.5f / s
+			y = (yx + xy) * s
+			z = (xz + zx) * s
+			w = (zy - yz) * s
+		} else if (yy > zz) {
+			var s = Math.sqrt(1.0 + yy.toDouble() - xx.toDouble() - zz.toDouble()).toFloat() // |s|>=1
+			y = s * 0.5f // |y| >= .5
+			s = 0.5f / s
+			x = (yx + xy) * s
+			z = (zy + yz) * s
+			w = (xz - zx) * s
+		} else {
+			var s = Math.sqrt(1.0 + zz.toDouble() - xx.toDouble() - yy.toDouble()).toFloat() // |s|>=1
+			z = s * 0.5f // |z| >= .5
+			s = 0.5f / s
+			x = (xz + zx) * s
+			y = (zy + yz) * s
+			w = (yx - xy) * s
+		}
+
+		return this
+	}
+
+	/**
+	 * Set this quaternion to the rotation between two vectors.
+	 * @param v1 The base vector, which should be normalized.
+	 * @param v2 The target vector, which should be normalized.
+	 * @return This quaternion for chaining
+	 */
+	fun setFromCross(v1: Vector3Ro, v2: Vector3Ro): Quaternion {
+		val dot = MathUtils.clamp(v1.dot(v2), -1.toFloat(), 1f)
+		val angle = Math.acos(dot.toDouble()).toFloat()
+		return setFromAxis(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x, angle)
+	}
+
+	/**
+	 * Set this quaternion to the rotation between two vectors.
+	 * @param x1 The base vectors x value, which should be normalized.
+	 * @param y1 The base vectors y value, which should be normalized.
+	 * @param z1 The base vectors z value, which should be normalized.
+	 * @param x2 The target vector x value, which should be normalized.
+	 * @param y2 The target vector y value, which should be normalized.
+	 * @param z2 The target vector z value, which should be normalized.
+	 * @return This quaternion for chaining
+	 */
+	fun setFromCross(x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float): Quaternion {
+		val dot = MathUtils.clamp(Vector3.dot(x1, y1, z1, x2, y2, z2), -1f, 1f)
+		val angle = Math.acos(dot.toDouble()).toFloat()
+		return setFromAxis(y1 * z2 - z1 * y2, z1 * x2 - x1 * z2, x1 * y2 - y1 * x2, angle)
+	}
+
+	/**
+	 * Spherical linear interpolation between this quaternion and the other quaternion, based on the alpha value in the range
+	 * [0,1]. Taken from. Taken from Bones framework for JPCT, see http://www.aptalkarga.com/bones/
+	 * @param end the end quaternion
+	 * @param alpha alpha in the range [0,1]
+	 * @return this quaternion for chaining
+	 */
+	fun slerp(end: Quaternion, alpha: Float): Quaternion {
+		val dot = dot(end)
+		val absDot = if (dot < 0f) -dot else dot
+
+		// Set the first and second scale for the interpolation
+		var scale0 = 1f - alpha
+		var scale1 = alpha
+
+		// Check if the angle between the 2 quaternions was big enough to warrant such calculations
+		if ((1f - absDot) > 0.1f) {
+			// Get the angle between the 2 quaternions,
+			// and then store the sin() of that angle
+			val angle = Math.acos(absDot.toDouble()).toFloat()
+			val invSinTheta = 1f / MathUtils.sin(angle)
+
+			// Calculate the scale for q1 and q2, according to the angle and its sine value
+			scale0 = (MathUtils.sin((1f - alpha) * angle) * invSinTheta)
+			scale1 = (MathUtils.sin(alpha * angle) * invSinTheta)
+		}
+
+		if (dot < 0f) scale1 = -scale1
+
+		// Calculate the x, y, z and w values for the quaternion by using a
+		// special form of linear interpolation for quaternions.
+		x = (scale0 * x) + (scale1 * end.x)
+		y = (scale0 * y) + (scale1 * end.y)
+		z = (scale0 * z) + (scale1 * end.z)
+		w = (scale0 * w) + (scale1 * end.w)
+
+		// Return the interpolated quaternion
+		return this
+	}
+
+	/**
+	 * Spherical linearly interpolates multiple quaternions and stores the result in this Quaternion.
+	 * Will not destroy the data previously inside the elements of q.
+	 * result = (q_1^w_1)*(q_2^w_2)* ... *(q_n^w_n) where w_i=1/n.
+	 * @param q List of quaternions
+	 * @return This quaternion for chaining
+	 */
+	fun slerp(q: Array<Quaternion>): Quaternion {
+		//Calculate exponents and multiply everything from left to right
+		val w = 1.0f / q.size.toFloat()
+		set(q[0]).exp(w)
+		for (i in 1..q.lastIndex)
+			mul(tmp1.set(q[i]).exp(w))
+		nor()
+		return this
+	}
+
+	/**
+	 * Spherical linearly interpolates multiple quaternions by the given weights and stores the result in this Quaternion.
+	 * Will not destroy the data previously inside the elements of q or w.
+	 * result = (q_1^w_1)*(q_2^w_2)* ... *(q_n^w_n) where the sum of w_i is 1.
+	 * Lists must be equal in length.
+	 * @param q List of quaternions
+	 * @param w List of weights
+	 * @return This quaternion for chaining
+	 */
+	fun slerp(q: Array<Quaternion>, w: FloatArray): Quaternion {
+
+		//Calculate exponents and multiply everything from left to right
+		set(q[0]).exp(w[0])
+		for (i in 1..q.lastIndex)
+			mul(tmp1.set(q[i]).exp(w[i]))
+		nor()
+		return this
+	}
+
+	/**
+	 * Calculates (this quaternion)^alpha where alpha is a real number and stores the result in this quaternion.
+	 * See http://en.wikipedia.org/wiki/Quaternion#Exponential.2C_logarithm.2C_and_power
+	 * @param alpha Exponent
+	 * @return This quaternion for chaining
+	 */
+	fun exp(alpha: Float): Quaternion {
+
+		//Calculate |q|^alpha
+		val norm = len()
+		val normExp = Math.pow(norm.toDouble(), alpha.toDouble()).toFloat()
+
+		//Calculate theta
+		val theta = Math.acos((w / norm).toDouble()).toFloat()
+
+		//Calculate coefficient of basis elements
+		val coeff: Float
+		if (MathUtils.abs(theta) < 0.001f)
+		//If theta is small enough, use the limit of sin(alpha*theta) / sin(theta) instead of actual value
+			coeff = normExp * alpha / norm
+		else
+			coeff = normExp * MathUtils.sin(alpha * theta) / (norm * MathUtils.sin(theta))
+
+		//Write results
+		w = normExp * MathUtils.cos(alpha * theta)
+		x *= coeff
+		y *= coeff
+		z *= coeff
+
+		//Fix any possible discrepancies
+		nor()
+
+		return this
+	}
+
+	/**
+	 * Get the dot product between this and the other quaternion (commutative).
+	 * @param other the other quaternion.
+	 * @return the dot product of this and the other quaternion.
+	 */
+	override fun dot(other: Quaternion): Float {
+		return this.x * other.x + this.y * other.y + this.z * other.z + this.w * other.w
+	}
+
+	/**
+	 * Get the dot product between this and the other quaternion (commutative).
+	 * @param x the x component of the other quaternion
+	 * @param y the y component of the other quaternion
+	 * @param z the z component of the other quaternion
+	 * @param w the w component of the other quaternion
+	 * @return the dot product of this and the other quaternion.
+	 */
+	override fun dot(x: Float, y: Float, z: Float, w: Float): Float {
+		return this.x * x + this.y * y + this.z * z + this.w * w
+	}
+
+	/**
+	 * Multiplies the components of this quaternion with the given scalar.
+	 * @param scalar the scalar.
+	 * @return this quaternion for chaining.
+	 */
+	fun mul(scalar: Float): Quaternion {
+		this.x *= scalar
+		this.y *= scalar
+		this.z *= scalar
+		this.w *= scalar
+		return this
+	}
+
+	fun times(scalar: Float): Quaternion {
+		return copy().mul(scalar)
+	}
+
+	/**
+	 * Get the axis-angle representation of the rotation in radians. The supplied vector will receive the axis (x, y and z values)
+	 * of the rotation and the value returned is the angle in radians around that axis. Note that this method will alter the
+	 * supplied vector, the existing value of the vector is ignored. </p> This will normalize this quaternion if needed. The
+	 * received axis is a unit vector. However, if this is an identity quaternion (no rotation), then the length of the axis may be
+	 * zero.
+	 *
+	 * @param axis vector which will receive the axis
+	 * @return the angle in radians
+	 * @see <a href="http://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation">wikipedia</a>
+	 * @see <a href="http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle">calculation</a>
+	 */
+	override fun getAxisAngleRad(axis: Vector3): Float {
+		if (this.w > 1) this.nor() // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
+		val angle = (2.0 * Math.acos(this.w.toDouble())).toFloat()
+		val s = Math.sqrt((1 - this.w * this.w).toDouble()) // assuming quaternion normalised then w is less than 1, so term always positive.
+		if (s < MathUtils.FLOAT_ROUNDING_ERROR) {
+			// test to avoid divide by zero, s is always positive due to sqrt
+			// if s close to zero then direction of axis not important
+			axis.x = this.x // if it is important that axis is normalised then replace with x=1; y=z=0;
+			axis.y = this.y
+			axis.z = this.z
+		} else {
+			axis.x = (this.x.toDouble() / s).toFloat() // normalise axis
+			axis.y = (this.y.toDouble() / s).toFloat()
+			axis.z = (this.z.toDouble() / s).toFloat()
+		}
+
+		return angle
+	}
+
+	/**
+	 * Get the angle in radians of the rotation this quaternion represents. Does not normalize the quaternion. Use
+	 * {@link #getAxisAngleRad(Vector3)} to get both the axis and the angle of this rotation. Use
+	 * {@link #getAngleAroundRad(Vector3)} to get the angle around a specific axis.
+	 * @return the angle in radians of the rotation
+	 */
+	override fun getAngleRad(): Float {
+		return (2.0 * Math.acos((if ((this.w > 1)) (this.w / len()) else this.w).toDouble())).toFloat()
+	}
+
+	/**
+	 * Get the swing rotation and twist rotation for the specified axis. The twist rotation represents the rotation around the
+	 * specified axis. The swing rotation represents the rotation of the specified axis itself, which is the rotation around an
+	 * axis perpendicular to the specified axis.
+	 * </p>
+	 * The swing and twist rotation can be used to reconstruct the original quaternion: this = swing * twist
+	 *
+	 * @param axisX the X component of the normalized axis for which to get the swing and twist rotation
+	 * @param axisY the Y component of the normalized axis for which to get the swing and twist rotation
+	 * @param axisZ the Z component of the normalized axis for which to get the swing and twist rotation
+	 * @param swing will receive the swing rotation: the rotation around an axis perpendicular to the specified axis
+	 * @param twist will receive the twist rotation: the rotation around the specified axis
+	 * @see <a href="http://www.euclideanspace.com/maths/geometry/rotations/for/decomposition">calculation</a>
+	 */
+	override fun getSwingTwist(axisX: Float, axisY: Float, axisZ: Float, swing: Quaternion, twist: Quaternion) {
+		val d = Vector3.dot(this.x, this.y, this.z, axisX, axisY, axisZ)
+		twist.set(axisX * d, axisY * d, axisZ * d, this.w).nor()
+		swing.set(twist).conjugate().mulLeft(this)
+	}
+
+	/**
+	 * Get the swing rotation and twist rotation for the specified axis. The twist rotation represents the rotation around the
+	 * specified axis. The swing rotation represents the rotation of the specified axis itself, which is the rotation around an
+	 * axis perpendicular to the specified axis.
+	 * </p>
+	 * The swing and twist rotation can be used to reconstruct the original quaternion: this = swing * twist
+	 *
+	 * @param axis the normalized axis for which to get the swing and twist rotation
+	 * @param swing will receive the swing rotation: the rotation around an axis perpendicular to the specified axis
+	 * @param twist will receive the twist rotation: the rotation around the specified axis
+	 * @see <a href="http://www.euclideanspace.com/maths/geometry/rotations/for/decomposition">calculation</a>
+	 */
+	override fun getSwingTwist(axis: Vector3, swing: Quaternion, twist: Quaternion) {
+		getSwingTwist(axis.x, axis.y, axis.z, swing, twist)
+	}
+
+	/**
+	 * Get the angle in radians of the rotation around the specified axis. The axis must be normalized.
+	 * @param axisX the x component of the normalized axis for which to get the angle
+	 * @param axisY the y component of the normalized axis for which to get the angle
+	 * @param axisZ the z component of the normalized axis for which to get the angle
+	 * @return the angle in radians of the rotation around the specified axis
+	 */
+	override fun getAngleAroundRad(axisX: Float, axisY: Float, axisZ: Float): Float {
+		val d = Vector3.dot(this.x, this.y, this.z, axisX, axisY, axisZ)
+		val l2 = Quaternion.len2(axisX * d, axisY * d, axisZ * d, this.w)
+		return if (MathUtils.isZero(l2)) 0f else (2.0 * Math.acos(MathUtils.clamp((this.w.toDouble() / Math.sqrt(l2.toDouble())).toFloat(), -1f, 1f).toDouble())).toFloat()
+	}
+
+	/**
+	 * Get the angle in radians of the rotation around the specified axis. The axis must be normalized.
+	 * @param axis the normalized axis for which to get the angle
+	 * @return the angle in radians of the rotation around the specified axis
+	 */
+	override fun getAngleAroundRad(axis: Vector3): Float {
+		return getAngleAroundRad(axis.x, axis.y, axis.z)
+	}
+
+	companion object {
+
+		private val tmp1 = Quaternion(0f, 0f, 0f, 0f)
+		private val tmp2 = Quaternion(0f, 0f, 0f, 0f)
+
+		/**
+		 * @return the euclidian length of the specified quaternion
+		 */
+		fun len(x: Float, y: Float, z: Float, w: Float): Float {
+			return Math.sqrt(x * x + y * y + z * z + w * w.toDouble()).toFloat()
+		}
+
+		fun len2(x: Float, y: Float, z: Float, w: Float): Float {
+			return x * x + y * y + z * z + w * w
+		}
+
+		/**
+		 * Get the dot product between the two quaternions (commutative).
+		 * @param x1 the x component of the first quaternion
+		 * @param y1 the y component of the first quaternion
+		 * @param z1 the z component of the first quaternion
+		 * @param w1 the w component of the first quaternion
+		 * @param x2 the x component of the second quaternion
+		 * @param y2 the y component of the second quaternion
+		 * @param z2 the z component of the second quaternion
+		 * @param w2 the w component of the second quaternion
+		 * @return the dot product between the first and second quaternion.
+		 */
+		fun dot(x1: Float, y1: Float, z1: Float, w1: Float, x2: Float, y2: Float, z2: Float, w2: Float): Float {
+			return x1 * x2 + y1 * y2 + z1 * z2 + w1 * w2
+		}
+	}
+}

@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="org.jcraft:jorbis:0.0.17" type="repository">
+    <properties maven-id="org.jcraft:jorbis:0.0.17" />
+    <CLASSES>
+      <root url="jar://$ACORNUI_HOME$/AcornUiLwjglBackend/lib/jorbis-0.0.17.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$ACORNUI_HOME$/AcornUiLwjglBackend/lib/jorbis-0.0.17-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

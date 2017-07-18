@@ -1,0 +1,122 @@
+/*
+ * Copyright 2015 Nicholas Bilyk
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.acornui.component
+
+import com.acornui.component.layout.LayoutElement
+import com.acornui.core.Child
+import com.acornui.core.di.Owned
+import com.acornui.core.di.inject
+import com.acornui.core.input.InteractionEvent
+import com.acornui.core.input.InteractionType
+import com.acornui.core.input.InteractivityManager
+import com.acornui.math.Vector2
+import com.acornui.signal.StoppableSignal
+
+/**
+ * InteractiveElement provides a way to add and use signals for interaction events.
+ * To use interaction signals, use their respective extension function.
+ * See commonInteractions.kt
+ */
+interface InteractiveElement : LayoutElement, CameraElement, AttachmentHolder, Child, Owned {
+
+	val native: NativeComponent
+
+	/**
+	 * If false, interaction will be blocked on this element.
+	 * This value is calculated based on the [inheritedInteractivityMode] property.
+	 */
+	val interactivityEnabled: Boolean
+		get() = inheritedInteractivityMode == InteractivityMode.ALL
+
+	/**
+	 * The inherited interactivity mode.
+	 */
+	val inheritedInteractivityMode: InteractivityMode
+
+	/**
+	 * Determines how this element will block or accept interaction events.
+	 */
+	var interactivityMode: InteractivityMode
+
+	fun <T: InteractionEvent> handlesInteraction(type: InteractionType<T>): Boolean {
+		return handlesInteraction(type, true) || handlesInteraction(type, false)
+	}
+
+	fun <T: InteractionEvent> handlesInteraction(type: InteractionType<T>, isCapture: Boolean): Boolean {
+		return getInteractionSignal<InteractionEvent>(type, isCapture) != null
+	}
+
+	fun hasInteraction(): Boolean
+
+	fun <T: InteractionEvent> hasInteraction(type: InteractionType<T>, isCapture: Boolean = false): Boolean {
+		return getInteractionSignal<InteractionEvent>(type, isCapture) != null
+	}
+
+	fun <T: InteractionEvent> getInteractionSignal(type: InteractionType<T>, isCapture: Boolean = false): StoppableSignal<T>?
+
+	fun <T: InteractionEvent> addInteractionSignal(type: InteractionType<T>, signal: StoppableSignal<T>, isCapture: Boolean = false)
+
+	fun <T: InteractionEvent> removeInteractionSignal(type: InteractionType<T>, isCapture: Boolean)
+
+	/**
+	 * Sets the [out] vector to the local mouse coordinates.
+	 * @return Returns the [out] vector.
+	 */
+	fun mousePosition(out: Vector2): Vector2
+
+	/**
+	 * Returns true if the mouse is currently over this element.
+	 */
+	fun mouseIsOver(): Boolean
+
+
+}
+
+enum class InteractivityMode {
+
+	/**
+	 * This InteractiveElement and its children will not be interactive.
+	 */
+	NONE,
+
+	/**
+	 * This InteractiveElement and its children will be interactive.
+	 */
+	ALL,
+
+	/**
+	 * This InteractiveElement will NOT be interactive, but its children will be.
+	 */
+	CHILDREN
+}
+
+
+/**
+ * Creates or reuses a stoppable signal for the specified interaction type.
+ * This should be used in the same style you see in CommonInteractions.kt
+ */
+fun <T : InteractionEvent> InteractiveElement.createOrReuse(type: InteractionType<T>, isCapture: Boolean): StoppableSignal<T> {
+	val existing = getInteractionSignal(type, isCapture)
+	if (existing != null) {
+		return existing
+	} else {
+		val interactivity = inject(InteractivityManager)
+		val newHandler = interactivity.getSignal(this, type, isCapture)
+		addInteractionSignal(type, newHandler, isCapture)
+		return newHandler
+	}
+}

@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="com.badlogicgames.jlayer:jlayer:1.0.2-gdx" type="repository">
+    <properties maven-id="com.badlogicgames.jlayer:jlayer:1.0.2-gdx" />
+    <CLASSES>
+      <root url="jar://$ACORNUI_HOME$/AcornUiLwjglBackend/lib/jlayer-1.0.2-gdx.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$ACORNUI_HOME$/AcornUiLwjglBackend/lib/jlayer-1.0.2-gdx-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

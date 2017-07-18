@@ -1,0 +1,333 @@
+/*
+ * Copyright 2015 Nicholas Bilyk
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.acornui.component.text
+
+import com.acornui.collection.Clearable
+import com.acornui.component.BoxStyle
+import com.acornui.component.ComponentInit
+import com.acornui.component.Labelable
+import com.acornui.component.UiComponent
+import com.acornui.component.layout.algorithm.FlowHAlign
+import com.acornui.component.layout.algorithm.FlowLayoutStyle
+import com.acornui.component.layout.algorithm.FlowVAlign
+import com.acornui.component.style.*
+import com.acornui.core.Disposable
+import com.acornui.core.di.DKey
+import com.acornui.core.di.DependencyKeyImpl
+import com.acornui.core.di.Owned
+import com.acornui.core.focus.Focusable
+import com.acornui.graphics.Color
+import com.acornui.graphics.ColorRo
+import com.acornui.graphics.color
+import com.acornui.serialization.*
+import com.acornui.signal.Signal
+import com.acornui.signal.Signal0
+
+interface TextField : UiComponent, Labelable, Styleable {
+
+	val charStyle: CharStyle
+	val flowStyle: FlowLayoutStyle
+
+	var text: String?
+	var htmlText: String?
+
+	val selection: TextSelection
+
+	/**
+	 * Replaces the given range with the provided text.
+	 * This is functionally the same as:
+	 * text.substring(0, startIndex) + newText + text.substring(endIndex, text.length)
+	 *
+	 * @param startIndex The starting character index for the replacement. (Inclusive)
+	 * @param endIndex The ending character index for the replacement. (Exclusive)
+	 *
+	 * E.g.
+	 * +text("Hello World") {
+	 *   replaceTextRange(1, 5, "i") // Hi World
+	 * }
+	 */
+	fun replaceTextRange(startIndex: Int, endIndex: Int, newText: String) {
+		val text = text ?: ""
+		this.text = text.substring(0, maxOf(0, startIndex)) + newText + text.substring(minOf(text.length, endIndex), text.length)
+	}
+
+	override var label: String
+		get() = text ?: ""
+		set(value) {
+			text = value
+		}
+
+	companion object : StyleTag {
+		val FACTORY_KEY: DKey<(owner: Owned) -> TextField> = DependencyKeyImpl()
+	}
+}
+
+fun Owned.editableText(init: ComponentInit<EditableTextField> = {}): EditableTextField {
+	val t = injector.inject(EditableTextField.FACTORY_KEY)(this)
+	t.init()
+	return t
+}
+
+var TextField.selectable: Boolean
+	get(): Boolean = charStyle.selectable
+	set(value) {
+		charStyle.selectable = value
+	}
+
+/**
+ * Creates a [TextField] implementation with the provided text content.
+ */
+fun Owned.text(text: String, init: ComponentInit<TextField> = {}): TextField {
+	val t = injector.inject(TextField.FACTORY_KEY)(this)
+	t.text = text
+	t.init()
+	return t
+}
+
+/**
+ * Creates a [TextField] implementation.
+ */
+fun Owned.text(init: ComponentInit<TextField> = {}): TextField {
+	val t = injector.inject(TextField.FACTORY_KEY)(this)
+	t.init()
+	return t
+}
+
+class TextSelection : Clearable, Disposable {
+
+	private val _changed = Signal0()
+	val changed: Signal<()->Unit>
+		get() = _changed
+
+	private var _startIndex = 0
+
+	/**
+	 * The beginning character index of the selection. (Inclusive)
+	 */
+	var startIndex: Int
+		get() = _startIndex
+		set(value) {
+			if (_startIndex == value) return
+			_startIndex = value
+			_changed.dispatch()
+		}
+
+	private var _endIndex = 0
+
+	/**
+	 * The ending character index of the selection. (Exclusive)
+	 */
+	var endIndex: Int
+		get() = _endIndex
+		set(value) {
+			if (_endIndex == value) return
+			_endIndex = value
+			_changed.dispatch()
+		}
+
+	override fun clear() {
+		_startIndex = 0
+		_endIndex = 0
+		_changed.dispatch()
+	}
+
+	/**
+	 * Sets the selection range to 0 - MAX_VALUE.
+	 */
+	fun selectAll() {
+		_startIndex = 0
+		_endIndex = Int.MAX_VALUE
+		_changed.dispatch()
+	}
+
+	fun inRange(i: Int): Boolean {
+		return i >= _startIndex && i < _endIndex
+	}
+
+	override fun dispose() {
+		_changed.dispose()
+	}
+}
+
+/**
+ * The glyph characteristics.
+ */
+class CharStyle : StyleBase() {
+
+	override val type: StyleType<CharStyle> = CharStyle
+
+	/**
+	 * The name of the font face. (case sensitive)
+	 */
+	var face by prop("_sans")
+
+	/**
+	 * The size of the font.
+	 */
+	var size by prop(14)
+
+	// TODO: bold to bold, etc
+
+	var bold by prop(false)
+
+	var italic by prop(false)
+
+	var isUnderlined by prop(false)
+
+	var colorTint: ColorRo by prop(Color(1f, 1f, 1f, 1f))
+	var backgroundColor: ColorRo by prop(Color())
+
+	var selectedColorTint: ColorRo by prop(Color(1f, 1f, 1f, 1f))
+	var selectedBackgroundColor: ColorRo by prop(Color(0.12f, 0.25f, 0.5f, 1f))
+
+	/**
+	 * The text is selectable by the user.
+	 */
+	var selectable by prop(true)
+
+	companion object : StyleType<CharStyle>
+}
+
+object CharStyleSerializer : To<CharStyle>, From<CharStyle> {
+
+	override fun CharStyle.write(writer: Writer) {
+		writer.styleProperty(this, "face")?.string(face)
+		writer.styleProperty(this, "size")?.int(size)
+		writer.styleProperty(this, "bold")?.bool(bold)
+		writer.styleProperty(this, "italic")?.bool(italic)
+		writer.styleProperty(this, "isUnderlined")?.bool(isUnderlined)
+		writer.styleProperty(this, "colorTint")?.color(colorTint)
+		writer.styleProperty(this, "backgroundColor")?.color(backgroundColor)
+		writer.styleProperty(this, "selectedColorTint")?.color(selectedColorTint)
+		writer.styleProperty(this, "selectedBackgroundColor")?.color(selectedBackgroundColor)
+		writer.styleProperty(this, "selectable")?.bool(selectable)
+	}
+
+	override fun read(reader: Reader): CharStyle {
+		val c = CharStyle()
+		reader.contains("face") { c.face = it.string()!! }
+		reader.contains("size") { c.size = it.int()!! }
+		reader.contains("bold") { c.bold = it.bool()!! }
+		reader.contains("italic") { c.italic = it.bool()!! }
+		reader.contains("isUnderlined") { c.isUnderlined = it.bool()!! }
+		reader.contains("colorTint") { c.colorTint = it.color()!! }
+		reader.contains("backgroundColor") { c.backgroundColor = it.color()!! }
+		reader.contains("selectedColorTint") { c.selectedColorTint = it.color()!! }
+		reader.contains("selectedBackgroundColor") { c.selectedBackgroundColor = it.color()!! }
+		reader.contains("selectable") { c.selectable = it.bool()!! }
+		return c
+	}
+}
+
+fun charStyle(init: CharStyle.() -> Unit = {}): CharStyle {
+	val c = CharStyle()
+	c.init()
+	return c
+}
+
+interface TextInput : Focusable, Styleable {
+
+	val charStyle: CharStyle
+	val flowStyle: FlowLayoutStyle
+	val boxStyle: BoxStyle
+	val textInputStyle: TextInputStyle
+
+	/**
+	 * Dispatched on each input character.
+	 */
+	val input: Signal<() -> Unit>
+
+	/**
+	 * Dispatched on value commit.
+	 */
+	val changed: Signal<() -> Unit>
+
+	var editable: Boolean
+	var maxLength: Int?
+
+	var text: String
+
+	var placeholder: String
+
+	/**
+	 * A regular expression pattern to define what is NOT allowed in this text input.
+	 * E.g. "[a-z]" will prevent lowercase letters from being entered.
+	 *
+	 * Note: In the future, this will be changed to restrict: Regex, currently KT-17851 prevents this.
+	 * Note: The global flag will be used.
+	 */
+	var restrictPattern: String?
+
+	val selection: TextSelection
+
+	var password: Boolean
+
+	companion object : StyleTag {
+		val FACTORY_KEY: DKey<(owner: Owned) -> TextInput> = DependencyKeyImpl()
+	}
+}
+
+var TextInput.selectable: Boolean
+	get(): Boolean = charStyle.selectable
+	set(value) {
+		charStyle.selectable = value
+	}
+
+interface TextArea : Focusable {
+
+	val charStyle: CharStyle
+	val flowStyle: FlowLayoutStyle
+	val boxStyle: BoxStyle
+	val textInputStyle: TextInputStyle
+
+	val changed: Signal0
+
+	var editable: Boolean
+
+	var text: String
+
+	companion object : StyleTag {
+		val FACTORY_KEY: DKey<(owner: Owned) -> TextArea> = DependencyKeyImpl()
+	}
+}
+
+var TextArea.selectable: Boolean
+	get(): Boolean = charStyle.selectable
+	set(value) {
+		charStyle.selectable = value
+	}
+
+
+fun Owned.textInput(init: ComponentInit<TextInput> = {}): TextInput {
+	val t = injector.inject(TextInput.FACTORY_KEY)(this)
+	t.init()
+	return t
+}
+
+fun Owned.textArea(init: ComponentInit<TextArea> = {}): TextArea {
+	val t = injector.inject(TextArea.FACTORY_KEY)(this)
+	t.init()
+	return t
+}
+
+class TextInputStyle : StyleBase() {
+	override val type = Companion
+
+	var defaultWidth by prop(180f)
+
+	companion object : StyleType<TextInputStyle>
+}

@@ -1,0 +1,144 @@
+/*
+ * Copyright 2015 Nicholas Bilyk
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.acornui.component
+
+import com.acornui.component.layout.SizeConstraints
+import com.acornui.component.layout.algorithm.LayoutDataProvider
+import com.acornui.component.style.*
+import com.acornui.component.text.text
+import com.acornui.core.di.Owned
+import com.acornui.core.di.own
+import com.acornui.core.input.interaction.click
+import com.acornui.math.Bounds
+import com.acornui.math.Pad
+import com.acornui.signal.Cancel
+import com.acornui.signal.Signal1
+import com.acornui.signal.Signal2
+
+open class WindowPanel(owner: Owned) : ElementContainerImpl(owner), Labelable, Closeable, LayoutDataProvider<StackLayoutData> {
+
+	override val closing = own(Signal2<Closeable, Cancel>())
+	override val closed = own(Signal1<Closeable>())
+	protected val cancel = Cancel()
+
+
+	val style = bind(WindowPanelStyle())
+
+	protected val textField = addChild(text())
+
+	private val contents = addChild(stack())
+	private var background: UiComponent? = null
+	private var titleBarBackground: UiComponent? = null
+	private var closeButton: UiComponent? = null
+
+	override var label: String
+		get() = textField.label
+		set(value) {
+			textField.label = value
+		}
+
+	init {
+		styleTags.add(WindowPanel)
+		watch(style) {
+			background?.dispose()
+			background = addChild(0, it.background(this))
+
+			titleBarBackground?.dispose()
+			titleBarBackground = addChild(1, it.titleBarBackground(this))
+
+			closeButton?.dispose()
+			closeButton = it.closeButton(this)
+			closeButton!!.click().add { close() }
+			addChild(2, closeButton!!)
+		}
+	}
+
+	override fun createLayoutData(): StackLayoutData = StackLayoutData()
+
+	override fun onElementAdded(index: Int, element: UiComponent) {
+		contents.addElement(index, element)
+	}
+
+	override fun onElementRemoved(index: Int, element: UiComponent) {
+		contents.removeElement(element)
+	}
+
+	open fun close() {
+		closing.dispatch(this, cancel.reset())
+		if (!cancel.canceled()) {
+			closed.dispatch(this)
+		}
+	}
+
+	override fun updateSizeConstraints(out: SizeConstraints) {
+		val padding = style.padding
+		val titleBarPadding = style.titleBarPadding
+		val cS = contents.sizeConstraints
+		val tCS = textField.sizeConstraints
+		out.width.min = padding.expandWidth(cS.width.min)
+		out.width.max = padding.expandWidth(cS.width.max)
+		out.height.min = (padding.expandHeight(cS.height.min) ?: 0f) + (titleBarPadding.expandHeight(tCS.height.min) ?: 0f)
+		out.set(contents.sizeConstraints)
+	}
+
+	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
+		val padding = style.padding
+		val titleBarPadding = style.titleBarPadding
+		val closeButton = closeButton!!
+		val background = background!!
+
+		textField.setSize(if (explicitWidth == null) null else explicitWidth - closeButton.width - style.titleBarGap, null)
+
+		val tFH = maxOf(textField.height, closeButton.height)
+		textField.moveTo(titleBarPadding.left, titleBarPadding.top + (tFH - textField.height) * 0.5f)
+		val titleBarHeight = titleBarPadding.expandHeight2(maxOf(textField.height, closeButton.height))
+		val contentsW = explicitWidth
+		val contentsH = if (explicitHeight == null) null else explicitHeight - titleBarHeight
+
+		contents.setSize(padding.reduceWidth(contentsW), padding.reduceHeight(contentsH))
+		contents.setPosition(padding.left, titleBarHeight + padding.top)
+		background.setSize(padding.expandWidth2(contents.width), padding.expandHeight2(contents.height))
+
+		background.setPosition(0f, titleBarHeight)
+		out.set(maxOf(titleBarHeight, background.width), titleBarHeight + background.height)
+		titleBarBackground?.setSize(out.width, titleBarHeight)
+		closeButton.setPosition(out.width - titleBarPadding.right - closeButton.width, titleBarPadding.top)
+	}
+
+	companion object : StyleTag
+}
+
+class WindowPanelStyle() : StyleBase() {
+
+	override val type: StyleType<WindowPanelStyle> = WindowPanelStyle
+
+	var background by prop(noSkin)
+	var titleBarBackground by prop(noSkin)
+	var closeButton by prop(noSkin)
+	var padding by prop(Pad(5f))
+	var titleBarPadding by prop(Pad(5f))
+	var titleBarGap by prop(5f)
+
+	companion object : StyleType<WindowPanelStyle>
+}
+
+fun Owned.windowPanel(
+		init: ComponentInit<WindowPanel> = {}): WindowPanel {
+	val p = WindowPanel(this)
+	p.init()
+	return p
+}
