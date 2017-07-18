@@ -1,0 +1,19 @@
+<component name="libraryTable">
+  <library name="com.bladecoder.packr:packr:2.1" type="repository">
+    <properties maven-id="com.bladecoder.packr:packr:2.1" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/bladecoder/packr/packr/2.1/packr-2.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/zeroturnaround/zt-zip/1.7/zt-zip-1.7.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/commons-io/commons-io/1.4/commons-io-1.4.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/slf4j/slf4j-api/1.6.6/slf4j-api-1.6.6.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/eclipsesource/minimal-json/minimal-json/0.9.1/minimal-json-0.9.1.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/com/lexicalscope/jewelcli/jewelcli/0.8.9/jewelcli-0.8.9.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/bladecoder/packr/packr/2.1/packr-2.1-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/bladecoder/packr/packr/2.1/packr-2.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

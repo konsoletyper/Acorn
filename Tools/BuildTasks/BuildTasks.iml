@@ -32,5 +32,7 @@
         <jarDirectory url="file://$MODULE_DIR$/lib" recursive="false" type="SOURCES" />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="com.google.javascript:closure-compiler-externs:v20170626" level="project" />
+    <orderEntry type="library" name="com.bladecoder.packr:packr:2.1" level="project" />
   </component>
 </module>
