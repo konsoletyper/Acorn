@@ -11,9 +11,12 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="com.google.guava:guava:20.0" level="project" />
+    <orderEntry type="library" name="com.google.javascript:closure-compiler-externs:v20170626" level="project" />
+    <orderEntry type="library" name="com.google.code.gson:gson:2.7" level="project" />
     <orderEntry type="library" name="KotlinCompiler" level="project" />
-    <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" scope="TEST" name="junit:junit:4.12" level="project" />
+    <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module" module-name="AcornTexturePackerCore" />
     <orderEntry type="module" module-name="AcornTexturePackerJvm" />
     <orderEntry type="module" module-name="AcornUiCore" />
@@ -32,7 +35,6 @@
         <jarDirectory url="file://$MODULE_DIR$/lib" recursive="false" type="SOURCES" />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="com.google.javascript:closure-compiler-externs:v20170626" level="project" />
     <orderEntry type="library" name="com.bladecoder.packr:packr:2.1" level="project" />
   </component>
 </module>
