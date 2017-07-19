@@ -18,8 +18,6 @@ package com.acornui.jvm.graphics
 
 import com.acornui.core.graphics.Texture
 import com.acornui.gl.core.*
-import com.acornui.graphics.Color
-import com.acornui.graphics.ColorRo
 import com.acornui.io.NativeBuffer
 import org.lwjgl.BufferUtils
 import org.lwjgl.opengl.*
@@ -634,15 +632,15 @@ open class LwjglGl20 : Gl20 {
 	}
 }
 
-class JvmGlProgram(val o: Int) : GlProgramRef {}
-class JvmGlShader(val o: Int) : GlShaderRef {}
-class JvmGlBuffer(val o: Int) : GlBufferRef {}
-class JvmGlFramebuffer(val o: Int) : GlFramebufferRef {}
-class JvmGlRenderbuffer(val o: Int) : GlRenderbufferRef {}
-class JvmGlTexture(val o: Int) : GlTextureRef {}
+class JvmGlProgram(val o: Int) : GlProgramRef
+class JvmGlShader(val o: Int) : GlShaderRef
+class JvmGlBuffer(val o: Int) : GlBufferRef
+class JvmGlFramebuffer(val o: Int) : GlFramebufferRef
+class JvmGlRenderbuffer(val o: Int) : GlRenderbufferRef
+class JvmGlTexture(val o: Int) : GlTextureRef
 class JvmGlActiveInfo(
 		override var name: String,
 		override var size: Int,
-		override var type: Int) : GlActiveInfoRef {
-}
-class JvmGlUniformLocation(val o: Int) : GlUniformLocationRef {}
+		override var type: Int) : GlActiveInfoRef
+
+class JvmGlUniformLocation(val o: Int) : GlUniformLocationRef

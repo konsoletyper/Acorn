@@ -31,5 +31,8 @@
     <orderEntry type="library" name="com.badlogicgames.jlayer:jlayer:1.0.2-gdx" level="project" />
     <orderEntry type="library" name="org.lwjgl:lwjgl:3.1.2" level="project" />
     <orderEntry type="library" name="org.jcraft:jorbis:0.0.17" level="project" />
+    <orderEntry type="library" name="org.lwjgl:lwjgl-glfw:3.1.2" level="project" />
+    <orderEntry type="library" name="org.lwjgl:lwjgl-openal:3.1.2" level="project" />
+    <orderEntry type="library" name="org.lwjgl:lwjgl-opengl:3.1.2" level="project" />
   </component>
 </module>

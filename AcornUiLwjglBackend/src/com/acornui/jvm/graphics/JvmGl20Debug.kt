@@ -18,7 +18,6 @@ package com.acornui.jvm.graphics
 
 import com.acornui.gl.core.WrappedGl20
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GLUtil
 
 /**
  * @author nbilyk
@@ -30,5 +29,4 @@ class JvmGl20Debug : WrappedGl20(LwjglGl20(), {}, {
 //		GLU.gluErrorString
 //		throw Exception("GL ERROR: " + GLUtil.getErrorString(errorCode) + " code: $errorCode")
 	}
-}) {
-}
+})

@@ -209,7 +209,7 @@ class GlfwWindowImpl(
 
 	override fun renderEnd() {
 		if (debug) {
-			val i = GL11.glGetError();
+			val i = GL11.glGetError()
 			if (i != GL11.GL_NO_ERROR) {
 				Log.error("GL ERROR: " + i)
 			}

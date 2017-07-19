@@ -17,11 +17,8 @@
 package com.acornui.jvm.time
 
 import org.junit.Test
-import java.util.*
-import java.text.SimpleDateFormat
 import java.text.DateFormat
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
+import java.util.*
 
 
 class DateImplTest {

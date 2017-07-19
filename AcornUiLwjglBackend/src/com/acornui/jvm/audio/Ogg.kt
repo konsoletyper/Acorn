@@ -234,7 +234,7 @@ internal constructor(
 			bytes = input.read(buffer!!, index, BUFFER_SIZE)
 
 			syncState.wrote(bytes)
-			if (syncState.pageout(page) !== 1) {
+			if (syncState.pageout(page) != 1) {
 				if (bytes < BUFFER_SIZE) return false
 				throw Exception("Input does not appear to be an Ogg bitstream.")
 			}
@@ -246,7 +246,7 @@ internal constructor(
 				throw Exception("Error reading first page of Ogg bitstream.")
 			}
 
-			if (streamState.packetout(packet) !== 1) {
+			if (streamState.packetout(packet) != 1) {
 				throw Exception("Error reading initial header packet.")
 			}
 
