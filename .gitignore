@@ -1,6 +1,6 @@
 dist
 out
-lib
+externalLib
 /www
 /.idea/workspace.xml
 /Tools/BuildTasks/testOut

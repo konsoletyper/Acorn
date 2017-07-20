@@ -11,30 +11,28 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="com.google.guava:guava:20.0" level="project" />
-    <orderEntry type="library" name="com.google.javascript:closure-compiler-externs:v20170626" level="project" />
-    <orderEntry type="library" name="com.google.code.gson:gson:2.7" level="project" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/externalLib/compile" />
+        </CLASSES>
+        <JAVADOC>
+          <root url="file://$MODULE_DIR$/externalLib/compile" />
+        </JAVADOC>
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/externalLib/compile" />
+        </SOURCES>
+        <jarDirectory url="file://$MODULE_DIR$/externalLib/compile" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/externalLib/compile" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
     <orderEntry type="library" name="KotlinCompiler" level="project" />
-    <orderEntry type="library" scope="TEST" name="junit:junit:4.12" level="project" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module" module-name="AcornTexturePackerCore" />
     <orderEntry type="module" module-name="AcornTexturePackerJvm" />
     <orderEntry type="module" module-name="AcornUiCore" />
     <orderEntry type="module" module-name="AcornUiLwjglBackend" />
     <orderEntry type="module" module-name="AcornUtils" />
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="file://$MODULE_DIR$/lib" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES>
-          <root url="file://$MODULE_DIR$/lib" />
-        </SOURCES>
-        <jarDirectory url="file://$MODULE_DIR$/lib" recursive="false" />
-        <jarDirectory url="file://$MODULE_DIR$/lib" recursive="false" type="SOURCES" />
-      </library>
-    </orderEntry>
-    <orderEntry type="library" name="com.bladecoder.packr:packr:2.1" level="project" />
+    <orderEntry type="library" scope="TEST" name="ExternalTestLibs" level="project" />
   </component>
 </module>

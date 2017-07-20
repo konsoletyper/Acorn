@@ -16,6 +16,6 @@
     <orderEntry type="module" module-name="AcornUiLwjglBackend" />
     <orderEntry type="module" module-name="AcornUtils" />
     <orderEntry type="module" module-name="AcornTexturePackerCore" />
-    <orderEntry type="library" scope="TEST" name="junit:junit:4.12" level="project" />
+    <orderEntry type="library" scope="TEST" name="ExternalTestLibs" level="project" />
   </component>
 </module>

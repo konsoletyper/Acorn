@@ -11,28 +11,38 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" scope="TEST" name="junit:junit:4.12" level="project" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module" module-name="AcornUtils" />
     <orderEntry type="module" module-name="AcornUiCore" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="file://$MODULE_DIR$/lib" />
+          <root url="file://$MODULE_DIR$/externalLib/compile" />
         </CLASSES>
-        <JAVADOC />
+        <JAVADOC>
+          <root url="file://$MODULE_DIR$/externalLib/compile" />
+        </JAVADOC>
         <SOURCES>
-          <root url="file://$MODULE_DIR$/lib" />
+          <root url="file://$MODULE_DIR$/externalLib/compile" />
         </SOURCES>
-        <jarDirectory url="file://$MODULE_DIR$/lib" recursive="false" />
-        <jarDirectory url="file://$MODULE_DIR$/lib" recursive="false" type="SOURCES" />
+        <jarDirectory url="file://$MODULE_DIR$/externalLib/compile" recursive="false" />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="com.badlogicgames.jlayer:jlayer:1.0.2-gdx" level="project" />
-    <orderEntry type="library" name="org.lwjgl:lwjgl:3.1.2" level="project" />
-    <orderEntry type="library" name="org.jcraft:jorbis:0.0.17" level="project" />
-    <orderEntry type="library" name="org.lwjgl:lwjgl-glfw:3.1.2" level="project" />
-    <orderEntry type="library" name="org.lwjgl:lwjgl-openal:3.1.2" level="project" />
-    <orderEntry type="library" name="org.lwjgl:lwjgl-opengl:3.1.2" level="project" />
+    <orderEntry type="module-library" scope="RUNTIME">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/externalLib/runtime" />
+        </CLASSES>
+        <JAVADOC>
+          <root url="file://$MODULE_DIR$/externalLib/runtime" />
+        </JAVADOC>
+        <SOURCES>
+          <root url="file://$MODULE_DIR$/externalLib/runtime" />
+        </SOURCES>
+        <jarDirectory url="file://$MODULE_DIR$/externalLib/runtime" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/externalLib/runtime" recursive="false" type="SOURCES" />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" scope="TEST" name="ExternalTestLibs" level="project" />
   </component>
 </module>

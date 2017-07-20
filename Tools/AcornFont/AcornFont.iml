@@ -12,5 +12,6 @@
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="module" module-name="AcornUtils" />
     <orderEntry type="module" module-name="AcornUiCore" />
+    <orderEntry type="library" scope="TEST" name="ExternalTestLibs" level="project" />
   </component>
 </module>

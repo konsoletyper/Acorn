@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="ExternalTestLibs">
+    <CLASSES>
+      <root url="file://$ACORNUI_HOME$/externalLib/test" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="file://$ACORNUI_HOME$/externalLib/test" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="file://$ACORNUI_HOME$/externalLib/test" />
+    </SOURCES>
+    <jarDirectory url="file://$ACORNUI_HOME$/externalLib/test" recursive="false" />
+    <jarDirectory url="file://$ACORNUI_HOME$/externalLib/test" recursive="false" type="SOURCES" />
+  </library>
+</component>

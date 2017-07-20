@@ -9,7 +9,9 @@
     <option name="ALTERNATIVE_JRE_PATH" />
     <option name="PASS_PARENT_ENVS" value="true" />
     <module name="BuildTool" />
-    <envs />
+    <envs>
+      <env name="ACORNUI_HOME" value="$ACORNUI_HOME$" />
+    </envs>
     <method />
   </configuration>
 </component>
