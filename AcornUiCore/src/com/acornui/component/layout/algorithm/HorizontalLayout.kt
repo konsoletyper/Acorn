@@ -26,7 +26,7 @@ import com.acornui.math.MathUtils
 import com.acornui.math.Pad
 import com.acornui.math.PadRo
 
-object HorizontalLayout : LayoutAlgorithm<HorizontalLayoutStyle, HorizontalLayoutData>, BasicLayoutAlgorithm<HorizontalLayoutStyle, HorizontalLayoutData> {
+class HorizontalLayout : LayoutAlgorithm<HorizontalLayoutStyle, HorizontalLayoutData>, BasicLayoutAlgorithm<HorizontalLayoutStyle, HorizontalLayoutData> {
 
 	override fun calculateSizeConstraints(elements: List<LayoutElement>, props: HorizontalLayoutStyle, out: SizeConstraints) {
 		val padding = props.padding
@@ -161,7 +161,7 @@ class HorizontalLayoutData : BasicLayoutData() {
 	var verticalAlign: HAlign? by bindable(null)
 }
 
-open class HorizontalLayoutContainer(owner: Owned) : LayoutContainerImpl<HorizontalLayoutStyle, HorizontalLayoutData>(owner, HorizontalLayout, HorizontalLayoutStyle())
+open class HorizontalLayoutContainer(owner: Owned) : LayoutContainerImpl<HorizontalLayoutStyle, HorizontalLayoutData>(owner, HorizontalLayout(), HorizontalLayoutStyle())
 
 fun Owned.hGroup(init: ComponentInit<HorizontalLayoutContainer> = {}): HorizontalLayoutContainer {
 	val horizontalGroup = HorizontalLayoutContainer(this)

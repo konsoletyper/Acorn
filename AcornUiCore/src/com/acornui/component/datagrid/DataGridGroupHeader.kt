@@ -36,7 +36,7 @@ interface DataGridGroupHeader : UiComponent {
 	companion object : StyleTag
 }
 
-open class DataGridGroupHeaderImpl<E>(owner: Owned, protected val group: DataGridGroup<E>, protected val list: ObservableList<E>) : LayoutContainerImpl<DataGridGroupHeaderStyle, HorizontalLayoutData>(owner, HorizontalLayout, DataGridGroupHeaderStyle()), DataGridGroupHeader, Labelable {
+open class DataGridGroupHeaderImpl<E>(owner: Owned, protected val group: DataGridGroup<E>, protected val list: ObservableList<E>) : LayoutContainerImpl<DataGridGroupHeaderStyle, HorizontalLayoutData>(owner, HorizontalLayout(), DataGridGroupHeaderStyle()), DataGridGroupHeader, Labelable {
 
 	private var background: UiComponent? = null
 	private var collapseButton: Button? = null

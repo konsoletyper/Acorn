@@ -719,12 +719,17 @@ open class CheckboxSkinPart(
 		val box: UiComponent
 ) : HorizontalLayoutContainer(owner), Labelable {
 
-	val textField = text("") { selectable = false; includeInLayout = (false) }
+	val textField: TextField
 
 	init {
 		style.verticalAlign = VAlign.MIDDLE
 		+box
-		+textField layout { widthPercent = 1f }
+		textField = +text("") {
+			selectable = false
+			includeInLayout = false
+		} layout {
+			widthPercent = 1f
+		}
 	}
 
 	override var label: String

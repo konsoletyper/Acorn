@@ -71,6 +71,8 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusabl
 
 	protected var _selectionCursor: RollOverCursor? = null
 
+	private val layout = FlowLayout()
+
 	init {
 		styleTags.add(TextField)
 		BitmapFontRegistry.fontRegistered.add(this::fontRegisteredHandler)
@@ -198,7 +200,7 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusabl
 	}
 
 	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
-		FlowLayout.basicLayout(explicitWidth, explicitHeight, tfParts, flowStyle, out)
+		layout.basicLayout(explicitWidth, explicitHeight, tfParts, flowStyle, out)
 		val lineHeight = tfCharStyle.font?.data?.lineHeight?.toFloat() ?: 0f
 		if (out.height < lineHeight) out.height = lineHeight
 		if (explicitWidth != null) out.width = explicitWidth
@@ -271,6 +273,8 @@ class TfContainer : BasicLayoutElementImpl(), TfPart, LayoutDataProvider<FlowLay
 
 	override fun createLayoutData(): FlowLayoutData = FlowLayoutData()
 
+	private val layout = FlowLayout()
+
 	val flowStyle = FlowLayoutStyle()
 	val children = ArrayList<TfPart>()
 
@@ -287,7 +291,7 @@ class TfContainer : BasicLayoutElementImpl(), TfPart, LayoutDataProvider<FlowLay
 	}
 
 	override fun updateLayout(width: Float?, height: Float?, out: Bounds) {
-		FlowLayout.basicLayout(width, height, children, flowStyle, out)
+		layout.basicLayout(width, height, children, flowStyle, out)
 	}
 
 	override fun validateVertices(transform: Matrix4Ro, rightClip: Float, bottomClip: Float) {

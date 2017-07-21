@@ -34,7 +34,7 @@ import com.acornui.math.PadRo
 /**
  * A layout where the elements are placed left to right, then wraps before reaching the explicit width of the container.
  */
-object FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, BasicLayoutAlgorithm<FlowLayoutStyle, FlowLayoutData> {
+class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, BasicLayoutAlgorithm<FlowLayoutStyle, FlowLayoutData> {
 
 	private val line = LineInfo()
 
@@ -275,7 +275,7 @@ enum class FlowVAlign {
 
 }
 
-open class FlowLayoutContainer(owner: Owned) : LayoutContainerImpl<FlowLayoutStyle, FlowLayoutData>(owner, FlowLayout, FlowLayoutStyle())
+open class FlowLayoutContainer(owner: Owned) : LayoutContainerImpl<FlowLayoutStyle, FlowLayoutData>(owner, FlowLayout(), FlowLayoutStyle())
 
 fun Owned.flow(init: ComponentInit<FlowLayoutContainer> = {}): FlowLayoutContainer {
 	val flowContainer = FlowLayoutContainer(this)

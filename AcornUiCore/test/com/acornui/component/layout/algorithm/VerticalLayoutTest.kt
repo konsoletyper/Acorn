@@ -28,7 +28,7 @@ class VerticalLayoutTest {
 	private val owner = MockInjector.createOwner()
 
 	@Test fun basic() {
-		val layout = VerticalLayout
+		val layout = VerticalLayout()
 		val style = VerticalLayoutStyle()
 		val gap = 7f
 		style.gap = gap
@@ -42,7 +42,7 @@ class VerticalLayoutTest {
 	}
 
 	@Test fun padding() {
-		val layout = VerticalLayout
+		val layout = VerticalLayout()
 		val style = VerticalLayoutStyle()
 		val gap = 7f
 		style.gap = gap
@@ -58,7 +58,7 @@ class VerticalLayoutTest {
 	}
 
 	@Test fun percentWidth() {
-		val layout = VerticalLayout
+		val layout = VerticalLayout()
 		val style = VerticalLayoutStyle()
 		val gap = 7f
 		style.gap = gap
@@ -82,7 +82,7 @@ class VerticalLayoutTest {
 	 * Percent based heights should contract to fit the available space.
 	 */
 	@Test fun percentHeight() {
-		val layout = VerticalLayout
+		val layout = VerticalLayout()
 		val style = VerticalLayoutStyle()
 		val gap = 7f
 		style.gap = gap
@@ -101,7 +101,7 @@ class VerticalLayoutTest {
 	 * Percent based heights shouldn't expand to fill the available space.
 	 */
 	@Test fun percentHeight2() {
-		val layout = VerticalLayout
+		val layout = VerticalLayout()
 		val style = VerticalLayoutStyle()
 		val gap = 3f
 		style.gap = gap
