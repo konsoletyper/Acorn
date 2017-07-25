@@ -81,6 +81,9 @@ abstract class ShaderProgramBase(
 		vertexShader = compileShader(vertexShaderSrc, Gl20.VERTEX_SHADER)
 		fragmentShader = compileShader(fragmentShaderSrc, Gl20.FRAGMENT_SHADER)
 		gl.linkProgram(_program)
+		if (!gl.getProgramParameterb(_program, Gl20.LINK_STATUS)) {
+			throw Exception("Could not link shader.")
+		}
 	}
 
 	override val program: GlProgramRef

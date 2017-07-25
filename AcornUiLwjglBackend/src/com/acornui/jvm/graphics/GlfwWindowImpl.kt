@@ -30,6 +30,7 @@ import com.acornui.signal.Signal3
 import org.lwjgl.glfw.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GL20
 import org.lwjgl.opengl.GLUtil
 import org.lwjgl.system.MemoryUtil
 
@@ -121,6 +122,7 @@ class GlfwWindowImpl(
 		setSize(windowConfig.initialWidth, windowConfig.initialHeight, false)
 
 		Log.info("Vendor: ${GL11.glGetString(GL11.GL_VENDOR)}")
+		Log.info("Supported GLSL language version: ${GL11.glGetString(GL20.GL_SHADING_LANGUAGE_VERSION)}")
 	}
 
 	private var _clearColor = Color.CLEAR.copy()

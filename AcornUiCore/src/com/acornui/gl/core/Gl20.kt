@@ -22,10 +22,8 @@ import com.acornui.core.di.DKey
 import com.acornui.core.graphics.Texture
 import com.acornui.core.io.BufferFactory
 import com.acornui.core.round
-import com.acornui.graphics.Color
 import com.acornui.graphics.ColorRo
 import com.acornui.io.NativeBuffer
-import com.acornui.math.Matrix4
 import com.acornui.math.Matrix4Ro
 import com.acornui.math.Vector2
 import com.acornui.math.Vector3
@@ -33,6 +31,10 @@ import com.acornui.math.Vector3
 interface Gl20 {
 
 	companion object : DKey<Gl20> {
+
+		const val TRUE = 1
+		const val FALSE = 0
+
 
 		/* ClearBufferMask */
 		const val DEPTH_BUFFER_BIT: Int = 256

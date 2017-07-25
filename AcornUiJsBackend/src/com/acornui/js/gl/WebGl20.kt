@@ -579,7 +579,8 @@ class WebGl20(private val context: WebGLRenderingContext) : Gl20 {
 	}
 
 	override fun getProgramParameteri(program: GlProgramRef, pName: Int): Int {
-		return context.getProgramParameter((program as WebGlProgramRef).o, pName) as Int
+		val r = context.getProgramParameter((program as WebGlProgramRef).o, pName)
+		return (r as Number).toInt()
 	}
 
 	override fun getBufferParameter(target: Int, pName: Int): Int {

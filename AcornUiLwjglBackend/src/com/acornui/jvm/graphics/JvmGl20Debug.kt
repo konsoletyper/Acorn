@@ -17,8 +17,10 @@
 package com.acornui.jvm.graphics
 
 import com.acornui.gl.core.WrappedGl20
+import org.lwjgl.opengl.ARBImaging.GL_TABLE_TOO_LARGE
 import org.lwjgl.opengl.GL11
-import org.lwjgl.opengl.GLUtil
+import org.lwjgl.opengl.GL11.*
+import org.lwjgl.opengl.GL30.GL_INVALID_FRAMEBUFFER_OPERATION
 
 /**
  * @author nbilyk
@@ -27,7 +29,29 @@ class JvmGl20Debug : WrappedGl20(LwjglGl20(), {}, {
 	val errorCode = GL11.glGetError()
 
 	if (errorCode != GL11.GL_NO_ERROR) {
-		throw Exception("GL ERROR: code: $errorCode")
-//		throw Exception("GL ERROR: " + GLUtil.getErrorString(errorCode) + " code: $errorCode")
+		throw Exception("GL ERROR: code: $errorCode ${getErrorString(errorCode)}")
 	}
-})
+}
+)
+
+/**
+ * Translates an OpenGL error code to a String describing the error.
+ *
+ * @param errorCode the error code, as returned by {@link GL11#glGetError GetError}.
+ *
+ * @return the error description
+ */
+private fun getErrorString(errorCode: Int): String {
+	return when (errorCode) {
+		GL_NO_ERROR -> "No error"
+		GL_INVALID_ENUM -> "Enum argument out of range"
+		GL_INVALID_VALUE -> "Numeric argument out of range"
+		GL_INVALID_OPERATION -> "Operation illegal in current state"
+		GL_STACK_OVERFLOW -> "Command would cause a stack overflow"
+		GL_STACK_UNDERFLOW -> "Command would cause a stack underflow"
+		GL_OUT_OF_MEMORY -> "Not enough memory left to execute command"
+		GL_INVALID_FRAMEBUFFER_OPERATION -> "Framebuffer object is not complete"
+		GL_TABLE_TOO_LARGE -> "The specified table is too large"
+		else -> "Unknown error: $errorCode"
+	}
+}
