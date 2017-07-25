@@ -50,7 +50,7 @@ object BuildUtil {
 		incBuildNumber()
 
 		val buildToolsKotlinVer = KotlinCompilerVersion.VERSION
-		val compilerJar = File(System.getProperty("java.class.path").split(";").find { it.contains("kotlin-compiler.jar") })
+		val compilerJar = File(System.getProperty("java.class.path").split(System.getProperty("path.separator")).find { it.contains("kotlin-compiler.jar") })
 		val kotlinVersion = File(compilerJar.parentFile.parentFile, "build.txt").readText()
 		Log.info("Kotlin version $buildToolsKotlinVer")
 		if (kotlinVersion != buildToolsKotlinVer) {

@@ -30,6 +30,7 @@ import com.acornui.signal.Signal3
 import org.lwjgl.glfw.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GLUtil
 import org.lwjgl.system.MemoryUtil
 
 /**
@@ -52,8 +53,8 @@ class GlfwWindowImpl(
 	val windowId: Long
 
 	init {
-//		if (debug)
-//			GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_DEBUG_CONTEXT, GLFW.GLFW_TRUE)
+		if (debug)
+			GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_DEBUG_CONTEXT, GLFW.GLFW_TRUE)
 
 		GLFWErrorCallback.createPrint(System.err).set()
 
@@ -114,8 +115,8 @@ class GlfwWindowImpl(
 		// bindings available for use.
 		GL.createCapabilities()
 
-//		if (debug)
-//			debugMessageClosure = GLUtil.setupDebugMessageCallback(System.out)
+		if (debug)
+			GLUtil.setupDebugMessageCallback(System.out)
 
 		setSize(windowConfig.initialWidth, windowConfig.initialHeight, false)
 

@@ -18,15 +18,16 @@ package com.acornui.jvm.graphics
 
 import com.acornui.gl.core.WrappedGl20
 import org.lwjgl.opengl.GL11
+import org.lwjgl.opengl.GLUtil
 
 /**
  * @author nbilyk
  */
 class JvmGl20Debug : WrappedGl20(LwjglGl20(), {}, {
 	val errorCode = GL11.glGetError()
+
 	if (errorCode != GL11.GL_NO_ERROR) {
-//
-//		GLU.gluErrorString
+		throw Exception("GL ERROR: code: $errorCode")
 //		throw Exception("GL ERROR: " + GLUtil.getErrorString(errorCode) + " code: $errorCode")
 	}
 })
