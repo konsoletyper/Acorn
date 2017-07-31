@@ -53,7 +53,7 @@ interface ILogger {
 		var str = ""
 		if (message.isNotEmpty()) str += "$message\n"
 		str += "${e.message}\n"
-//		str += e.stackTrace.joinToString("\n") { it.toString() }
+//		str += e.stackTrace.joinToString("\n") { it.toString() } // Currently doesn't work on JS side.
 		log(str, ERROR)
 	}
 
@@ -139,7 +139,7 @@ class ArrayTarget : ILogger {
 				buffer.append(separator)
 			}
 			val prefix = if (level < prefixes.size) prefixes[level] else ""
-			buffer.append(prefix + message.toString())
+			buffer.append(prefix + message)
 		}
 		return buffer.toString()
 	}

@@ -50,7 +50,11 @@ interface Pool<T> {
 	 * Clears the free objects from this Pool, and optionally disposes them.
 	 */
 	fun clear()
+}
 
+fun <T> MutableList<T>.freeTo(pool: Pool<T>) {
+	pool.freeAll(this)
+	clear()
 }
 
 @Deprecated("Use disposeAndClear")
@@ -110,7 +114,6 @@ open class ObjectPool<T>(initialCapacity: Int, private val create: () -> T) : Po
  * An ObjectPool implementation that resets the objects as they go back into the pool.
  * @author nbilyk
  */
-// TODO: Use common constructor function for ObjectPool and ClearableObjectPool
 open class ClearableObjectPool<T : Clearable>(initialCapacity: Int, create: () -> T) : ObjectPool<T>(initialCapacity, create) {
 
 	constructor(create: () -> T) : this(8, create)

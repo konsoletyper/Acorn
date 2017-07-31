@@ -94,7 +94,7 @@ fun <E : Comparable<E>> List<E>.sortedInsertionIndex(element: E, startIndex: Int
  *
  * @param matchForwards If true, the returned index will be after comparisons of 0, if false, before.
  */
-fun <K, E> List<E>.sortedInsertionIndex(element: K, comparator: (o1: K, o2: E) -> Int, startIndex: Int = 0, endIndex: Int = size, matchForwards: Boolean = true): Int {
+fun <K, E> List<E>.sortedInsertionIndex(element: K, comparator: (K, E) -> Int, startIndex: Int = 0, endIndex: Int = size, matchForwards: Boolean = true): Int {
 	var indexA = startIndex
 	var indexB = endIndex
 

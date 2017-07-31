@@ -17,6 +17,8 @@
 package com.acornui.component.layout.algorithm
 
 import com.acornui.collection.Clearable
+import com.acornui.collection.ClearableObjectPool
+import com.acornui.collection.freeTo
 import com.acornui.component.ComponentInit
 import com.acornui.component.layout.BasicLayoutElement
 import com.acornui.component.layout.LayoutContainerImpl
@@ -36,7 +38,15 @@ import com.acornui.math.PadRo
  */
 class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, BasicLayoutAlgorithm<FlowLayoutStyle, FlowLayoutData> {
 
-	private val line = LineInfo()
+	val _lines = ArrayList<LineInfo>()
+
+	/**
+	 * The list of current lines. This is valid after a layout.
+	 */
+	val lines: List<LineInfoRo>
+		get() = _lines
+
+	private val linesPool = ClearableObjectPool { LineInfo() }
 
 	override fun calculateSizeConstraints(elements: List<LayoutElement>, props: FlowLayoutStyle, out: SizeConstraints) {
 		val padding = props.padding
@@ -55,7 +65,8 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, BasicLayout
 		val childAvailableHeight: Float? = padding.reduceHeight(explicitHeight)
 
 		var measuredW: Float = 0f
-		line.clear()
+		_lines.freeTo(linesPool)
+		var line = linesPool.obtain()
 		var x = 0f
 		var y = 0f
 		var previousChild: BasicLayoutElement? = null
@@ -70,16 +81,18 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, BasicLayout
 			}
 			val w = child.width
 			val h = child.height
-			val doesOverhang = (layoutData?.overhangs ?: false)
+			val doesOverhang = layoutData?.overhangs ?: false
 
 			if (props.multiline && i > line.startIndex && (previousChild!!.clearsLine() ||
 					child.startsNewLine() ||
 					(childAvailableWidth != null && !doesOverhang && x + w > childAvailableWidth))) {
-				// New line
 				line.endIndex = i - 1
 				positionLine(line, childAvailableWidth, props, elements)
+				_lines.add(line)
 				x = 0f
 				y += line.height + props.verticalGap
+				// New line
+				line = linesPool.obtain()
 				line.width = 0f
 				line.height = 0f
 				line.baseline = 0f
@@ -105,6 +118,7 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, BasicLayout
 		}
 		line.endIndex = lastIndex
 		positionLine(line, childAvailableWidth, props, elements)
+		_lines.add(line)
 		measuredW += padding.left + padding.right
 		if (measuredW > out.width) out.width = measuredW // Use the measured width if it is larger than the explicit.
 		val measuredH = y + line.height + padding.top + padding.bottom
@@ -171,12 +185,20 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, BasicLayout
 	}
 }
 
-class LineInfo : Clearable {
-	var startIndex: Int = 0
-	var endIndex: Int = 0
-	var width: Float = 0f
-	var height: Float = 0f
-	var baseline: Float = 0f
+interface LineInfoRo {
+	val startIndex: Int
+	val endIndex: Int
+	val width: Float
+	val height: Float
+	val baseline: Float
+}
+
+class LineInfo : Clearable, LineInfoRo {
+	override var startIndex: Int = 0
+	override var endIndex: Int = 0
+	override var width: Float = 0f
+	override var height: Float = 0f
+	override var baseline: Float = 0f
 
 	override fun clear() {
 		startIndex = 0

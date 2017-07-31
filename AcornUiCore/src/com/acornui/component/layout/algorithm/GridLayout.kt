@@ -38,8 +38,23 @@ import kotlin.reflect.KProperty
 class GridLayout : LayoutAlgorithm<GridLayoutStyle, GridLayoutData>, BasicLayoutAlgorithm<GridLayoutStyle, GridLayoutData> {
 
 	private val _measuredColWidths = ArrayList<Float>()
+
+	/**
+	 * The measured column widths. This is accurate after a layout.
+	 */
+	val measuredColWidths: List<Float>
+		get() = _measuredColWidths
+
 	private val _measuredRowHeights = ArrayList<Float>()
-	private val _columnPreferredWidths = ArrayList<Float?>()
+
+	/**
+	 * The measured row heights. This is accurate after a layout.
+	 */
+	val measuredRowHeights: List<Float>
+		get() = _measuredRowHeights
+
+	private val columnPreferredWidths = ArrayList<Float?>()
+
 	private val rowOccupancy = ArrayList<Int>()
 
 	override fun calculateSizeConstraints(elements: List<LayoutElement>, props: GridLayoutStyle, out: SizeConstraints) {
@@ -93,16 +108,16 @@ class GridLayout : LayoutAlgorithm<GridLayoutStyle, GridLayoutData>, BasicLayout
 
 		_measuredColWidths.clear()
 		_measuredRowHeights.clear()
-		_columnPreferredWidths.clear()
+		columnPreferredWidths.clear()
 		// Calculate initial preferred column widths. The flexible columns will later be fit in the remaining space.
 		for (i in 0..props.columns.lastIndex) {
 			val col = props.columns[i]
-			_columnPreferredWidths.add(col.getPreferredWidth(childAvailableWidth))
+			columnPreferredWidths.add(col.getPreferredWidth(childAvailableWidth))
 
 			// Preset all the measured column widths so that inflexible columns will always have a measured size of
 			// at least the preferred width.
 			val w = if (childAvailableWidth != null && col.getIsFlexible()) 0f
-			else _columnPreferredWidths[i] ?: 0f
+			else columnPreferredWidths[i] ?: 0f
 			_measuredColWidths.addOrSet(i, maxOf(col.minWidth ?: 0f, w))
 		}
 
@@ -120,8 +135,8 @@ class GridLayout : LayoutAlgorithm<GridLayoutStyle, GridLayoutData>, BasicLayout
 					notFlexible = false
 					break
 				} else {
-					if (_columnPreferredWidths[colIndex] == null) availableSpanWidth = null
-					else availableSpanWidth = availableSpanWidth!! + _columnPreferredWidths[colIndex]!! + props.horizontalGap
+					if (columnPreferredWidths[colIndex] == null) availableSpanWidth = null
+					else availableSpanWidth = availableSpanWidth!! + columnPreferredWidths[colIndex]!! + props.horizontalGap
 				}
 			}
 			if (notFlexible) {
@@ -144,7 +159,7 @@ class GridLayout : LayoutAlgorithm<GridLayoutStyle, GridLayoutData>, BasicLayout
 		for (i in 0..props.columns.lastIndex) {
 			val col = props.columns[i]
 			if (childAvailableWidth == null || !col.getIsFlexible())
-				_columnPreferredWidths[i] = _measuredColWidths[i]
+				columnPreferredWidths[i] = _measuredColWidths[i]
 		}
 
 		// Size flexible columns to fit the remaining available width
@@ -153,7 +168,7 @@ class GridLayout : LayoutAlgorithm<GridLayoutStyle, GridLayoutData>, BasicLayout
 			var flexibleWidth = 0f
 			for (i in 0..props.columns.lastIndex) {
 				val col = props.columns[i]
-				val preferredWidth = _columnPreferredWidths[i]!!
+				val preferredWidth = columnPreferredWidths[i]!!
 				if (col.getIsFlexible()) {
 					flexibleWidth += preferredWidth
 				} else {
@@ -167,8 +182,8 @@ class GridLayout : LayoutAlgorithm<GridLayoutStyle, GridLayoutData>, BasicLayout
 			for (i in 0..props.columns.lastIndex) {
 				val col = props.columns[i]
 				if (col.getIsFlexible()) {
-					_columnPreferredWidths[i] = colScale * col.getPreferredWidth(childAvailableWidth)!! // getPreferredWidth may not return null in a flexible column.
-					_measuredColWidths[i] = maxOf(_measuredColWidths[i], _columnPreferredWidths[i]!!)
+					columnPreferredWidths[i] = colScale * col.getPreferredWidth(childAvailableWidth)!! // getPreferredWidth may not return null in a flexible column.
+					_measuredColWidths[i] = maxOf(_measuredColWidths[i], columnPreferredWidths[i]!!)
 				}
 			}
 		}
@@ -186,7 +201,7 @@ class GridLayout : LayoutAlgorithm<GridLayoutStyle, GridLayoutData>, BasicLayout
 					val col = props.columns[i]
 					if (col.getIsFlexible())
 						flexible = true
-					availableSpanWidth += _columnPreferredWidths[i]!! + props.horizontalGap
+					availableSpanWidth += columnPreferredWidths[i]!! + props.horizontalGap
 				}
 				availableSpanWidth -= props.horizontalGap
 				if (flexible) {
@@ -275,14 +290,14 @@ class GridLayout : LayoutAlgorithm<GridLayoutStyle, GridLayoutData>, BasicLayout
 
 		var totalPreferred = 0f
 		for (i in colIndex..colIndex + colSpan - 1) {
-			totalPreferred += _columnPreferredWidths[i] ?: evenSplit
+			totalPreferred += columnPreferredWidths[i] ?: evenSplit
 		}
 
 		for (i in colIndex..colIndex + colSpan - 1) {
 			val p = if (totalPreferred <= 0f) {
 				1f / colSpan
 			} else {
-				(_columnPreferredWidths[i] ?: evenSplit) / totalPreferred
+				(columnPreferredWidths[i] ?: evenSplit) / totalPreferred
 			}
 			_measuredColWidths[i] = maxOf(_measuredColWidths[i], totalActual * p)
 		}

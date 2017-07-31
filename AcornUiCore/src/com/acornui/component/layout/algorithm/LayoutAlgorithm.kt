@@ -30,7 +30,7 @@ import kotlin.reflect.KProperty
  * A LayoutAlgorithm implementation sizes and positions layout elements. This is typically paired with a
  * LayoutContainer implementation.
  */
-interface LayoutAlgorithm<in S: Any, out T : LayoutData> : LayoutDataProvider<T> {
+interface LayoutAlgorithm<in S, out T : LayoutData> : LayoutDataProvider<T> {
 
 	/**
 	 * Calculates the minimum and maximum dimensions of this layout.

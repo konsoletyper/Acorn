@@ -26,7 +26,7 @@ import com.acornui.core.di.inject
 import com.acornui.core.focus.Focusable
 import com.acornui.math.Bounds
 
-interface LayoutContainer<out S : MutableStyle, out T : LayoutData> : LayoutDataProvider<T>, ElementContainer {
+interface LayoutContainer<out S, out T : LayoutData> : LayoutDataProvider<T>, ElementContainer {
 
 	@Deprecated("", ReplaceWith("style"), DeprecationLevel.ERROR)
 	val layoutAlgorithm: S
