@@ -16,16 +16,17 @@
 
 package com.acornui.gl.component.text
 
+import com.acornui.collection.copy
+import com.acornui.collection.sortedInsertionIndex
 import com.acornui.component.ContainerImpl
 import com.acornui.component.UiComponent
 import com.acornui.component.ValidationFlags
 import com.acornui.component.invalidateLayout
 import com.acornui.component.layout.BasicLayoutElement
 import com.acornui.component.layout.BasicLayoutElementImpl
-import com.acornui.component.layout.algorithm.FlowLayout
-import com.acornui.component.layout.algorithm.FlowLayoutData
-import com.acornui.component.layout.algorithm.FlowLayoutStyle
-import com.acornui.component.layout.algorithm.LayoutDataProvider
+import com.acornui.component.layout.LayoutData
+import com.acornui.component.layout.algorithm.*
+import com.acornui.component.style.MutableStyle
 import com.acornui.component.text.CharStyle
 import com.acornui.component.text.TextField
 import com.acornui.component.text.TextSelection
@@ -160,7 +161,7 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusabl
 
 	protected fun flushWord(chars: ArrayList<TfChar>) {
 		if (chars.isEmpty()) return
-		val word = TfWord(chars.toTypedArray())
+		val word = TfWord(chars.copy())
 
 		val lastChar = chars.last().char
 		if (lastChar == '\n') {
@@ -267,15 +268,18 @@ interface TfPart : BasicLayoutElement {
 	fun validateVertices(transform: Matrix4Ro, rightClip: Float, bottomClip: Float)
 
 	fun render(glState: GlState)
+
+	fun getNextChar(x: Float, y: Float): Int
+	fun getPreviousChar(x: Float, y: Float): Int
 }
 
-class TfContainer : BasicLayoutElementImpl(), TfPart, LayoutDataProvider<FlowLayoutData> {
+abstract class TfLayoutContainer<S, out U : LayoutData>(
+		private val layout: BasicLayoutAlgorithm<S, U>,
+		val style: S
+) : BasicLayoutElementImpl(), TfPart, LayoutDataProvider<U> {
 
-	override fun createLayoutData(): FlowLayoutData = FlowLayoutData()
+	override fun createLayoutData(): U = layout.createLayoutData()
 
-	private val layout = FlowLayout()
-
-	val flowStyle = FlowLayoutStyle()
 	val children = ArrayList<TfPart>()
 
 	override val rangeStart: Int
@@ -291,7 +295,7 @@ class TfContainer : BasicLayoutElementImpl(), TfPart, LayoutDataProvider<FlowLay
 	}
 
 	override fun updateLayout(width: Float?, height: Float?, out: Bounds) {
-		layout.basicLayout(width, height, children, flowStyle, out)
+		layout.basicLayout(width, height, children, style, out)
 	}
 
 	override fun validateVertices(transform: Matrix4Ro, rightClip: Float, bottomClip: Float) {
@@ -312,7 +316,7 @@ class TfContainer : BasicLayoutElementImpl(), TfPart, LayoutDataProvider<FlowLay
  * An unbreakable segment of characters in a [GlTextField].
  */
 class TfWord(
-		val chars: Array<TfChar>
+		val chars: List<TfChar>
 ) : BasicLayoutElementImpl(), TfPart {
 
 	override val rangeStart: Int
@@ -360,6 +364,20 @@ class TfWord(
 			chars[i].render(glState)
 		}
 	}
+
+	override fun getNextChar(x: Float, y: Float): Int {
+		if (x < this.x) return rangeStart
+		return rangeStart + chars.sortedInsertionIndex(x, { o1: Float, char: TfChar ->
+			o1.compareTo(char.x + char.width)
+		})
+	}
+
+	override fun getPreviousChar(x: Float, y: Float): Int {
+		if (x > right) return rangeEnd
+		return rangeStart + chars.sortedInsertionIndex(x, { o1: Float, char: TfChar ->
+			o1.compareTo(char.x)
+		})
+	}
 }
 
 /**
@@ -378,6 +396,10 @@ class TfChar(
 
 	var x: Int = 0
 	var y: Int = 0
+	val width: Int
+		get() = glyph?.width ?: 0
+	val height: Int
+		get() = glyph?.height ?: 0
 
 	private var u = 0f
 	private var v = 0f
@@ -439,8 +461,8 @@ class TfChar(
 			charL = 0f
 		}
 		if (charT < 0f) {
-			if (glyph.isRotated) regionX -= charL
-			else regionY -= charL
+			if (glyph.isRotated) regionX -= charT
+			else regionY -= charT
 			charT = 0f
 		}
 		if (charR > rightClip) {
@@ -478,6 +500,10 @@ class TfChar(
 		if (!visible) return
 		val glyph = glyph ?: return
 		val batch = glState.batch
+//		if (glyph.data.char == ' ')
+//			return
+		if (u == u2 || v == v2)
+			return
 		if (glyph.advanceX <= 0f || glyph.lineHeight <= 0f) return // Nothing to draw
 		if (backgroundColor.a > 0f) {
 			batch.begin()
