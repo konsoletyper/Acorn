@@ -68,16 +68,16 @@ interface Texture {
 	 * Returns an RgbData object representing the bitmap data for this texture.
 	 * TODO: Not all Texture implementations currently support this feature.
 	 */
-	fun rgbData(): RgbData
+	val rgbData: RgbData
 
 	/**
 	 * The natural width of this texture
 	 */
-	fun width(): Int
+	val width: Int
 
 	/**
 	 * The natural height of this texture
 	 */
-	fun height(): Int
+	val height: Int
 
 }

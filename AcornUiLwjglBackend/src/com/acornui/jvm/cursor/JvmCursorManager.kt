@@ -76,9 +76,9 @@ class JvmTextureCursor(
 
 	private fun setTexture(texture: Texture) {
 		val i = GLFWImage.create()
-		i.width(texture.width())
-		i.height(texture.height())
-		i.pixels(JvmBufferUtil.wrap(texture.rgbData().bytes))
+		i.width(texture.width)
+		i.height(texture.height)
+		i.pixels(JvmBufferUtil.wrap(texture.rgbData.bytes))
 //		i.width = texture.width()
 //		i.height = texture.height()
 //		i.setPixels(JvmBufferUtil.wrap(texture.rgbData().bytes))

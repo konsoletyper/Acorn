@@ -116,8 +116,9 @@ class GlfwWindowImpl(
 		// bindings available for use.
 		GL.createCapabilities()
 
-		if (debug)
-			GLUtil.setupDebugMessageCallback(System.out)
+		if (debug) {
+			GLUtil.setupDebugMessageCallback()
+		}
 
 		setSize(windowConfig.initialWidth, windowConfig.initialHeight, false)
 
@@ -211,12 +212,6 @@ class GlfwWindowImpl(
 	}
 
 	override fun renderEnd() {
-		if (debug) {
-			val i = GL11.glGetError()
-			if (i != GL11.GL_NO_ERROR) {
-				Log.error("GL ERROR: " + i)
-			}
-		}
 		GLFW.glfwSwapBuffers(windowId) // swap the color buffers
 	}
 

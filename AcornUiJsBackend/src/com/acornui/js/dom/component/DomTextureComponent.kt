@@ -141,10 +141,10 @@ open class DomTextureComponent(
 		if (_texture == null) return
 		val t = _texture!!
 		if (_isUv) {
-			regionX = _region[0] * t.width()
-			regionY = _region[1] * t.height()
-			regionW = MathUtils.abs(_region[2] - _region[0]) * t.width()
-			regionH = MathUtils.abs(_region[3] - _region[1]) * t.height()
+			regionX = _region[0] * t.width
+			regionY = _region[1] * t.height
+			regionW = MathUtils.abs(_region[2] - _region[0]) * t.width
+			regionH = MathUtils.abs(_region[3] - _region[1]) * t.height
 		} else {
 			regionX = _region[0]
 			regionY = _region[1]

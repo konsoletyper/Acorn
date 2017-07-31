@@ -17,8 +17,8 @@ class CubeMap(
 		positiveZ: Texture,
 		negativeZ: Texture,
 
-		private val gl: Gl20,
-		private val glState: GlState
+		gl: Gl20,
+		glState: GlState
 ) : GlTextureBase(gl, glState) {
 
 	private val sides = arrayOf(positiveX, negativeX, positiveY, negativeY, positiveZ, negativeZ)
@@ -37,24 +37,24 @@ class CubeMap(
 		wrapT = TextureWrapMode.CLAMP_TO_EDGE
 
 		var w = 0
-		if (positiveZ.width() > w) w = positiveZ.width()
-		if (negativeZ.width() > w) w = negativeZ.width()
-		if (positiveY.width() > w) w = positiveY.width()
-		if (negativeY.width() > w) w = negativeY.width()
+		if (positiveZ.width > w) w = positiveZ.width
+		if (negativeZ.width > w) w = negativeZ.width
+		if (positiveY.width > w) w = positiveY.width
+		if (negativeY.width > w) w = negativeY.width
 		this._width = w
 
 		var h = 0
-		if (positiveZ.height() > h) h = positiveZ.height()
-		if (negativeZ.height() > h) h = negativeZ.height()
-		if (positiveX.height() > h) h = positiveX.height()
-		if (negativeX.height() > h) h = negativeX.height()
+		if (positiveZ.height > h) h = positiveZ.height
+		if (negativeZ.height > h) h = negativeZ.height
+		if (positiveX.height > h) h = positiveX.height
+		if (negativeX.height > h) h = negativeX.height
 		this._height = h
 
 		var d = 0
-		if (positiveX.width() > d) d = positiveX.width()
-		if (negativeX.width() > d) d = negativeX.width()
-		if (positiveY.height() > d) d = positiveY.height()
-		if (negativeY.height() > d) d = negativeY.height()
+		if (positiveX.width > d) d = positiveX.width
+		if (negativeX.width > d) d = negativeX.width
+		if (positiveY.height > d) d = positiveY.height
+		if (negativeY.height > d) d = negativeY.height
 		this._depth = d
 	}
 
@@ -65,7 +65,7 @@ class CubeMap(
 
 			// TODO: The cubemap shouldn't force the creation like this:
 			side.textureHandle = gl.createTexture()
-			gl.texImage2Db(side.target.value, 0, pixelFormat.value, side.width(), side.height(), 0, pixelFormat.value, pixelType.value, null)
+			gl.texImage2Db(side.target.value, 0, pixelFormat.value, side.width, side.height, 0, pixelFormat.value, pixelType.value, null)
 		}
 //		gl.texImage2Db(target.value, 0, pixelFormat.value, _width, _height, 0, pixelFormat.value, pixelType.value, null)
 	}
@@ -85,16 +85,13 @@ class CubeMap(
 		return sides[target.ordinal - firstSideOrdinal]
 	}
 
-	override fun width(): Int {
-		return _width
-	}
+	override val width: Int
+		get() = _width
 
-	override fun height(): Int {
-		return _height
-	}
+	override val height: Int
+		get() = _height
 
-	fun depth(): Int {
-		return _depth
-	}
+	val depth: Int
+		get() = _depth
 
 }

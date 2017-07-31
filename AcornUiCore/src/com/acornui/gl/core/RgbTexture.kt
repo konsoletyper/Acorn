@@ -20,35 +20,32 @@ import com.acornui.core.graphics.RgbData
 import com.acornui.core.io.BufferFactory
 
 class RgbTexture(
-		private val gl: Gl20,
-		private val glState: GlState,
-		private val rgbData: RgbData
+		gl: Gl20,
+		glState: GlState,
+		private val _rgbData: RgbData
 ) : GlTextureBase(gl, glState) {
 
-	override fun width(): Int {
-		return rgbData.width
-	}
+	override val width: Int
+		get() = _rgbData.width
 
-	override fun height(): Int {
-		return rgbData.height
-	}
+	override val height: Int
+		get() = _rgbData.height
 
-	override fun rgbData(): RgbData {
-		return rgbData
-	}
+	override val rgbData: RgbData
+		get() = _rgbData
 
 	override fun uploadTexture() {
-		val buffer = BufferFactory.instance.byteBuffer(rgbData.bytes.size)
-		for (i in 0..rgbData.bytes.lastIndex) {
-			buffer.put(rgbData.bytes[i])
+		val buffer = BufferFactory.instance.byteBuffer(_rgbData.bytes.size)
+		for (i in 0.._rgbData.bytes.lastIndex) {
+			buffer.put(_rgbData.bytes[i])
 		}
 		buffer.flip()
-		gl.texImage2Db(target.value, 0, pixelFormat.value, rgbData.width, rgbData.height, 0, pixelFormat.value, pixelType.value, buffer)
+		gl.texImage2Db(target.value, 0, pixelFormat.value, _rgbData.width, _rgbData.height, 0, pixelFormat.value, pixelType.value, buffer)
 	}
 }
 
 
-fun rgbTexture(gl: Gl20, glState: GlState, rgbData: RgbData, init: RgbTexture.()->Unit): RgbTexture {
+fun rgbTexture(gl: Gl20, glState: GlState, rgbData: RgbData, init: RgbTexture.() -> Unit): RgbTexture {
 	val r = RgbTexture(gl, glState, rgbData)
 	r.init()
 	return r

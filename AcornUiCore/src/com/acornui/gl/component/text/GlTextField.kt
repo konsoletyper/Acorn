@@ -447,8 +447,8 @@ class TfChar(
 		var charB = charT + glyph.height
 
 		val region = glyph.region
-		val textureW = glyph.texture.width().toFloat()
-		val textureH = glyph.texture.height().toFloat()
+		val textureW = glyph.texture.width.toFloat()
+		val textureH = glyph.texture.height.toFloat()
 
 		var regionX = region.x.toFloat()
 		var regionY = region.y.toFloat()
@@ -467,12 +467,12 @@ class TfChar(
 		}
 		if (charR > rightClip) {
 			if (glyph.isRotated) regionB -= (charR - rightClip)
-			else regionR -= (charR - rightClip)
+			else regionR -= charR - rightClip
 			charR = rightClip
 		}
 		if (charB > bottomClip) {
 			if (glyph.isRotated) regionR -= (charB - bottomClip)
-			else regionB -= (charB - bottomClip)
+			else regionB -= charB - bottomClip
 			charB = bottomClip
 		}
 

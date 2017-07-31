@@ -30,7 +30,8 @@ open class Framebuffer(
 		val height: Int = 0,
 		val hasDepth: Boolean = false,
 		val hasStencil: Boolean = false,
-		val texture: Texture = BufferTexture(injector.inject(Gl20), injector.inject(GlState), width, height)) : Disposable {
+		val texture: Texture = BufferTexture(injector.inject(Gl20), injector.inject(GlState), width, height)
+) : Disposable {
 
 	private val gl = injector.inject(Gl20)
 	private val glState = injector.inject(GlState)
@@ -134,13 +135,11 @@ open class Framebuffer(
 
 }
 
-class BufferTexture(private val gl: Gl20,
-							glState: GlState,
-							private val width: Int = 0,
-							private val height: Int = 0) : GlTextureBase(gl, glState) {
-
-	override fun width(): Int = width
-	override fun height(): Int = height
+class BufferTexture(gl: Gl20,
+					glState: GlState,
+					override val width: Int = 0,
+					override val height: Int = 0
+) : GlTextureBase(gl, glState) {
 
 	override fun uploadTexture() {
 		gl.texImage2Db(target.value, 0, pixelFormat.value, width, height, 0, pixelFormat.value, pixelType.value, null)

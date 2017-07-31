@@ -26,21 +26,19 @@ import java.nio.ByteBuffer
 /**
  * @author nbilyk
  */
-class JvmTexture(private val gl: Gl20,
-						private val glState: GlState,
-						private val rgbData: RgbData) : GlTextureBase(gl, glState) {
+class JvmTexture(gl: Gl20,
+				 glState: GlState,
+				 private val _rgbData: RgbData
+) : GlTextureBase(gl, glState) {
 
-	var bytes: ByteBuffer? = JvmBufferUtil.wrap(rgbData.bytes)
+	var bytes: ByteBuffer? = JvmBufferUtil.wrap(_rgbData.bytes)
 
-	override fun width(): Int {
-		return rgbData.width
-	}
+	override val width: Int
+		get() = _rgbData.width
 
-	override fun height(): Int {
-		return rgbData.height
-	}
+	override val height: Int
+		get() = _rgbData.height
 
-	override fun rgbData(): RgbData {
-		return rgbData
-	}
+	override val rgbData: RgbData
+		get() = _rgbData
 }

@@ -72,13 +72,11 @@ class DomTexture: Texture {
 		}
 	}
 
-	override fun width(): Int {
-		return image.naturalWidth
-	}
+	override val width: Int
+		get() = image.naturalWidth
 
-	override fun height(): Int {
-		return image.naturalHeight
-	}
+	override val height: Int
+		get() = image.naturalHeight
 
 	val src: String
 		get() = _src!!
@@ -110,9 +108,10 @@ class DomTexture: Texture {
 	override fun refInc() {
 	}
 
-	override fun rgbData(): RgbData {
-		throw UnsupportedOperationException()
-	}
+	override val rgbData: RgbData
+		get() {
+			throw UnsupportedOperationException()
+		}
 
 	override fun refDec() {
 	}

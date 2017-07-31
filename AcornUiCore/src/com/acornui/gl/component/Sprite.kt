@@ -91,9 +91,9 @@ class Sprite {
 		get() {
 			val t = texture ?: return 0f
 			if (isRotated) {
-				return t.height().toFloat() * MathUtils.abs(v2 - v)
+				return t.height.toFloat() * MathUtils.abs(v2 - v)
 			} else {
-				return t.width().toFloat() * MathUtils.abs(u2 - u)
+				return t.width.toFloat() * MathUtils.abs(u2 - u)
 			}
 		}
 
@@ -101,9 +101,9 @@ class Sprite {
 		get() {
 			val t = texture ?: return 0f
 			if (isRotated) {
-				return t.width().toFloat() * MathUtils.abs(u2 - u)
+				return t.width.toFloat() * MathUtils.abs(u2 - u)
 			} else {
-				return t.height().toFloat() * MathUtils.abs(v2 - v)
+				return t.height.toFloat() * MathUtils.abs(v2 - v)
 			}
 		}
 
@@ -116,10 +116,10 @@ class Sprite {
 			u2 = region[2]
 			v2 = region[3]
 		} else {
-			u = region[0] / t.width().toFloat()
-			v = region[1] / t.height().toFloat()
-			u2 = region[2] / t.width().toFloat()
-			v2 = region[3] / t.height().toFloat()
+			u = region[0] / t.width.toFloat()
+			v = region[1] / t.height.toFloat()
+			u2 = region[2] / t.width.toFloat()
+			v2 = region[3] / t.height.toFloat()
 		}
 	}
 

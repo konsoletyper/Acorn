@@ -145,8 +145,6 @@ class ShaderCompileException(message: String) : Exception(message) {
 
 class DefaultShaderProgram(gl: Gl20) : ShaderProgramBase (
 		gl, vertexShaderSrc = """
-#version 100
-
 attribute vec4 a_position;
 attribute vec4 a_colorTint;
 attribute vec2 a_texCoord0;

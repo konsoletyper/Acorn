@@ -27,8 +27,8 @@ import com.acornui.math.MathUtils
  * @author nbilyk
  */
 abstract class GlTextureBase(
-		private val gl: Gl20,
-		private val glState: GlState
+		protected val gl: Gl20,
+		protected val glState: GlState
 ) : Texture {
 
 	/**
@@ -91,8 +91,8 @@ abstract class GlTextureBase(
 		gl.texParameteri(target.value, Gl20.TEXTURE_WRAP_T, wrapT.value)
 
 		if (filterMin.useMipMap) {
-			if (!supportsNpot() && (!MathUtils.isPowerOfTwo(width()) || !MathUtils.isPowerOfTwo(height()))) {
-				Log.warn("MipMaps cannot be generated for non power of two textures (${width()}x${height()})")
+			if (!supportsNpot() && (!MathUtils.isPowerOfTwo(width) || !MathUtils.isPowerOfTwo(height))) {
+				Log.warn("MipMaps cannot be generated for non power of two textures (${width}x${height})")
 				gl.texParameteri(target.value, Gl20.TEXTURE_MIN_FILTER, TextureMinFilter.LINEAR.value)
 			} else {
 				gl.generateMipmap(target.value);
@@ -118,9 +118,10 @@ abstract class GlTextureBase(
 	 * Returns an RgbData object representing the bitmap data for this texture.
 	 * Not all Texture implementations support this feature.
 	 */
-	override fun rgbData(): RgbData {
-		throw UnsupportedOperationException("This Texture implementation not support rgbData")
-	}
+	override val rgbData: RgbData
+		get() {
+			throw UnsupportedOperationException("This Texture implementation not support rgbData")
+		}
 
 	/**
 	 * Decrements the number of places this Texture is used. If the count reaches zero, the texture will be deleted.

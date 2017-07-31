@@ -50,13 +50,15 @@ class WebGlTexture(
 		}
 	}
 
-	override fun width(): Int {
-		return image.naturalWidth
-	}
+	override val width: Int
+		get() {
+			return image.naturalWidth
+		}
 
-	override fun height(): Int {
-		return image.naturalHeight
-	}
+	override val height: Int
+		get() {
+			return image.naturalHeight
+		}
 
 	fun arrayBuffer(value: ArrayBuffer) {
 		arrayBufferView(Uint8ClampedArray(value))
