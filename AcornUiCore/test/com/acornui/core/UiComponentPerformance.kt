@@ -18,13 +18,14 @@ package com.acornui.core
 
 import com.acornui.component.UiComponentImpl
 import com.acornui.test.MockInjector
+import com.acornui.test.MockInjector.owner
 import com.acornui.test.benchmark
 import org.junit.Test
 
 class UiComponentPerformance {
 
 	@Test fun construction() {
-		val owner = MockInjector.createOwner()
+		val owner = owner
 		UiComponentImpl(owner) // Exclude first-time
 
 		val speed = benchmark {

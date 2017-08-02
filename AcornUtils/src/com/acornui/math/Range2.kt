@@ -18,32 +18,14 @@ package com.acornui.math
 
 import com.acornui.collection.Clearable
 
-/**
- * A 2D range describing optional min and max boundaries.
- *
- * @author nbilyk
- */
-data class Range2<T: Comparable<T>> (
-		var min: T? = null,
-		var max: T? = null) : Clearable {
+interface Range2Ro<T: Comparable<T>> {
+	val min: T?
+	val max: T?
 
 	fun contains(value: T): Boolean {
 		if (min != null && min!! > value) return false
 		if (max != null && max!! < value) return false
 		return true
-	}
-
-	/**
-	 * Use the max of the two min values and the min of the two max values.
-	 * Sets the result on this Range2
-	 * @return Returns this Range2 for chaining.
-	 */
-	fun bound(range:Range2<T>): Range2<T> {
-		if (min == null) min = range.min
-		else if (range.min != null) min = maxOf(range.min!!, min!!)
-		if (max == null) max = range.max
-		else if (range.max != null) max = minOf(range.max!!, max!!)
-		return this
 	}
 
 	fun clamp(value:T?): T? {
@@ -58,8 +40,32 @@ data class Range2<T: Comparable<T>> (
 		if (max != null && value > max!!) return max!!
 		return value
 	}
+}
 
-	fun set(other: Range2<T>) {
+/**
+ * A 2D range describing optional min and max boundaries.
+ *
+ * @author nbilyk
+ */
+data class Range2<T: Comparable<T>> (
+		override var min: T? = null,
+		override var max: T? = null
+) : Clearable, Range2Ro<T> {
+
+	/**
+	 * Use the max of the two min values and the min of the two max values.
+	 * Sets the result on this Range2
+	 * @return Returns this Range2 for chaining.
+	 */
+	fun bound(range:Range2Ro<T>): Range2<T> {
+		if (min == null) min = range.min
+		else if (range.min != null) min = maxOf(range.min!!, min!!)
+		if (max == null) max = range.max
+		else if (range.max != null) max = minOf(range.max!!, max!!)
+		return this
+	}
+
+	fun set(other: Range2Ro<T>) {
 		min = other.min
 		max = other.max
 	}

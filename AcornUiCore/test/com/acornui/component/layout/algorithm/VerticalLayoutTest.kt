@@ -20,12 +20,13 @@ import com.acornui.component.layout.Spacer
 import com.acornui.math.Bounds
 import com.acornui.math.Pad
 import com.acornui.test.MockInjector
+import com.acornui.test.MockInjector.owner
 import org.junit.Test
 import kotlin.test.assertEquals
 
 class VerticalLayoutTest {
 
-	private val owner = MockInjector.createOwner()
+	private val owner = MockInjector.owner
 
 	@Test fun basic() {
 		val layout = VerticalLayout()

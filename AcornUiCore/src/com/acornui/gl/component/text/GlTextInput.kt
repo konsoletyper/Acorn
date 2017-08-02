@@ -2,6 +2,7 @@ package com.acornui.gl.component.text
 
 import com.acornui.component.*
 import com.acornui.component.layout.algorithm.FlowLayoutStyle
+import com.acornui.component.layout.setSize
 import com.acornui.component.style.set
 import com.acornui.component.text.*
 import com.acornui.core.di.Owned

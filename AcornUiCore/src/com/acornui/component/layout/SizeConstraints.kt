@@ -18,6 +18,20 @@ package com.acornui.component.layout
 
 import com.acornui.collection.Clearable
 import com.acornui.math.Range2
+import com.acornui.math.Range2Ro
+
+interface SizeConstraintsRo {
+
+	/**
+	 * The minimum and maximum width.
+	 */
+	val width: Range2Ro<Float>
+
+	/**
+	 * The minimum and maximum height.
+	 */
+	val height: Range2Ro<Float>
+}
 
 /**
  * An object representing the minimum and maximum dimensions of an object.
@@ -27,14 +41,14 @@ data class SizeConstraints(
 		/**
 		 * The minimum and maximum width.
 		 */
-		val width: Range2<Float> = Range2<Float>(),
+		override val width: Range2<Float> = Range2<Float>(),
 
 		/**
 		 * The minimum and maximum height.
 		 */
-		val height: Range2<Float> = Range2<Float>()
+		override val height: Range2<Float> = Range2<Float>()
 
-) : Clearable {
+) : Clearable, SizeConstraintsRo {
 
 	/**
 	 * Bound the width and height by another size constraints object.
@@ -44,7 +58,7 @@ data class SizeConstraints(
 	 * width.max = min(widthA, widthB)
 	 * height.max = min(heightA, heightB)
 	 */
-	fun bound(sizeConstraints: SizeConstraints) {
+	fun bound(sizeConstraints: SizeConstraintsRo) {
 		width.bound(sizeConstraints.width)
 		height.bound(sizeConstraints.height)
 	}
@@ -52,7 +66,7 @@ data class SizeConstraints(
 	/**
 	 * Sets this object to match the values of the [other] object.
 	 */
-	fun set(other: SizeConstraints): SizeConstraints {
+	fun set(other: SizeConstraintsRo): SizeConstraints {
 		width.set(other.width)
 		height.set(other.height)
 		return this

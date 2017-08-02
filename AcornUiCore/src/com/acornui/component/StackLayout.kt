@@ -32,7 +32,7 @@ import com.acornui.math.PadRo
  * StackLayout places components one on top of another, allowing for percent-based sizes and alignment using
  * [StackLayoutData].
  */
-object StackLayout : LayoutAlgorithm<StackLayoutStyle, StackLayoutData> {
+class StackLayout : LayoutAlgorithm<StackLayoutStyle, StackLayoutData> {
 
 	override fun calculateSizeConstraints(elements: List<LayoutElement>, props: StackLayoutStyle, out: SizeConstraints) {
 		val padding = props.padding
@@ -125,7 +125,7 @@ open class StackLayoutStyle : StyleBase() {
 	companion object : StyleType<StackLayoutStyle>
 }
 
-open class StackLayoutContainer(owner: Owned, native: NativeContainer = owner.inject(NativeContainer.FACTORY_KEY).invoke(owner)) : LayoutContainerImpl<StackLayoutStyle, StackLayoutData>(owner, StackLayout, StackLayoutStyle(), native)
+open class StackLayoutContainer(owner: Owned, native: NativeContainer = owner.inject(NativeContainer.FACTORY_KEY).invoke(owner)) : LayoutContainerImpl<StackLayoutStyle, StackLayoutData>(owner, StackLayout(), StackLayoutStyle(), native)
 
 fun Owned.stack(init: ComponentInit<StackLayoutContainer> = {}): StackLayoutContainer {
 	val s = StackLayoutContainer(this)

@@ -19,6 +19,7 @@ package com.acornui.component.layout.algorithm
 import com.acornui.collection.Clearable
 import com.acornui.collection.ClearableObjectPool
 import com.acornui.collection.freeTo
+import com.acornui.collection.sortedInsertionIndex
 import com.acornui.component.ComponentInit
 import com.acornui.component.layout.BasicLayoutElement
 import com.acornui.component.layout.LayoutContainerImpl
@@ -28,15 +29,13 @@ import com.acornui.component.style.StyleBase
 import com.acornui.component.style.StyleType
 import com.acornui.core.di.Owned
 import com.acornui.core.floor
-import com.acornui.math.Bounds
-import com.acornui.math.MathUtils
-import com.acornui.math.Pad
-import com.acornui.math.PadRo
+import com.acornui.core.round
+import com.acornui.math.*
 
 /**
  * A layout where the elements are placed left to right, then wraps before reaching the explicit width of the container.
  */
-class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, BasicLayoutAlgorithm<FlowLayoutStyle, FlowLayoutData> {
+class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLayout<FlowLayoutStyle, FlowLayoutData> {
 
 	val _lines = ArrayList<LineInfo>()
 
@@ -69,36 +68,32 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, BasicLayout
 		var line = linesPool.obtain()
 		var x = 0f
 		var y = 0f
-		var previousChild: BasicLayoutElement? = null
+		var previousElement: BasicLayoutElement? = null
 
-		val lastIndex = elements.lastIndex
-		for (i in 0..lastIndex) {
-			val child = elements[i]
-			val layoutData = child.layoutData as FlowLayoutData?
-			child.setSize(layoutData?.getPreferredWidth(childAvailableWidth), layoutData?.getPreferredHeight(childAvailableHeight))
-			if (childAvailableWidth != null && child.width > childAvailableWidth) {
-				child.width(childAvailableWidth)
+		for (i in 0..elements.lastIndex) {
+			val element = elements[i]
+			val layoutData = element.layoutData as FlowLayoutData?
+			element.setSize(layoutData?.getPreferredWidth(childAvailableWidth), layoutData?.getPreferredHeight(childAvailableHeight))
+			if (childAvailableWidth != null && element.width > childAvailableWidth) {
+				element.width(childAvailableWidth)
 			}
-			val w = child.width
-			val h = child.height
+			val w = element.width
+			val h = element.height
 			val doesOverhang = layoutData?.overhangs ?: false
 
-			if (props.multiline && i > line.startIndex && (previousChild!!.clearsLine() ||
-					child.startsNewLine() ||
+			if (props.multiline && i > line.startIndex &&
+					(previousElement!!.clearsLine() || element.startsNewLine() ||
 					(childAvailableWidth != null && !doesOverhang && x + w > childAvailableWidth))) {
-				line.endIndex = i - 1
+				line.endIndex = i
 				positionLine(line, childAvailableWidth, props, elements)
 				_lines.add(line)
 				x = 0f
 				y += line.height + props.verticalGap
 				// New line
 				line = linesPool.obtain()
-				line.width = 0f
-				line.height = 0f
-				line.baseline = 0f
 				line.startIndex = i
+				line.y = y + padding.top
 			}
-			child.moveTo(padding.left + x, padding.top + y)
 			x += w
 
 			if (layoutData?.clearsTabstop ?: false) {
@@ -114,9 +109,9 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, BasicLayout
 			if (h > line.height) line.height = h
 			val baseline = layoutData?.baseline ?: h
 			if (baseline > line.baseline) line.baseline = baseline
-			previousChild = child
+			previousElement = element
 		}
-		line.endIndex = lastIndex
+		line.endIndex = elements.size
 		positionLine(line, childAvailableWidth, props, elements)
 		_lines.add(line)
 		measuredW += padding.left + padding.right
@@ -128,47 +123,49 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, BasicLayout
 	/**
 	 * Adjusts the elements within a line to apply the horizontal and vertical alignment.
 	 */
-	private fun positionLine(line: LineInfo, availableWidth: Float?, props: FlowLayoutStyle, elements: List<BasicLayoutElement>) {
+	private fun positionLine(line: LineInfoRo, availableWidth: Float?, props: FlowLayoutStyle, elements: List<BasicLayoutElement>) {
 		if (line.startIndex > line.endIndex) return
 
+		val hGap: Float
+		val xOffset: Float
 		if (availableWidth != null) {
 			val remainingSpace = availableWidth - line.width
-			val xOffset = when (props.horizontalAlign) {
+			xOffset = when (props.horizontalAlign) {
 				FlowHAlign.LEFT -> 0f
-				FlowHAlign.CENTER -> MathUtils.round(remainingSpace * 0.5f).toFloat()
+				FlowHAlign.CENTER -> (remainingSpace * 0.5f).round()
 				FlowHAlign.RIGHT -> remainingSpace
 				FlowHAlign.JUSTIFY -> 0f
 			}
 
 			if (props.horizontalAlign == FlowHAlign.JUSTIFY &&
 					line.endIndex != line.startIndex &&
-					line.endIndex != elements.lastIndex &&
-					!elements[line.endIndex].clearsLine() &&
-					!elements[line.endIndex + 1].startsNewLine()) {
+					line.endIndex != elements.size &&
+					!elements[line.endIndex - 1].clearsLine() &&
+					!elements[line.endIndex].startsNewLine()) {
 				// Apply JUSTIFY spacing if this is not the last line, and there are more than one elements.
-				val gapOffset = remainingSpace / (line.endIndex - line.startIndex)
-				for (j in line.startIndex..line.endIndex) {
-					val child = elements[j]
-					child.x = ((child.x + xOffset + (j - line.startIndex) * gapOffset).floor())
-				}
+				hGap = (props.horizontalGap + remainingSpace / (line.endIndex - line.startIndex - 1)).floor()
 			} else {
-				for (j in line.startIndex..line.endIndex) {
-					val child = elements[j]
-					child.x += xOffset
-				}
+				hGap = props.horizontalGap
 			}
+		} else {
+			xOffset = 0f
+			hGap = props.horizontalGap
 		}
 
-		for (j in line.startIndex..line.endIndex) {
-			val child = elements[j]
-			val layoutData = child.layoutData as FlowLayoutData?
+		var x = props.padding.left
+		for (j in line.startIndex..line.endIndex - 1) {
+			val element = elements[j]
+
+			val layoutData = element.layoutData as FlowLayoutData?
 			val yOffset = when (layoutData?.verticalAlign ?: props.verticalAlign) {
 				FlowVAlign.TOP -> 0f
-				FlowVAlign.MIDDLE -> MathUtils.round((line.height - child.height) * 0.5f).toFloat()
-				FlowVAlign.BOTTOM -> (line.height - child.height)
-				FlowVAlign.BASELINE -> (line.baseline - (layoutData?.baseline ?: child.height))
+				FlowVAlign.MIDDLE -> MathUtils.round((line.height - element.height) * 0.5f).toFloat()
+				FlowVAlign.BOTTOM -> (line.height - element.height)
+				FlowVAlign.BASELINE -> (line.baseline - (layoutData?.baseline ?: element.height))
 			}
-			if (yOffset != 0f) child.y = (child.y + yOffset)
+
+			element.moveTo(x + xOffset, line.y + yOffset)
+			x += element.width + hGap
 		}
 	}
 
@@ -183,19 +180,60 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, BasicLayout
 	private fun BasicLayoutElement.startsNewLine(): Boolean {
 		return (layoutData as FlowLayoutData?)?.display == FlowDisplay.BLOCK
 	}
+
+	override fun getNextElementIndex(x: Float, y: Float, elements: List<BasicLayoutElement>): Int {
+		if (y < 0f) return 0
+		val lineIndex = _lines.sortedInsertionIndex(y, {
+			y, line ->
+			y.compareTo(line.bottom)
+		})
+		if (lineIndex >= _lines.size) return elements.size
+		val line = _lines[lineIndex]
+		return elements.sortedInsertionIndex(x, {
+			x, element ->
+			x.compareTo(element.right)
+		}, line.startIndex, line.endIndex)
+	}
+
+	override fun getPreviousElementIndex(x: Float, y: Float, elements: List<BasicLayoutElement>): Int {
+		if (y < 0f) return -1
+		val lineIndex = _lines.sortedInsertionIndex(y, {
+			y, line ->
+			y.compareTo(line.bottom)
+		})
+		if (lineIndex >= _lines.size) return elements.lastIndex
+		val line = _lines[lineIndex]
+		return elements.sortedInsertionIndex(x, {
+			x, element ->
+			x.compareTo(element.x)
+		}, line.startIndex, line.endIndex, matchForwards = true) - 1
+	}
 }
 
 interface LineInfoRo {
 	val startIndex: Int
 	val endIndex: Int
+	val y: Float
 	val width: Float
 	val height: Float
 	val baseline: Float
+
+	val bottom: Float
+		get() = y + height
 }
 
 class LineInfo : Clearable, LineInfoRo {
+
+	/**
+	 * The line's start index, inclusive.
+	 */
 	override var startIndex: Int = 0
+
+	/**
+	 * The line's end index, exclusive.
+	 */
 	override var endIndex: Int = 0
+	override var y: Float = 0f
 	override var width: Float = 0f
 	override var height: Float = 0f
 	override var baseline: Float = 0f
@@ -205,6 +243,7 @@ class LineInfo : Clearable, LineInfoRo {
 		endIndex = 0
 		width = 0f
 		height = 0f
+		y = 0f
 		baseline = 0f
 	}
 }

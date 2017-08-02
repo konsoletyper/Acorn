@@ -1,18 +1,13 @@
 package com.acornui.component.layout.algorithm
 
 import com.acornui.collection.addAll
-import com.acornui.component.ComponentInit
 import com.acornui.component.layout.LayoutElement
-import com.acornui.component.layout.Spacer
-import com.acornui.core.di.Owned
 import com.acornui.test.MockInjector
 import com.acornui.test.assertListEquals
 import org.junit.Test
 
 
 class GridLayoutTest {
-
-	private val owner = MockInjector.createOwner()
 
 	@Test fun cellWalkWithRowSpan() {
 		val layout = GridLayout()
@@ -116,7 +111,7 @@ class GridLayoutTest {
 	}
 
 	fun spacer(name: String): LayoutElement {
-		return DummySpacer(owner, name)
+		return DummySpacer(name)
 	}
 
 	fun LayoutElement.layoutData(init: GridLayoutData.()->Unit): GridLayoutData {
@@ -126,11 +121,4 @@ class GridLayoutTest {
 		return g
 	}
 
-}
-
-private class DummySpacer(owner: Owned, private val name: String): Spacer(owner) {
-
-	override fun toString(): String {
-		return name
-	}
 }

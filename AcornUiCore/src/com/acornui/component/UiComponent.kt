@@ -20,6 +20,7 @@ import com.acornui.assertionsEnabled
 import com.acornui.collection.*
 import com.acornui.component.layout.LayoutData
 import com.acornui.component.layout.SizeConstraints
+import com.acornui.component.layout.SizeConstraintsRo
 import com.acornui.component.style.*
 import com.acornui.core.*
 import com.acornui.core.assets.AssetManager
@@ -394,7 +395,7 @@ open class UiComponentImpl(
 	/**
 	 * Returns the measured size constraints, bound by the explicit size constraints.
 	 */
-	override val sizeConstraints: SizeConstraints
+	override val sizeConstraints: SizeConstraintsRo
 		get() {
 			validate(ValidationFlags.SIZE_CONSTRAINTS)
 			return _sizeConstraints
@@ -403,7 +404,7 @@ open class UiComponentImpl(
 	/**
 	 * Returns the explicit size constraints.
 	 */
-	override val explicitSizeConstraints: SizeConstraints
+	override val explicitSizeConstraints: SizeConstraintsRo
 		get() {
 			return _explicitSizeConstraints
 		}

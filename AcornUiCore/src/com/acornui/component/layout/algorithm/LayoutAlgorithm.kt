@@ -91,3 +91,21 @@ interface BasicLayoutAlgorithm<in S, out T : LayoutData> : LayoutDataProvider<T>
 	fun basicLayout(explicitWidth: Float?, explicitHeight: Float?, elements: List<BasicLayoutElement>, props: S, out: Bounds)
 
 }
+
+/**
+ * A sequenced layout is a layout where the the elements are laid out in a serial manner.
+ */
+interface SequencedLayout<in S, out T : LayoutData> : BasicLayoutAlgorithm<S, T> {
+
+	/**
+	 * Given the x, y position, returns the index of the next expected element.
+	 * This assumes the elements were laid out via [basicLayout].
+	 */
+	fun getNextElementIndex(x: Float, y: Float, elements: List<BasicLayoutElement>): Int
+
+	/**
+	 * Given the x, y position, returns the index of the previous expected element.
+	 * This assumes the elements were laid out via [basicLayout].
+	 */
+	fun getPreviousElementIndex(x: Float, y: Float, elements: List<BasicLayoutElement>): Int
+}

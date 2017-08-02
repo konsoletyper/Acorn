@@ -1,6 +1,7 @@
 package com.acornui.component
 
 import com.acornui.component.layout.SizeConstraints
+import com.acornui.component.layout.setSize
 import com.acornui.component.style.StyleTag
 import com.acornui.component.style.styleTag
 import com.acornui.core.di.Owned

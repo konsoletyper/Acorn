@@ -341,7 +341,7 @@ class TfWord(
 		for (i in 0..chars.lastIndex) {
 			val char = chars[i]
 			val glyph = char.glyph ?: continue
-			char.y = (maxHeight - glyph.lineHeight)
+			char.y = maxHeight - glyph.lineHeight
 		}
 		out.width = x.toFloat()
 		out.height = maxHeight.toFloat()

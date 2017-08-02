@@ -20,20 +20,20 @@
 
 package com.acornui.math
 
-val PI: Float = 3.1415927f
-val PI2: Float = PI * 2f
-val E: Float = 2.7182818f
-val TO_DEG = 180f / PI
-val TO_RAD = PI / 180f
+const val PI: Float = 3.1415927f
+const val PI2: Float = PI * 2f
+const val E: Float = 2.7182818f
+const val TO_DEG = 180f / PI
+const val TO_RAD = PI / 180f
 
 internal object TrigLookup {
-	val SIN_BITS = 14 // 16KB. Adjust for accuracy.
-	val SIN_MASK = (-1 shl SIN_BITS).inv()
-	val SIN_COUNT = SIN_MASK + 1
+	const val SIN_BITS = 14 // 16KB. Adjust for accuracy.
+	const val SIN_MASK = (-1 shl SIN_BITS).inv()
+	const val SIN_COUNT = SIN_MASK + 1
 
-	val radFull = PI * 2
+	const val radFull = PI * 2
 
-	val radToIndex = SIN_COUNT.toFloat() / radFull
+	const val radToIndex = SIN_COUNT.toFloat() / radFull
 
 	val table = FloatArray(SIN_COUNT)
 

@@ -90,12 +90,12 @@ interface LayoutElement : BasicLayoutElement, Transformable {
 	/**
 	 * Returns the measured size constraints, bound by the explicit size constraints.
 	 */
-	val sizeConstraints: SizeConstraints
+	val sizeConstraints: SizeConstraintsRo
 
 	/**
 	 * Returns the explicit size constraints.
 	 */
-	val explicitSizeConstraints: SizeConstraints
+	val explicitSizeConstraints: SizeConstraintsRo
 
 	/**
 	 * Returns the measured minimum width.
@@ -197,11 +197,12 @@ interface Sizable {
 	val explicitHeight: Float?
 
 	/**
-	 * Does the same thing as setting [width] and [height] individually.
+	 * Does the same thing as setting [width] and [height] individually, but may be more efficient depending on
+	 * implementation.
+	 * @param width The explicit width for the component. Use null to use the natural measured width.
+	 * @param height The explicit height for the component. Use null to use the natural measured height.
 	 */
 	fun setSize(width: Float?, height: Float?)
-
-	fun setSize(bounds: BoundsRo) = setSize(bounds.width, bounds.height)
 
 	/**
 	 * Sets the explicit width for this layout element. (A null value represents using the measured width)
@@ -214,6 +215,8 @@ interface Sizable {
 	fun height(value: Float?)
 
 }
+
+fun LayoutElement.setSize(bounds: BoundsRo) = setSize(bounds.width, bounds.height)
 
 abstract class BasicLayoutElementImpl : BasicLayoutElement {
 

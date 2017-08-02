@@ -22,6 +22,7 @@ import com.acornui.component.layout.LayoutContainerImpl
 import com.acornui.component.layout.algorithm.HorizontalLayout
 import com.acornui.component.layout.algorithm.HorizontalLayoutData
 import com.acornui.component.layout.algorithm.HorizontalLayoutStyle
+import com.acornui.component.layout.setSize
 import com.acornui.component.style.StyleTag
 import com.acornui.component.style.StyleType
 import com.acornui.component.style.noSkinOptional
