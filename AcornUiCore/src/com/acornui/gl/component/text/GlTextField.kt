@@ -18,15 +18,12 @@ package com.acornui.gl.component.text
 
 import com.acornui.collection.copy
 import com.acornui.collection.sortedInsertionIndex
-import com.acornui.component.ContainerImpl
-import com.acornui.component.UiComponent
-import com.acornui.component.ValidationFlags
-import com.acornui.component.invalidateLayout
+import com.acornui.component.*
 import com.acornui.component.layout.BasicLayoutElement
 import com.acornui.component.layout.BasicLayoutElementImpl
 import com.acornui.component.layout.LayoutData
 import com.acornui.component.layout.algorithm.*
-import com.acornui.component.style.MutableStyle
+import com.acornui.component.style.*
 import com.acornui.component.text.CharStyle
 import com.acornui.component.text.TextField
 import com.acornui.component.text.TextSelection
@@ -37,9 +34,12 @@ import com.acornui.core.di.inject
 import com.acornui.core.di.own
 import com.acornui.core.focus.Focusable
 import com.acornui.core.graphics.BlendMode
+import com.acornui.core.input.interaction.DragInteraction
+import com.acornui.core.input.interaction.dragAttachment
 import com.acornui.gl.core.GlState
 import com.acornui.gl.core.pushQuadIndices
 import com.acornui.graphics.Color
+import com.acornui.graphics.ColorRo
 import com.acornui.math.Bounds
 import com.acornui.math.Matrix4Ro
 import com.acornui.math.Vector3
@@ -57,42 +57,45 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusabl
 	override var focusOrder = 0f
 	override var highlight: UiComponent? by createSlot()
 
-	override final val charStyle = bind(CharStyle())
 	override final val flowStyle = bind(FlowLayoutStyle())
+	protected val root = TfContainer(FlowLayout(), flowStyle, this)
+	override final val charStyle: CharStyle
+		get() = root.charStyle
 
 	override final val selection = own(TextSelection())
 
-	private val fontStyle = FontStyle("[Unknown]", 12)
 	private val glState = inject(GlState)
 
 	private var _textContent: String? = null
 
-	protected val tfParts = ArrayList<TfPart>()
-	protected val tfCharStyle = TfCharStyle()
 
 	protected var _selectionCursor: RollOverCursor? = null
 
-	private val layout = FlowLayout()
+	private val drag = dragAttachment(0f)
 
 	init {
+		bind(charStyle)
 		styleTags.add(TextField)
 		BitmapFontRegistry.fontRegistered.add(this::fontRegisteredHandler)
 
 		watch(charStyle) {
-			fontStyle.face = it.face
-			fontStyle.size = it.size
-			fontStyle.bold = it.bold
-			fontStyle.italic = it.italic
 			refreshCursor()
-			font = BitmapFontRegistry.getFont(fontStyle)
+			drag.enabled = it.selectable
 		}
 
-		validation.addNode(TextValidationFlags.COMPONENTS, 0, ValidationFlags.LAYOUT, this::updateTfParts)
+		validation.addNode(TextValidationFlags.COMPONENTS, 0, ValidationFlags.STYLES or ValidationFlags.LAYOUT, this::updateTfParts)
 		validation.addNode(TextValidationFlags.SELECTION, TextValidationFlags.COMPONENTS, 0, this::updateSelection)
 		validation.addNode(TextValidationFlags.VERTICES, TextValidationFlags.SELECTION or TextValidationFlags.COMPONENTS or ValidationFlags.LAYOUT or ValidationFlags.CONCATENATED_TRANSFORM or ValidationFlags.STYLES, 0, this::updateVertices)
 		validation.addNode(TextValidationFlags.COLOR, ValidationFlags.CONCATENATED_COLOR_TRANSFORM or ValidationFlags.STYLES, 0, this::updateTextColor)
 
 		selection.changed.add { invalidate(TextValidationFlags.SELECTION) }
+
+		drag.drag.add(this::dragHandler)
+	}
+
+	private fun dragHandler(event: DragInteraction) {
+//		val charStart = event.positionLocal
+		println("drag")
 	}
 
 	protected open fun refreshCursor() {
@@ -104,16 +107,6 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusabl
 			_selectionCursor = null
 		}
 	}
-
-	private var font: BitmapFont?
-		get() = tfCharStyle.font
-		set(value) {
-			tfCharStyle.font = value
-			for (i in 0..tfParts.lastIndex) {
-				tfParts[i].invalidateLayout()
-			}
-			invalidateLayout()
-		}
 
 	override var text: String?
 		get() = _textContent
@@ -128,17 +121,12 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusabl
 		set(value) {
 		}
 
-	/**
-	 * A Font has finished loading, check if it is one we're waiting for.
-	 */
 	private fun fontRegisteredHandler(registeredFont: BitmapFont) {
-		if (fontStyle == registeredFont.data.fontStyle) {
-			font = registeredFont
-		}
+		invalidateStyles()
 	}
 
 	protected open fun updateTfParts() {
-		tfParts.clear()
+		root.children.clear()
 
 		val text = _textContent ?: return
 		if (text.isEmpty()) return
@@ -148,18 +136,18 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusabl
 			val char = text[i]
 			val wasSpace = prevChar == ' '
 			val isSpace = char == ' '
-			if (isSpace != wasSpace) flushWord(chars)
-			chars.add(TfChar(char, i, tfCharStyle))
+			if (isSpace != wasSpace) flushWord(chars, root)
+			chars.add(TfChar(char, i, root.tfCharStyle))
 
 			if (char.isBreaking()) {
-				flushWord(chars)
+				flushWord(chars, root)
 			}
 			prevChar = char
 		}
-		flushWord(chars)
+		flushWord(chars, root)
 	}
 
-	protected fun flushWord(chars: ArrayList<TfChar>) {
+	protected fun flushWord(chars: ArrayList<TfChar>, parent: TfContainer<*, *>) {
 		if (chars.isEmpty()) return
 		val word = TfWord(chars.copy())
 
@@ -177,33 +165,30 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusabl
 				overhangs = true
 			}
 		}
-		tfParts.add(word)
+		parent.children.add(word)
 		chars.clear()
 	}
 
+	override fun updateStyles() {
+		super.updateStyles()
+		root.validateStyles()
+	}
+
 	protected open fun updateSelection() {
-		for (i in 0..tfParts.lastIndex) {
-			tfParts[i].validateSelection(selection)
-		}
+		root.validateSelection(selection)
 	}
 
 	protected open fun updateVertices() {
-		for (i in 0..tfParts.lastIndex) {
-			tfParts[i].validateVertices(concatenatedTransform, explicitWidth ?: Float.MAX_VALUE, explicitHeight ?: Float.MAX_VALUE)
-		}
+		root.validateVertices(concatenatedTransform, explicitWidth ?: Float.MAX_VALUE, explicitHeight ?: Float.MAX_VALUE)
 	}
 
 	protected open fun updateTextColor() {
-		tfCharStyle.selectedTextColorTint.set(concatenatedColorTint).mul(charStyle.selectedColorTint)
-		tfCharStyle.selectedBackgroundColor.set(concatenatedColorTint).mul(charStyle.selectedBackgroundColor)
-		tfCharStyle.textColorTint.set(concatenatedColorTint).mul(charStyle.colorTint)
-		tfCharStyle.backgroundColor.set(concatenatedColorTint).mul(charStyle.backgroundColor)
+		root.setTint(concatenatedColorTint)
 	}
 
 	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
-		layout.basicLayout(explicitWidth, explicitHeight, tfParts, flowStyle, out)
-		val lineHeight = tfCharStyle.font?.data?.lineHeight?.toFloat() ?: 0f
-		if (out.height < lineHeight) out.height = lineHeight
+		root.setSize(explicitWidth, explicitHeight)
+		out.set(root.bounds)
 		if (explicitWidth != null) out.width = explicitWidth
 		if (explicitHeight != null) out.height = explicitHeight
 		highlight?.setSize(out.width, out.height)
@@ -211,9 +196,7 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusabl
 
 	override fun draw() {
 		glState.camera(camera)
-		for (i in 0..tfParts.lastIndex) {
-			tfParts[i].render(glState)
-		}
+		root.render(glState)
 	}
 
 	/**
@@ -234,7 +217,7 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusabl
 	}
 }
 
-private object TextValidationFlags {
+object TextValidationFlags {
 	const val COMPONENTS = 1 shl 16
 	const val SELECTION = 1 shl 17
 	const val VERTICES = 1 shl 18
@@ -261,11 +244,16 @@ interface TfPart : BasicLayoutElement {
 	 */
 	val rangeEnd: Int
 
-	fun invalidateLayout()
+	fun validateStyles()
 
 	fun validateSelection(selection: TextSelection)
 
 	fun validateVertices(transform: Matrix4Ro, rightClip: Float, bottomClip: Float)
+
+	/**
+	 * Sets the color tint.
+	 */
+	fun setTint(concatenatedColorTint: ColorRo)
 
 	fun render(glState: GlState)
 
@@ -273,10 +261,29 @@ interface TfPart : BasicLayoutElement {
 	fun getPreviousChar(x: Float, y: Float): Int
 }
 
-abstract class TfLayoutContainer<S, out U : LayoutData>(
-		private val layout: BasicLayoutAlgorithm<S, U>,
-		val style: S
-) : BasicLayoutElementImpl(), TfPart, LayoutDataProvider<U> {
+class TfContainer<S, out U : LayoutData>(
+		private val layout: SequencedLayout<S, U>,
+		val layoutStyle: S,
+		override val styleParent: Styleable? = null
+) : BasicLayoutElementImpl(), TfPart, LayoutDataProvider<U>, Styleable {
+
+	val charStyle = CharStyle()
+	val tfCharStyle = TfCharStyle()
+
+	override val styleTags = ArrayList<StyleTag>()
+	override val styleRules = ArrayList<StyleRule<*>>()
+
+	private val fontStyle = FontStyle("[Unknown]", 0)
+
+	override fun <T : Style> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) {
+		out.clear()
+		for (i in 0..styleRules.lastIndex) {
+			val e = styleRules[i]
+			@Suppress("UNCHECKED_CAST")
+			if (e.style.type == type)
+				out.add(e as StyleRule<T>)
+		}
+	}
 
 	override fun createLayoutData(): U = layout.createLayoutData()
 
@@ -288,14 +295,41 @@ abstract class TfLayoutContainer<S, out U : LayoutData>(
 	override val rangeEnd: Int
 		get() = if (children.isEmpty()) 0 else children.last().rangeEnd
 
+	override fun validateStyles() {
+		layoutIsValid = false
+		CascadingStyleCalculator.calculate(charStyle, this)
+		fontStyle.face = charStyle.face
+		fontStyle.size = charStyle.size
+		fontStyle.bold = charStyle.bold
+		fontStyle.italic = charStyle.italic
+		tfCharStyle.font = BitmapFontRegistry.getFont(fontStyle)
+
+		for (i in 0..children.lastIndex) {
+			children[i].validateStyles()
+		}
+	}
+
 	override fun validateSelection(selection: TextSelection) {
 		for (i in 0..children.lastIndex) {
 			children[i].validateSelection(selection)
 		}
 	}
 
-	override fun updateLayout(width: Float?, height: Float?, out: Bounds) {
-		layout.basicLayout(width, height, children, style, out)
+	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
+		layout.basicLayout(explicitWidth, explicitHeight, children, layoutStyle, out)
+
+		val lineHeight = tfCharStyle.font?.data?.lineHeight?.toFloat() ?: 0f
+		if (out.height < lineHeight) out.height = lineHeight
+	}
+
+	override fun setTint(concatenatedColorTint: ColorRo) {
+		tfCharStyle.selectedTextColorTint.set(concatenatedColorTint).mul(charStyle.selectedColorTint)
+		tfCharStyle.selectedBackgroundColor.set(concatenatedColorTint).mul(charStyle.selectedBackgroundColor)
+		tfCharStyle.textColorTint.set(concatenatedColorTint).mul(charStyle.colorTint)
+		tfCharStyle.backgroundColor.set(concatenatedColorTint).mul(charStyle.backgroundColor)
+		for (i in 0..children.lastIndex) {
+			children[i].setTint(concatenatedColorTint)
+		}
 	}
 
 	override fun validateVertices(transform: Matrix4Ro, rightClip: Float, bottomClip: Float) {
@@ -308,6 +342,18 @@ abstract class TfLayoutContainer<S, out U : LayoutData>(
 		for (i in 0..children.lastIndex) {
 			children[i].render(glState)
 		}
+	}
+
+	override fun getNextChar(x: Float, y: Float): Int {
+		val i = layout.getNextElementIndex(x, y, children)
+		if (i >= children.size) return rangeEnd
+		return children[i].getNextChar(x, y)
+	}
+
+	override fun getPreviousChar(x: Float, y: Float): Int {
+		val i = layout.getPreviousElementIndex(x, y, children)
+		if (i >= children.size) return rangeEnd
+		return children[i].getPreviousChar(x, y)
 	}
 }
 
@@ -325,7 +371,11 @@ class TfWord(
 	override val rangeEnd: Int
 		get() = chars.last().index + 1
 
-	override fun updateLayout(width: Float?, height: Float?, out: Bounds) {
+	override fun validateStyles() {
+		layoutIsValid = false
+	}
+
+	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
 		var x = 0
 		var maxHeight = 0
 		for (i in 0..chars.lastIndex) {
@@ -358,6 +408,8 @@ class TfWord(
 			chars[i].validateVertices(transform, x, y, rightClip, bottomClip)
 		}
 	}
+
+	override fun setTint(concatenatedColorTint: ColorRo) {}
 
 	override fun render(glState: GlState) {
 		for (i in 0..chars.lastIndex) {

@@ -1,10 +1,12 @@
 package com.acornui.component
 
+import com.acornui.gl.component.text.TextValidationFlags
 import com.acornui.string.toRadix
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 
 class ValidationNodeTest {
 
@@ -105,14 +107,37 @@ class ValidationNodeTest {
 		assertFailsWith(Exception::class) {
 			n.addNode(EIGHT, NINE, {})
 		}
-
 	}
 
 	@Test fun powerOfTwoAssertion() {
 		assertFailsWith(IllegalArgumentException::class) {
 			n.addNode(3, {})
 		}
+	}
 
+	@Test fun textComponentsBug() {
+		val validation = validationTree {
+			ValidationFlags.apply {
+				addNode(STYLES, {})
+				addNode(PROPERTIES, STYLES, {})
+				addNode(SIZE_CONSTRAINTS, PROPERTIES, {})
+				addNode(LAYOUT, PROPERTIES or SIZE_CONSTRAINTS, {})
+				addNode(TRANSFORM, {})
+				addNode(CONCATENATED_TRANSFORM, TRANSFORM, {})
+				addNode(COLOR_TRANSFORM, {})
+				addNode(CONCATENATED_COLOR_TRANSFORM, COLOR_TRANSFORM, {})
+				addNode(INTERACTIVITY_MODE, {})
+				addNode(HIERARCHY_ASCENDING, PROPERTIES, {})
+				addNode(HIERARCHY_DESCENDING, PROPERTIES, {})
+			}
+		}
+
+		validation.addNode(TextValidationFlags.COMPONENTS, 0, ValidationFlags.STYLES or ValidationFlags.LAYOUT, {})
+
+		validation.validate()
+
+		validation.invalidate(TextValidationFlags.COMPONENTS)
+		assertFalse(validation.isValid(ValidationFlags.STYLES))
 	}
 
 	private fun ValidationTree.assertIsValid(vararg flags: Int) {

@@ -26,7 +26,7 @@ interface Styleable {
 	 */
 	val styleRules: MutableList<StyleRule<*>>
 
-	fun <T : Style> getRulesByType(type: StyleType<T>): List<StyleRule<T>>?
+	fun <T : Style> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>)
 
 	/**
 	 * The next ancestor of this styleable component.
@@ -86,9 +86,12 @@ class StylesImpl(private val host: UiComponent) : Disposable {
 		host.invalidateStyles()
 	}
 
-	fun <T : Style> getRulesByType(type: StyleType<T>): List<StyleRule<T>>? {
+	fun <T : Style> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) {
 		@Suppress("UNCHECKED_CAST")
-		return entriesByType[type] as List<StyleRule<T>>?
+		val entries = entriesByType[type] as List<StyleRule<T>>?
+		out.clear()
+		if (entries != null)
+			out.addAll(entries)
 	}
 
 	fun <T : MutableStyle> bind(style: T, calculator: StyleCalculator) {

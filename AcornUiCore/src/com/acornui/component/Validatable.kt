@@ -133,7 +133,7 @@ class ValidationTree {
 			dependantsNotFound = dependantsNotFound and flagInv
 			if (previousNode.validationMask and newNode.invalidationMask > 0) {
 				previousNode.validationMask = previousNode.validationMask or previousNode.validationMask
-				newNode.invalidationMask = newNode.validationMask or previousNode.invalidationMask
+				newNode.invalidationMask = newNode.invalidationMask or previousNode.invalidationMask
 				if (insertIndex > i)
 					insertIndex = i
 			}

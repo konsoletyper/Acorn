@@ -15,6 +15,7 @@ object CascadingStyleCalculator : StyleCalculator {
 
 	private val entries = ArrayList<StyleRule<*>>()
 	private val calculated = HashMap<String, Any?>()
+	private val tmp = ArrayList<StyleRule<*>>()
 
 	private val entrySortComparator = {
 		o1: StyleRule<*>, o2: StyleRule<*> ->
@@ -31,7 +32,8 @@ object CascadingStyleCalculator : StyleCalculator {
 			ancestor ->
 			style.type.walkInheritance {
 				styleType ->
-				ancestor.getRulesByType(styleType)?.forEachReversed2 {
+				ancestor.getRulesByType(styleType, tmp)
+				tmp.forEachReversed2 {
 					entry ->
 					if (entry.filter(target) != null) {
 						entries.addSorted(entry, entrySortComparator)

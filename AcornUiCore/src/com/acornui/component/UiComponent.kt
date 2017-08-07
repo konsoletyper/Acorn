@@ -670,7 +670,7 @@ open class UiComponentImpl(
 	override final val styleRules: MutableList<StyleRule<*>>
 		get() = styles.styleRules
 
-	override fun <T : Style> getRulesByType(type: StyleType<T>): List<StyleRule<T>>? = styles.getRulesByType(type)
+	override fun <T : Style> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) = styles.getRulesByType(type, out)
 
 	protected fun <T : MutableStyle> bind(style: T, calculator: StyleCalculator = CascadingStyleCalculator): T {
 		styles.bind(style, calculator)
@@ -1018,7 +1018,7 @@ open class UiComponentImpl(
 	//-----------------------------------------------
 
 	/**
-	 * Responsible for rendering this component, including any applied filters.
+	 * Responsible for rendering this component.
 	 * Typically, custom components override the [draw] method.
 	 */
 	override fun render() {

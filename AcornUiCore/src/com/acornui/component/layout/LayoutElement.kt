@@ -263,7 +263,7 @@ abstract class BasicLayoutElementImpl : BasicLayoutElement {
 		updateLayout(width, height, _bounds)
 	}
 
-	abstract fun updateLayout(width: Float?, height: Float?, out: Bounds)
+	abstract fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds)
 
 	override fun setPosition(x: Float, y: Float, z: Float) {
 		position.set(x, y, z)
