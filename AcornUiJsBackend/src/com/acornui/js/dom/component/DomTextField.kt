@@ -20,6 +20,7 @@ import com.acornui.component.*
 import com.acornui.component.layout.algorithm.FlowDisplay
 import com.acornui.component.layout.algorithm.FlowHAlign
 import com.acornui.component.layout.algorithm.FlowLayoutStyle
+import com.acornui.component.layout.setSize
 import com.acornui.component.text.*
 import com.acornui.core.di.Owned
 import com.acornui.core.di.own

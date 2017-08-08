@@ -98,16 +98,11 @@ interface BasicLayoutAlgorithm<in S, out T : LayoutData> : LayoutDataProvider<T>
 interface SequencedLayout<in S, out T : LayoutData> : BasicLayoutAlgorithm<S, T> {
 
 	/**
-	 * Given the x, y position, returns the index of the next expected element.
+	 * Given the x, y position, returns the index of the nearest element.
 	 * This assumes the elements were laid out via [basicLayout].
-	 * The return value will be an index in the range of 0 to elements.size
+	 * If there are zero elements, this returns -1, otherwise,
+	 * the return value will be an index in the range of 0 to elements.lastIndex
 	 */
-	fun getNextElementIndex(x: Float, y: Float, elements: List<BasicLayoutElement>): Int
+	fun getNearestElementIndex(x: Float, y: Float, elements: List<BasicLayoutElement>): Int
 
-	/**
-	 * Given the x, y position, returns the index of the previous expected element.
-	 * This assumes the elements were laid out via [basicLayout].
-	 * The return value will be an index in the range of -1 to elements.lastIndex
-	 */
-	fun getPreviousElementIndex(x: Float, y: Float, elements: List<BasicLayoutElement>): Int
 }

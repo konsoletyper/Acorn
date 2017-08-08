@@ -94,8 +94,18 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusabl
 	}
 
 	private fun dragHandler(event: DragInteraction) {
-//		val charStart = event.positionLocal
-		println("drag")
+		val p1 = event.startPositionLocal
+		val p2 = event.positionLocal
+		val p1A = root.getSelectionChar(p1.x, p1.y)
+		val p2A = root.getSelectionChar(p2.x, p2.y)
+		if (p2A > p1A) {
+			selection.startIndex = p1A
+			selection.endIndex = p2A
+		} else {
+			selection.startIndex = p2A
+			selection.endIndex = p1A
+		}
+
 	}
 
 	protected open fun refreshCursor() {
@@ -257,8 +267,11 @@ interface TfPart : BasicLayoutElement {
 
 	fun render(glState: GlState)
 
-	fun getNextChar(x: Float, y: Float): Int
-	fun getPreviousChar(x: Float, y: Float): Int
+	/**
+	 * Returns the index of the character nearest [x,y]. The character index will be separated at the half-width of
+	 * the character.
+	 */
+	fun getSelectionChar(x: Float, y: Float): Int
 }
 
 class TfContainer<S, out U : LayoutData>(
@@ -344,16 +357,12 @@ class TfContainer<S, out U : LayoutData>(
 		}
 	}
 
-	override fun getNextChar(x: Float, y: Float): Int {
-		val i = layout.getNextElementIndex(x, y, children)
+	override fun getSelectionChar(x: Float, y: Float): Int {
+		val i = layout.getNearestElementIndex(x, y, children)
+		if (i < 0) return rangeStart
 		if (i >= children.size) return rangeEnd
-		return children[i].getNextChar(x, y)
-	}
-
-	override fun getPreviousChar(x: Float, y: Float): Int {
-		val i = layout.getPreviousElementIndex(x, y, children)
-		if (i >= children.size) return rangeEnd
-		return children[i].getPreviousChar(x, y)
+		val child = children[i]
+		return child.getSelectionChar(x - child.x, y - child.y)
 	}
 }
 
@@ -417,18 +426,12 @@ class TfWord(
 		}
 	}
 
-	override fun getNextChar(x: Float, y: Float): Int {
-		if (x < this.x) return rangeStart
+	override fun getSelectionChar(x: Float, y: Float): Int {
+		if (x >= width || y >= bottom) return rangeEnd
+		if (x <= 0f || y <= 0f) return rangeStart
 		return rangeStart + chars.sortedInsertionIndex(x, { o1: Float, char: TfChar ->
-			o1.compareTo(char.x + char.width)
-		})
-	}
-
-	override fun getPreviousChar(x: Float, y: Float): Int {
-		if (x > right) return rangeEnd
-		return rangeStart + chars.sortedInsertionIndex(x, { o1: Float, char: TfChar ->
-			o1.compareTo(char.x)
-		})
+			o1.compareTo(char.x + char.width * 0.5f)
+		}, matchForwards = true)
 	}
 }
 

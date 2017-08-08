@@ -8,7 +8,7 @@ interface SelectionManager : Disposable {
 
 	val selectionChanged: Signal0
 
-	companion object : DKey<SelectionManager> {}
+	companion object : DKey<SelectionManager>
 }
 
 class SelectionManagerImpl : SelectionManager {

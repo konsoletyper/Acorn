@@ -116,9 +116,9 @@ class GlfwWindowImpl(
 		// bindings available for use.
 		GL.createCapabilities()
 
-		if (debug) {
-			GLUtil.setupDebugMessageCallback()
-		}
+//		if (debug) {
+//			GLUtil.setupDebugMessageCallback()
+//		}
 
 		setSize(windowConfig.initialWidth, windowConfig.initialHeight, false)
 

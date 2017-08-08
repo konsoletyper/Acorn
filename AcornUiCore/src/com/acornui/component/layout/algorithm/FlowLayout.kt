@@ -181,13 +181,14 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 		return (layoutData as FlowLayoutData?)?.display == FlowDisplay.BLOCK
 	}
 
-	override fun getNextElementIndex(x: Float, y: Float, elements: List<BasicLayoutElement>): Int {
-		if (y < 0f) return 0
+	override fun getNearestElementIndex(x: Float, y: Float, elements: List<BasicLayoutElement>): Int {
+		if (lines.isEmpty()) return -1
+		if (y < lines.first().y) return 0
+		if (y >= lines.last().bottom) return elements.lastIndex
 		val lineIndex = _lines.sortedInsertionIndex(y, {
 			y, line ->
 			y.compareTo(line.bottom)
 		})
-		if (lineIndex >= _lines.size) return elements.size
 		val line = _lines[lineIndex]
 		return elements.sortedInsertionIndex(x, {
 			x, element ->
@@ -195,19 +196,6 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 		}, line.startIndex, line.endIndex)
 	}
 
-	override fun getPreviousElementIndex(x: Float, y: Float, elements: List<BasicLayoutElement>): Int {
-		if (y < 0f) return -1
-		val lineIndex = _lines.sortedInsertionIndex(y, {
-			y, line ->
-			y.compareTo(line.bottom)
-		})
-		if (lineIndex >= _lines.size) return elements.lastIndex
-		val line = _lines[lineIndex]
-		return elements.sortedInsertionIndex(x, {
-			x, element ->
-			x.compareTo(element.x)
-		}, line.startIndex, line.endIndex, matchForwards = true) - 1
-	}
 }
 
 interface LineInfoRo {

@@ -3,6 +3,7 @@ package com.acornui.js.dom.component
 import com.acornui.component.BoxStyle
 import com.acornui.component.scroll.ScrollPolicy
 import com.acornui.component.UiComponent
+import com.acornui.component.layout.setSize
 import com.acornui.component.text.EditableTextField
 import com.acornui.component.text.TextCommand
 import com.acornui.component.text.TextCommander
