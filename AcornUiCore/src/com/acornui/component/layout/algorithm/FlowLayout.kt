@@ -166,6 +166,11 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 
 			element.moveTo(x + xOffset, line.y + yOffset)
 			x += element.width + hGap
+
+			if (layoutData?.clearsTabstop ?: false) {
+				val tabIndex = MathUtils.floor(x / props.tabSize) + 1
+				x = tabIndex * props.tabSize
+			}
 		}
 	}
 

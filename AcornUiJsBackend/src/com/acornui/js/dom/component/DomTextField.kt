@@ -23,9 +23,12 @@ import com.acornui.component.layout.algorithm.FlowLayoutStyle
 import com.acornui.component.layout.setSize
 import com.acornui.component.text.*
 import com.acornui.core.di.Owned
+import com.acornui.core.di.inject
 import com.acornui.core.di.own
 import com.acornui.core.input.keyDown
 import com.acornui.core.input.keyUp
+import com.acornui.core.selection.SelectionManager
+import com.acornui.core.selection.SelectionTarget
 import com.acornui.math.Bounds
 import com.acornui.signal.Signal0
 import org.w3c.dom.HTMLDivElement
@@ -45,7 +48,7 @@ open class DomTextField(
 	override final val flowStyle = bind(FlowLayoutStyle())
 
 	// TODO: DomTextSelection
-	override final val selection = own(TextSelection())
+	override final val selection = own(SelectionTarget(this, inject(SelectionManager)))
 
 	init {
 		styleTags.add(TextField)

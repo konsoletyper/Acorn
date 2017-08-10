@@ -30,6 +30,7 @@ import com.acornui.core.di.DKey
 import com.acornui.core.di.DependencyKeyImpl
 import com.acornui.core.di.Owned
 import com.acornui.core.focus.Focusable
+import com.acornui.core.selection.SelectionTarget
 import com.acornui.graphics.Color
 import com.acornui.graphics.ColorRo
 import com.acornui.graphics.color
@@ -45,7 +46,7 @@ interface TextField : UiComponent, Labelable, Styleable {
 	var text: String?
 	var htmlText: String?
 
-	val selection: TextSelection
+	val selection: SelectionTarget
 
 	/**
 	 * Replaces the given range with the provided text.
@@ -105,62 +106,6 @@ fun Owned.text(init: ComponentInit<TextField> = {}): TextField {
 	val t = injector.inject(TextField.FACTORY_KEY)(this)
 	t.init()
 	return t
-}
-
-class TextSelection : Clearable, Disposable {
-
-	private val _changed = Signal0()
-	val changed: Signal<()->Unit>
-		get() = _changed
-
-	private var _startIndex = 0
-
-	/**
-	 * The beginning character index of the selection. (Inclusive)
-	 */
-	var startIndex: Int
-		get() = _startIndex
-		set(value) {
-			if (_startIndex == value) return
-			_startIndex = value
-			_changed.dispatch()
-		}
-
-	private var _endIndex = 0
-
-	/**
-	 * The ending character index of the selection. (Exclusive)
-	 */
-	var endIndex: Int
-		get() = _endIndex
-		set(value) {
-			if (_endIndex == value) return
-			_endIndex = value
-			_changed.dispatch()
-		}
-
-	override fun clear() {
-		_startIndex = 0
-		_endIndex = 0
-		_changed.dispatch()
-	}
-
-	/**
-	 * Sets the selection range to 0 - MAX_VALUE.
-	 */
-	fun selectAll() {
-		_startIndex = 0
-		_endIndex = Int.MAX_VALUE
-		_changed.dispatch()
-	}
-
-	fun inRange(i: Int): Boolean {
-		return i >= _startIndex && i < _endIndex
-	}
-
-	override fun dispose() {
-		_changed.dispose()
-	}
 }
 
 /**
@@ -272,7 +217,7 @@ interface TextInput : Focusable, Styleable {
 	 */
 	var restrictPattern: String?
 
-	val selection: TextSelection
+	val selection: SelectionTarget
 
 	var password: Boolean
 
