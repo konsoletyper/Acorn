@@ -54,7 +54,8 @@ class JsMouseInput(private val root: HTMLElement) : MouseInput {
 	private var _canvasX: Float = 0f
 	private var _canvasY: Float = 0f
 
-	var scrollSpeed = 24f
+	var linePixelSize = 24f
+	var pagePixelSize = 24f * 200f
 
 	override fun canvasX(): Float {
 		return _canvasX
@@ -163,9 +164,11 @@ class JsMouseInput(private val root: HTMLElement) : MouseInput {
 			wheelEvent.button = getWhichButton(jsEvent.button.toInt())
 			_canvasX = wheelEvent.canvasX
 			_canvasY = wheelEvent.canvasY
-			wheelEvent.deltaX = scrollSpeed * if (jsEvent.deltaX > 0f) 1f else -1f
-			wheelEvent.deltaY = scrollSpeed * if (jsEvent.deltaY > 0f) 1f else -1f
-			wheelEvent.deltaZ = scrollSpeed * if (jsEvent.deltaZ > 0f) 1f else -1f
+
+			val m = if (jsEvent.deltaMode == WheelEvent.DOM_DELTA_PAGE) pagePixelSize else if (jsEvent.deltaMode == WheelEvent.DOM_DELTA_LINE) linePixelSize else 1f
+			wheelEvent.deltaX = m * jsEvent.deltaX.toFloat()
+			wheelEvent.deltaY = m * jsEvent.deltaY.toFloat()
+			wheelEvent.deltaZ = m * jsEvent.deltaZ.toFloat()
 			mouseWheel.dispatch(wheelEvent)
 		}
 	}
