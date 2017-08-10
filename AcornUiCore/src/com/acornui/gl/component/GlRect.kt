@@ -1,10 +1,15 @@
 package com.acornui.gl.component
 
-import com.acornui._assert
-import com.acornui.component.*
+import com.acornui.component.BoxStyle
+import com.acornui.component.ContainerImpl
+import com.acornui.component.InteractivityMode
+import com.acornui.component.Rect
 import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
-import com.acornui.gl.component.drawing.*
+import com.acornui.gl.component.drawing.MeshData
+import com.acornui.gl.component.drawing.QUAD_INDICES
+import com.acornui.gl.component.drawing.dynamicMeshC
+import com.acornui.gl.component.drawing.transform
 import com.acornui.gl.core.Gl20
 import com.acornui.gl.core.GlState
 import com.acornui.graphics.Color

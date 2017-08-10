@@ -18,15 +18,12 @@ package com.acornui.core.popup
 
 import com.acornui.component.*
 import com.acornui.component.layout.LayoutContainer
-import com.acornui.component.layout.algorithm.BasicLayoutData
 import com.acornui.core.di.Owned
-import com.acornui.core.di.inject
 import com.acornui.core.focus.Focusable
 import com.acornui.math.Bounds
 import com.acornui.math.Matrix4
 import com.acornui.math.Vector2
 import com.acornui.math.Vector3
-
 
 /**
  * The Lift component will place its elements as children in the pop up layer, automatically transforming the children
@@ -35,11 +32,6 @@ import com.acornui.math.Vector3
 class Lift(owner: Owned) : ElementContainerImpl(owner), LayoutContainer<StackLayoutStyle, StackLayoutData>, Focusable {
 
 	override fun createLayoutData(): StackLayoutData = StackLayoutData()
-
-	override val layoutAlgorithm: StackLayoutStyle
-		get() = throw Exception()
-
-	override val style = bind(StackLayoutStyle())
 
 	/**
 	 * If true, the contents position will be constrained to not extend beyond the stage.
@@ -64,6 +56,9 @@ class Lift(owner: Owned) : ElementContainerImpl(owner), LayoutContainer<StackLay
 
 	private val contents = LiftStack(this)
 
+	override val layoutAlgorithm = contents.layoutAlgorithm
+	override val style = contents.style
+
 	override var focusEnabled: Boolean
 		get() = contents.focusEnabled
 		set(value) {
@@ -81,8 +76,6 @@ class Lift(owner: Owned) : ElementContainerImpl(owner), LayoutContainer<StackLay
 		set(value) {
 			contents.highlight = value
 		}
-
-	private val popUp = inject(PopUpManager)
 
 	init {
 		contents.invalidated.add {
@@ -111,14 +104,14 @@ class Lift(owner: Owned) : ElementContainerImpl(owner), LayoutContainer<StackLay
 		super.onActivated()
 		window.sizeChanged.add(windowResizedHandler)
 
-		popUp.addPopUp(PopUpInfo(contents, dispose = false, isModal = isModal, priority = priority, focusFirst = focusFirst, highlightFocused = highlightFocused, onClosed = { onClosed?.invoke() }))
+		addPopUp(PopUpInfo(contents, dispose = false, isModal = isModal, priority = priority, focusFirst = focusFirst, highlightFocused = highlightFocused, onClosed = { onClosed?.invoke() }))
 		if (constrainToStage) invalidate(ValidationFlags.CONCATENATED_TRANSFORM)
 	}
 
 	override fun onDeactivated() {
 		super.onDeactivated()
 		window.sizeChanged.remove(windowResizedHandler)
-		popUp.removePopUp(contents)
+		removePopUp(contents)
 	}
 
 	override fun onElementAdded(index: Int, element: UiComponent) {

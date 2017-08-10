@@ -58,7 +58,7 @@ open class GlScrollArea(
 	private var tossScroller: TossScroller? = null
 	private var tossBinding: TossScrollModelBinding? = null
 
-	var tossScrolling: Boolean
+	private var tossScrolling: Boolean
 		get() = _tossScrolling
 		set(value) {
 			if (_tossScrolling == value) return
@@ -99,6 +99,7 @@ open class GlScrollArea(
 		vScrollModel.changed.add(scrollChangedHandler)
 
 		watch(style) {
+			tossScrolling = it.tossScrolling
 			scrollRect.borderRadius = it.borderRadius
 
 			corner?.dispose()

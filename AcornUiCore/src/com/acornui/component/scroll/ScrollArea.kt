@@ -81,6 +81,8 @@ class ScrollAreaStyle : StyleBase() {
 
 	var corner by prop(noSkin)
 
+	var tossScrolling by prop(false)
+
 	var borderRadius: CornersRo by prop(Corners())
 
 	companion object : StyleType<ScrollAreaStyle>

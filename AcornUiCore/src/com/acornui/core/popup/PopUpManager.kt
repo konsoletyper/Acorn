@@ -83,10 +83,13 @@ interface PopUpManager : Clearable {
 	}
 }
 
+// TODO: It would be nice if the canvas layout data type was explicit.
+
 class PopUpInfo<T : UiComponent>(
 
 		/**
 		 * The child to add when the pop-up is activated.
+		 * If the child has layoutData set, it is expected to be of type [CanvasLayoutData]
 		 */
 		val child: T,
 

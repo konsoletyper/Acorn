@@ -28,6 +28,7 @@ import com.acornui.core.di.own
 import com.acornui.core.input.keyDown
 import com.acornui.core.input.keyUp
 import com.acornui.core.selection.SelectionManager
+import com.acornui.core.selection.SelectionRange
 import com.acornui.core.selection.SelectionTarget
 import com.acornui.math.Bounds
 import com.acornui.signal.Signal0
@@ -118,12 +119,12 @@ open class DomTextInput(
 	private var _editable: Boolean = true
 	private var _maxLength: Int? = null
 
-	override final val selection = own(TextSelection())
+	override final val selection = own(SelectionTarget(this, inject(SelectionManager)))
 
-	private fun refreshSelection() {
+	private fun refreshSelection(old: SelectionRange? = null, new: SelectionRange? = SelectionRange(this, selection.startIndex, selection.endIndex)) {
 		if (!isActive) return // IE has a problem setting the selection range on elements not yet active.
 		try {
-			inputElement.setSelectionRange(selection.startIndex, selection.endIndex)
+			inputElement.setSelectionRange(new?.startIndex ?: 0, new?.endIndex ?: 0)
 		} catch (e: Throwable) {
 			// IE can puke on setSelectionRange...
 		}

@@ -26,10 +26,9 @@ import com.acornui.core.di.inject
 import com.acornui.core.focus.Focusable
 import com.acornui.math.Bounds
 
-interface LayoutContainer<out S, out T : LayoutData> : LayoutDataProvider<T>, ElementContainer {
+interface LayoutContainer<S, out T : LayoutData> : LayoutDataProvider<T>, ElementContainer {
 
-	@Deprecated("", ReplaceWith("style"), DeprecationLevel.ERROR)
-	val layoutAlgorithm: S
+	val layoutAlgorithm: LayoutAlgorithm<S, T>
 
 	val style: S
 
@@ -38,7 +37,7 @@ interface LayoutContainer<out S, out T : LayoutData> : LayoutDataProvider<T>, El
 
 open class LayoutContainerImpl<S : MutableStyle, out U : LayoutData>(
 		owner: Owned,
-		protected val _layoutAlgorithm: LayoutAlgorithm<S, U>,
+		override val layoutAlgorithm: LayoutAlgorithm<S, U>,
 		style: S,
 		native: NativeContainer = owner.inject(NativeContainer.FACTORY_KEY).invoke(owner)
 ) : ElementContainerImpl(owner, native), LayoutContainer<S, U>, Focusable {
@@ -49,25 +48,22 @@ open class LayoutContainerImpl<S : MutableStyle, out U : LayoutData>(
 
 	protected val elementsToLayout = ArrayList<LayoutElement>()
 
-	@Deprecated("", ReplaceWith("style"), DeprecationLevel.ERROR)
-	override val layoutAlgorithm: S
-		get() = throw Exception()
 
 	override final val style: S = bind(style)
-	override final fun createLayoutData(): U = _layoutAlgorithm.createLayoutData()
+	override final fun createLayoutData(): U = layoutAlgorithm.createLayoutData()
 
 	override fun updateSizeConstraints(out: SizeConstraints) {
 		elementsToLayout.clear()
 		elements.filterTo2(elementsToLayout, LayoutElement::shouldLayout)
 		if (elementsToLayout.isNotEmpty())
-			_layoutAlgorithm.calculateSizeConstraints(elementsToLayout, style, out)
+			layoutAlgorithm.calculateSizeConstraints(elementsToLayout, style, out)
 	}
 
 	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
 		elementsToLayout.clear()
 		elements.filterTo2(elementsToLayout, LayoutElement::shouldLayout)
 		if (elementsToLayout.isNotEmpty()) {
-			_layoutAlgorithm.layout(explicitWidth, explicitHeight, elementsToLayout, style, out)
+			layoutAlgorithm.layout(explicitWidth, explicitHeight, elementsToLayout, style, out)
 			if (explicitWidth != null && explicitWidth > out.width) out.width = explicitWidth
 			if (explicitHeight != null && explicitHeight > out.height) out.height = explicitHeight
 		}
