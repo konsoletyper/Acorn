@@ -1,6 +1,6 @@
 package com.acornui.component
 
-interface ItemRenderer<E> : Selectable {
+interface ItemRenderer<E> : Toggleable {
 
 	/**
 	 * The index of the data in the List this ItemRenderer represents.

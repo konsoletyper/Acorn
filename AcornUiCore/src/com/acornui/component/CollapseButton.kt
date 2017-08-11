@@ -25,7 +25,7 @@ open class CollapseButton(
 
 	init {
 		styleTags.add(CollapseButton)
-		toggle = true
+		toggleOnClick = true
 	}
 
 	companion object : StyleTag

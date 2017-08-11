@@ -494,7 +494,7 @@ open class BasicUiSkin(
 		target.addStyleRule(groupHeaderCharStyle, withAncestor(TextField) andThen withAncestor(DataGridGroupHeader))
 
 		val dataGridGroupHeaderStyle = DataGridGroupHeaderStyle()
-		dataGridGroupHeaderStyle.collapseButton = { collapseButton { toggle = false } }
+		dataGridGroupHeaderStyle.collapseButton = { collapseButton { toggleOnClick = false } }
 		dataGridGroupHeaderStyle.background = {
 			rect {
 				style.backgroundColor = theme.controlBarBgColor

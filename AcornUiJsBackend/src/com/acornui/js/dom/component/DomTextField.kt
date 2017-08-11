@@ -121,8 +121,13 @@ open class DomTextInput(
 
 	override final val selection = own(SelectionTarget(this, inject(SelectionManager)))
 
-	private fun refreshSelection(old: SelectionRange? = null, new: SelectionRange? = SelectionRange(this, selection.startIndex, selection.endIndex)) {
+	private fun selectionChangedHandler(old: List<SelectionRange>, new: List<SelectionRange>) {
+		refreshSelection()
+	}
+
+	private fun refreshSelection() {
 		if (!isActive) return // IE has a problem setting the selection range on elements not yet active.
+		val new = selection.selection.firstOrNull()
 		try {
 			inputElement.setSelectionRange(new?.startIndex ?: 0, new?.endIndex ?: 0)
 		} catch (e: Throwable) {
@@ -161,7 +166,7 @@ open class DomTextInput(
 		keyDown().add({ it.handled = true })
 		keyUp().add({ it.handled = true })
 
-		selection.changed.add(this::refreshSelection)
+		selection.changed.add(this::selectionChangedHandler)
 
 		inputElement.autofocus = false
 		inputElement.tabIndex = 0

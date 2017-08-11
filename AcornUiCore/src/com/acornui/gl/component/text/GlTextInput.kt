@@ -23,7 +23,7 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 	override var maxLength: Int? = null
 
 	protected val background = addChild(rect())
-	protected val tF = addChild(text())
+	protected val tF = addChild(GlTextField(this).apply { selectionTarget = this@GlTextInput })
 
 	override var text: String
 		get() = tF.text ?: ""
@@ -38,8 +38,6 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 	override final val boxStyle: BoxStyle = bind(BoxStyle())
 	override final val flowStyle: FlowLayoutStyle = tF.flowStyle
 	override final val textInputStyle = bind(TextInputStyle())
-
-	override final val selection = tF.selection
 
 	private var _password = false
 	override var password: Boolean

@@ -266,8 +266,8 @@ class VirtualList<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
 			if (data != element.data) element.data = data
 
 			val elementSelected = selection.getItemIsSelected(data)
-			if (element.selected != elementSelected) {
-				element.selected = elementSelected
+			if (element.toggled != elementSelected) {
+				element.toggled = elementSelected
 			}
 
 			if (element.parent == null)
@@ -411,7 +411,7 @@ class VirtualListSelection<E>(private val data: List<E>, private val activeRende
 		for (i in 0..activeRenderers.lastIndex) {
 			val renderer = activeRenderers[i]
 			if (renderer.data == item) {
-				renderer.selected = selected
+				renderer.toggled = selected
 				break
 			}
 		}

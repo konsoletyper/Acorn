@@ -17,8 +17,12 @@
 package com.acornui.gl.component.text
 
 import com.acornui.collection.copy
+import com.acornui.collection.indexOfFirst2
 import com.acornui.collection.sortedInsertionIndex
-import com.acornui.component.*
+import com.acornui.component.ContainerImpl
+import com.acornui.component.UiComponent
+import com.acornui.component.ValidationFlags
+import com.acornui.component.invalidateStyles
 import com.acornui.component.layout.BasicLayoutElement
 import com.acornui.component.layout.BasicLayoutElementImpl
 import com.acornui.component.layout.LayoutData
@@ -30,14 +34,13 @@ import com.acornui.core.cursor.RollOverCursor
 import com.acornui.core.cursor.StandardCursors
 import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
-import com.acornui.core.di.own
 import com.acornui.core.focus.Focusable
 import com.acornui.core.graphics.BlendMode
 import com.acornui.core.input.interaction.DragInteraction
 import com.acornui.core.input.interaction.dragAttachment
+import com.acornui.core.selection.Selectable
 import com.acornui.core.selection.SelectionManager
 import com.acornui.core.selection.SelectionRange
-import com.acornui.core.selection.SelectionTarget
 import com.acornui.gl.core.GlState
 import com.acornui.gl.core.pushQuadIndices
 import com.acornui.graphics.Color
@@ -65,16 +68,19 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusabl
 		get() = root.charStyle
 
 	private val selectionManager = inject(SelectionManager)
-	override final val selection = own(SelectionTarget(this, selectionManager))
 
 	private val glState = inject(GlState)
 
 	private var _textContent: String? = null
 
-
 	protected var _selectionCursor: RollOverCursor? = null
 
 	private val drag = dragAttachment(0f)
+
+	/**
+	 * The Selectable target to use for the selection range.
+	 */
+	var selectionTarget: Selectable = this
 
 	init {
 		bind(charStyle)
@@ -91,9 +97,13 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusabl
 		validation.addNode(TextValidationFlags.VERTICES, TextValidationFlags.SELECTION or TextValidationFlags.COMPONENTS or ValidationFlags.LAYOUT or ValidationFlags.CONCATENATED_TRANSFORM or ValidationFlags.STYLES, 0, this::updateVertices)
 		validation.addNode(TextValidationFlags.COLOR, ValidationFlags.CONCATENATED_COLOR_TRANSFORM or ValidationFlags.STYLES, 0, this::updateTextColor)
 
-		selection.changed.add { _, _ -> invalidate(TextValidationFlags.SELECTION) }
+		selectionManager.selectionChanged.add(this::selectionChangedHandler)
 
 		drag.drag.add(this::dragHandler)
+	}
+
+	private fun selectionChangedHandler(old: List<SelectionRange>, new: List<SelectionRange>) {
+		invalidate(TextValidationFlags.SELECTION)
 	}
 
 	private fun dragHandler(event: DragInteraction) {
@@ -102,11 +112,10 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusabl
 		val p1A = root.getSelectionChar(p1.x, p1.y)
 		val p2A = root.getSelectionChar(p2.x, p2.y)
 		if (p2A > p1A) {
-			selectionManager.selection = listOf(SelectionRange(this, p1A, p2A))
+			selectionManager.selection = listOf(SelectionRange(selectionTarget, p1A, p2A))
 		} else {
-			selectionManager.selection = listOf(SelectionRange(this, p2A, p1A))
+			selectionManager.selection = listOf(SelectionRange(selectionTarget, p2A, p1A))
 		}
-
 	}
 
 	protected open fun refreshCursor() {
@@ -186,7 +195,7 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusabl
 	}
 
 	protected open fun updateSelection() {
-		root.validateSelection(selection)
+		root.validateSelection(selectionManager.selection.filter { it.target == selectionTarget })
 	}
 
 	protected open fun updateVertices() {
@@ -225,6 +234,7 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusabl
 		BitmapFontRegistry.fontRegistered.remove(this::fontRegisteredHandler)
 		_selectionCursor?.dispose()
 		_selectionCursor = null
+		selectionManager.selectionChanged.remove(this::selectionChangedHandler)
 	}
 }
 
@@ -257,7 +267,7 @@ interface TfPart : BasicLayoutElement {
 
 	fun validateStyles()
 
-	fun validateSelection(selection: SelectionTarget)
+	fun validateSelection(selection: List<SelectionRange>)
 
 	fun validateVertices(transform: Matrix4Ro, rightClip: Float, bottomClip: Float)
 
@@ -323,7 +333,7 @@ class TfContainer<S, out U : LayoutData>(
 		}
 	}
 
-	override fun validateSelection(selection: SelectionTarget) {
+	override fun validateSelection(selection: List<SelectionRange>) {
 		for (i in 0..children.lastIndex) {
 			children[i].validateSelection(selection)
 		}
@@ -407,7 +417,7 @@ class TfWord(
 		out.height = maxHeight.toFloat()
 	}
 
-	override fun validateSelection(selection: SelectionTarget) {
+	override fun validateSelection(selection: List<SelectionRange>) {
 		for (i in 0..chars.lastIndex) {
 			chars[i].validateSelection(selection)
 		}
@@ -475,8 +485,8 @@ class TfChar(
 	private var fontColor = Color.BLACK
 	private var backgroundColor = Color.CLEAR
 
-	fun validateSelection(selection: SelectionTarget) {
-		if (selection.inRange(index)) {
+	fun validateSelection(selection: List<SelectionRange>) {
+		if (selection.indexOfFirst2 { it.contains(index) } != -1) {
 			fontColor = style.selectedTextColorTint
 			backgroundColor = style.selectedBackgroundColor
 		} else {

@@ -56,7 +56,7 @@ open class DataGridGroupHeaderImpl<E>(owner: Owned, protected val group: DataGri
 			collapseButton?.click()?.add {
 				group.collapsed = !group.collapsed
 			}
-			collapseButton?.selected = !_collapsed
+			collapseButton?.toggled = !_collapsed
 			collapseButton?.label = _label
 		}
 	}
@@ -73,7 +73,7 @@ open class DataGridGroupHeaderImpl<E>(owner: Owned, protected val group: DataGri
 	override var collapsed: Boolean
 		get() = _collapsed
 		set(value) {
-			collapseButton?.selected = !value
+			collapseButton?.toggled = !value
 		}
 
 	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {

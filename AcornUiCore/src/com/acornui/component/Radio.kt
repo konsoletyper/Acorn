@@ -34,7 +34,7 @@ open class RadioButton<out T>(
 	init {
 		styleTags.add(RadioButton)
 		click().add {
-			if (!selected) selected = true
+			if (!toggled) toggled = true
 		}
 	}
 
@@ -99,9 +99,9 @@ class RadioGroup<T>(val owner: Owned) : Disposable {
 		set(value) {
 			if (_selectedButton == value) return
 			val old = _selectedButton
-			_selectedButton?.selected = false
+			_selectedButton?.toggled = false
 			_selectedButton = value
-			_selectedButton?.selected = true
+			_selectedButton?.toggled = true
 			_changed.dispatch(old, value)
 		}
 

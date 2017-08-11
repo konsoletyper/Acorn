@@ -25,7 +25,7 @@ open class Checkbox(
 
 	init {
 		styleTags.add(Checkbox)
-		toggle = true
+		toggleOnClick = true
 	}
 
 	companion object : StyleTag

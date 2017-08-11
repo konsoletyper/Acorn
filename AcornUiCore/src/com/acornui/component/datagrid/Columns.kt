@@ -25,6 +25,7 @@ import com.acornui.component.text.textInput
 import com.acornui.core.compareTo
 import com.acornui.core.compareTo2
 import com.acornui.core.di.*
+import com.acornui.core.selection.selectAll
 import com.acornui.core.text.NumberFormatter
 import com.acornui.core.text.numberFormatter
 import com.acornui.math.Bounds
@@ -79,7 +80,7 @@ abstract class NumberEditorCell(owner: Owned) : ContainerImpl(owner) {
 
 	init {
 		input.changed.add(changed::dispatch)
-		input.selection.selectAll()
+		input.selectAll()
 	}
 
 	fun setData(value: Number?) {
@@ -172,7 +173,7 @@ class StringEditorCell(owner: Owned) : ContainerImpl(owner), DataGridEditorCell<
 
 	init {
 		input.changed.add(changed::dispatch)
-		input.selection.selectAll()
+		input.selectAll()
 	}
 
 	override fun validateData(): Boolean {

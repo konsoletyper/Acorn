@@ -16,21 +16,17 @@
 
 package com.acornui.component.text
 
-import com.acornui.collection.Clearable
 import com.acornui.component.BoxStyle
 import com.acornui.component.ComponentInit
 import com.acornui.component.Labelable
 import com.acornui.component.UiComponent
-import com.acornui.component.layout.algorithm.FlowHAlign
 import com.acornui.component.layout.algorithm.FlowLayoutStyle
-import com.acornui.component.layout.algorithm.FlowVAlign
 import com.acornui.component.style.*
-import com.acornui.core.Disposable
 import com.acornui.core.di.DKey
 import com.acornui.core.di.DependencyKeyImpl
 import com.acornui.core.di.Owned
 import com.acornui.core.focus.Focusable
-import com.acornui.core.selection.SelectionTarget
+import com.acornui.core.selection.SelectableComponent
 import com.acornui.graphics.Color
 import com.acornui.graphics.ColorRo
 import com.acornui.graphics.color
@@ -38,15 +34,13 @@ import com.acornui.serialization.*
 import com.acornui.signal.Signal
 import com.acornui.signal.Signal0
 
-interface TextField : UiComponent, Labelable, Styleable {
+interface TextField : UiComponent, Labelable, SelectableComponent, Styleable {
 
 	val charStyle: CharStyle
 	val flowStyle: FlowLayoutStyle
 
 	var text: String?
 	var htmlText: String?
-
-	val selection: SelectionTarget
 
 	/**
 	 * Replaces the given range with the provided text.
@@ -184,7 +178,7 @@ fun charStyle(init: CharStyle.() -> Unit = {}): CharStyle {
 	return c
 }
 
-interface TextInput : Focusable, Styleable {
+interface TextInput : Focusable, SelectableComponent, Styleable {
 
 	val charStyle: CharStyle
 	val flowStyle: FlowLayoutStyle
@@ -217,8 +211,6 @@ interface TextInput : Focusable, Styleable {
 	 */
 	var restrictPattern: String?
 
-	val selection: SelectionTarget
-
 	var password: Boolean
 
 	companion object : StyleTag {
@@ -232,7 +224,7 @@ var TextInput.selectable: Boolean
 		charStyle.selectable = value
 	}
 
-interface TextArea : Focusable {
+interface TextArea : SelectableComponent, Focusable {
 
 	val charStyle: CharStyle
 	val flowStyle: FlowLayoutStyle

@@ -1,14 +1,15 @@
 package com.acornui.core.selection
 
 import com.acornui.collection.Clearable
+import com.acornui.component.UiComponent
 import com.acornui.core.Disposable
 import com.acornui.core.di.DKey
 import com.acornui.core.di.Injector
+import com.acornui.core.di.inject
 import com.acornui.signal.Signal
-import com.acornui.signal.Signal0
 import com.acornui.signal.Signal2
 
-interface SelectionManager : Disposable {
+interface SelectionManager : Disposable, Clearable {
 
 	/**
 	 * Dispatched when the [selection] value changes.
@@ -17,6 +18,19 @@ interface SelectionManager : Disposable {
 	val selectionChanged: Signal<(List<SelectionRange>, List<SelectionRange>) -> Unit>
 
 	var selection: List<SelectionRange>
+
+	fun contains(target: Selectable, index: Int): Boolean {
+		for (i in 0..selection.lastIndex) {
+			val s = selection[i]
+			if (s.target == target && s.contains(index)) return true
+		}
+		return false
+	}
+
+	override fun clear() {
+		if (selection.isEmpty()) return
+		selection = listOf()
+	}
 
 	companion object : DKey<SelectionManager> {
 		override fun factory(injector: Injector): SelectionManager? {
@@ -45,94 +59,22 @@ class SelectionManagerImpl : SelectionManager {
 	}
 }
 
-data class SelectionRange(val target: Any, val startIndex: Int, val endIndex: Int) {
+data class SelectionRange(val target: Selectable, val startIndex: Int, val endIndex: Int) {
 
-	fun inRange(i: Int): Boolean {
-		return i >= startIndex && i < endIndex
+	fun contains(index: Int): Boolean {
+		return index >= startIndex && index < endIndex
 	}
 }
 
-class SelectionTarget(
-		private val target: Any,
-		private val selectionManager: SelectionManager
-) : Clearable, Disposable {
+/**
+ * A marker interface indicating that a component can be selected.
+ */
+interface Selectable
+interface SelectableComponent : UiComponent, Selectable
 
-	private val _changed = Signal2<SelectionRange?, SelectionRange?>()
-
-	/**
-	 * Dispatched when the selection for the given target has changed.
-	 */
-	val changed: Signal<(SelectionRange?, SelectionRange?)->Unit>
-		get() = _changed
-
-	/**
-	 * Returns true if the target has a selection associated with it.
-	 */
-	val hasSelection: Boolean
-		get() = selectionRange != null
-
-	/**
-	 * The beginning character index of the selection. (Inclusive)
-	 * If [hasSelection] is false, [startIndex] and [endIndex] will both return -1
-	 */
-	var startIndex: Int
-		get() = _selectionRange?.startIndex ?: -1
-		set(value) {
-			if (value == _selectionRange?.startIndex) return
-			setSelection(value, endIndex)
-		}
-
-	/**
-	 * The ending character index of the selection. (Exclusive)
-	 * If [hasSelection] is false, [startIndex] and [endIndex] will both return -1
-	 */
-	var endIndex: Int
-		get() = _selectionRange?.endIndex ?: -1
-		set(value) {
-			if (value == _selectionRange?.endIndex) return
-			setSelection(startIndex, value)
-		}
-
-	private var _selectionRange: SelectionRange? = null
-	private var selectionRange: SelectionRange?
-		get() = _selectionRange
-		set(value) {
-			val old = _selectionRange
-			if (value == old) return
-			_selectionRange = value
-			_changed.dispatch(old, value)
-		}
-
-	private fun setSelection(startIndex: Int, endIndex: Int) {
-		selectionManager.selection = selectionManager.selection.filterNot { it.target == target } + SelectionRange(target, startIndex, endIndex)
-	}
-
-	init {
-		selectionManager.selectionChanged.add(this::selectionChangedHandler)
-		selectionRange = selectionManager.selection.firstOrNull { it.target == target }
-	}
-
-	private fun selectionChangedHandler(old: List<SelectionRange>, new: List<SelectionRange>) {
-		selectionRange = new.firstOrNull { it.target == target }
-	}
-
-	override fun clear() {
-		selectionManager.selection = selectionManager.selection.filterNot { it.target == target }
-	}
-
-	/**
-	 * Sets the selection range to 0, MAX_VALUE.
-	 */
-	fun selectAll() {
-		setSelection(0, Int.MAX_VALUE)
-	}
-
-	fun inRange(i: Int): Boolean {
-		return i >= startIndex && i < endIndex
-	}
-
-	override fun dispose() {
-		_changed.dispose()
-		selectionManager.selectionChanged.remove(this::selectionChangedHandler)
-	}
+/**
+ * Sets the current selection to this component with the range 0 to MAX_VALUE
+ */
+fun SelectableComponent.selectAll() {
+	inject(SelectionManager).selection = listOf(SelectionRange(this, 0, Int.MAX_VALUE))
 }

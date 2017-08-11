@@ -216,12 +216,12 @@ open class TabNavigator(owner: Owned) : ContainerImpl(owner), LayoutDataProvider
 		if (newSelectedTab != lastSelectedTab) {
 			selectedTab = newSelectedTab
 			if (lastSelectedTab != null) {
-				lastSelectedTab.button.selected = false
+				lastSelectedTab.button.toggled = false
 				contents.removeElement(lastSelectedTab.component.instance)
 			}
 			if (newSelectedTab != null) {
 				contents.addElement(newSelectedTab.component.instance)
-				newSelectedTab.button.selected = true
+				newSelectedTab.button.toggled = true
 			}
 		}
 	}

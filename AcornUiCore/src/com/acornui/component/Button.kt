@@ -39,7 +39,7 @@ import com.acornui.signal.Signal1
  */
 open class Button(
 		owner: Owned
-) : ElementContainerImpl(owner), Labelable, Selectable, Focusable {
+) : ElementContainerImpl(owner), Labelable, Toggleable, Focusable {
 
 	val style = bind(ButtonStyle())
 
@@ -51,7 +51,7 @@ open class Button(
 	/**
 	 * If true, when this button is pressed, the selected state will be toggled.
 	 */
-	var toggle = false
+	var toggleOnClick = false
 
 	protected var _mouseIsOver = false
 	protected var _mouseIsDown = false
@@ -114,8 +114,8 @@ open class Button(
 
 	private val clickHandler = {
 		event: ClickInteraction ->
-		if (toggle)
-			selected = !selected
+		if (toggleOnClick)
+			toggled = !toggled
 	}
 
 	init {
@@ -162,7 +162,7 @@ open class Button(
 			refreshState()
 		}
 
-	override var selected: Boolean
+	override var toggled: Boolean
 		get() {
 			return _selected
 		}
@@ -297,8 +297,8 @@ interface Labelable : UiComponent {
 	var label: String
 }
 
-interface Selectable : UiComponent {
-	var selected: Boolean
+interface Toggleable : UiComponent {
+	var toggled: Boolean
 }
 
 fun Owned.button(init: ComponentInit<Button> = {}): Button {

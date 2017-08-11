@@ -32,12 +32,12 @@ class SimpleItemRenderer<E : Any>(
 	}
 
 	private var _selected = false
-	override var selected: Boolean
+	override var toggled: Boolean
 		get() = _selected
 		set(value) {
 			_selected = value
-			evenState.selected = value
-			oddState.selected = value
+			evenState.toggled = value
+			oddState.toggled = value
 		}
 
 	private var _index: Int = -1

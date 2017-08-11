@@ -22,7 +22,7 @@ import com.acornui.graphics.Color
 import com.acornui.math.Bounds
 
 
-interface RowBackground : UiComponent, Selectable {
+interface RowBackground : UiComponent, Toggleable {
 	var rowIndex: Int
 
 	companion object : StyleTag
@@ -30,7 +30,7 @@ interface RowBackground : UiComponent, Selectable {
 
 class RowBackgroundImpl(owned: Owned) : ContainerImpl(owned), RowBackground {
 
-	override var selected: Boolean by validationProp(false, ValidationFlags.PROPERTIES)
+	override var toggled: Boolean by validationProp(false, ValidationFlags.PROPERTIES)
 	override var rowIndex: Int by validationProp(0, ValidationFlags.PROPERTIES)
 
 
@@ -47,7 +47,7 @@ class RowBackgroundImpl(owned: Owned) : ContainerImpl(owned), RowBackground {
 	}
 
 	override fun updateProperties() {
-		if (selected) {
+		if (toggled) {
 			if (rowIndex % 2 == 0) {
 				bg.style.backgroundColor = style.selectedEvenColor
 			} else {

@@ -260,6 +260,7 @@ abstract class BasicLayoutElementImpl : BasicLayoutElement {
 		layoutIsValid = true
 		_explicitWidth = width
 		_explicitHeight = height
+		_bounds.clear()
 		updateLayout(width, height, _bounds)
 	}
 

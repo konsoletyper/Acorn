@@ -8,7 +8,6 @@ import com.acornui.core.Lifecycle
 import com.acornui.core.focus.focusFirst
 import com.acornui.core.input.interaction.click
 import com.acornui.factory.LazyInstance
-import com.acornui.math.MathUtils
 import com.acornui.signal.Signal
 import com.acornui.signal.Signal1
 import com.acornui.browser.decodeUriComponent2
@@ -423,6 +422,6 @@ fun Button.bindToPath(nav: NavBinding, path: String) {
 	click().add {
 		nav.navigate("../$path")
 	}
-	nav.bindPathEnter(path) { selected = (true) }
-	nav.bindPathExit(path) { selected = (false) }
+	nav.bindPathEnter(path) { toggled = (true) }
+	nav.bindPathExit(path) { toggled = (false) }
 }

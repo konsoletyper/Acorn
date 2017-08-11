@@ -41,7 +41,7 @@ fun main(args: Array<String>) {
 	replacements.add(Pair(template.toUnderscoreCase().toUpperCase(), name.toUnderscoreCase().toUpperCase()))
 	replacements.add(Pair(template.toFirstLowerCase(), name.toFirstLowerCase()))
 
-	val txtExtensions = arrayOf("name", "txt", "xml", "kt", "java", "json", "iml", "remove", "js", "html", "css")
+	val txtExtensions = arrayOf("name", "txt", "xml", "kt", "kts", "java", "json", "iml", "js", "html", "php", "css")
 	val excludes = arrayOf("dist", "out", "www", "acornlibs", "workspace.xml")
 
 	for (i in destination.walkBottomUp()) {
@@ -49,7 +49,7 @@ fun main(args: Array<String>) {
 			i.deleteRecursively()
 			continue
 		}
-		if (txtExtensions.contains(i.extension)) {
+		if (txtExtensions.contains(i.extension.toLowerCase())) {
 			val text = i.readText()
 			val newText = text.replaceList(replacements)
 			i.writeText(newText)
