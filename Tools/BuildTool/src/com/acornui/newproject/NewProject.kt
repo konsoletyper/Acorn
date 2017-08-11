@@ -28,7 +28,7 @@ fun main(args: Array<String>) {
 	var templatesDir = File(templatesDirStr)
 	if (!templatesDir.exists()) templatesDir = File(findAcornDir(), argMap.get("templatesDir", "../AcornUiDemos"))
 	if (!templatesDir.exists()) throw Exception("Could not find templates directory: $templatesDirStr")
-	var templateDir: File = File(templatesDir, template)
+	val templateDir: File = File(templatesDir, template)
 	println("Template used: ${templateDir.absolutePath}")
 	if (!templateDir.exists()) throw Exception("Could not find template: $template")
 
@@ -42,7 +42,7 @@ fun main(args: Array<String>) {
 	replacements.add(Pair(template.toFirstLowerCase(), name.toFirstLowerCase()))
 
 	val txtExtensions = arrayOf("name", "txt", "xml", "kt", "java", "json", "iml", "remove", "js", "html", "css")
-	val excludes = arrayOf("dist", "www", "acornlibs", "workspace.xml")
+	val excludes = arrayOf("dist", "out", "www", "acornlibs", "workspace.xml")
 
 	for (i in destination.walkBottomUp()) {
 		if (excludes.contains(i.name)) {
