@@ -35,8 +35,8 @@ open class GlScrollArea(
 	private val scrollRect = scrollRect()
 	private val contents = scrollRect.addElement(stack())
 
-	private val hScrollBar: HScrollBar = HScrollBar(this)
-	private val vScrollBar: VScrollBar = VScrollBar(this)
+	private val hScrollBar = HScrollBar(this)
+	private val vScrollBar = VScrollBar(this)
 	private var corner: UiComponent? = null
 
 	override final val hScrollModel: MutableClampedScrollModel
@@ -51,8 +51,8 @@ open class GlScrollArea(
 
 	private val wheelHandler = {
 		event: WheelInteraction ->
-		vScrollModel.value = (vScrollModel.value + event.deltaY)
-		hScrollModel.value = (hScrollModel.value + event.deltaX)
+		vScrollModel.value += event.deltaY
+		hScrollModel.value += event.deltaX
 	}
 
 	private var tossScroller: TossScroller? = null
@@ -203,7 +203,7 @@ open class GlScrollArea(
 		hScrollModel.max = maxOf(0f, scrollRect.contentsWidth - contentsW)
 		vScrollModel.max = maxOf(0f, scrollRect.contentsHeight - contentsH)
 
-		scrollRect.getAttachment<TossScroller>(TossScroller)?.enabled = (needsHScrollBar || needsVScrollBar)
+		scrollRect.getAttachment<TossScroller>(TossScroller)?.enabled = needsHScrollBar || needsVScrollBar
 	}
 
 	protected open fun validateScroll() {

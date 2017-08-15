@@ -119,8 +119,6 @@ class CharStyle : StyleBase() {
 	 */
 	var size by prop(14)
 
-	// TODO: bold to bold, etc
-
 	var bold by prop(false)
 
 	var italic by prop(false)
@@ -134,7 +132,8 @@ class CharStyle : StyleBase() {
 	var selectedBackgroundColor: ColorRo by prop(Color(0.12f, 0.25f, 0.5f, 1f))
 
 	/**
-	 * The text is selectable by the user.
+	 * The text is selectable by the user. This does not affect whether or not the text can be selected
+	 * programmatically.
 	 */
 	var selectable by prop(true)
 
