@@ -326,7 +326,6 @@ enum class FlowVAlign {
 	MIDDLE,
 	BOTTOM,
 	BASELINE
-
 }
 
 open class FlowLayoutContainer(owner: Owned) : LayoutContainerImpl<FlowLayoutStyle, FlowLayoutData>(owner, FlowLayout(), FlowLayoutStyle())
