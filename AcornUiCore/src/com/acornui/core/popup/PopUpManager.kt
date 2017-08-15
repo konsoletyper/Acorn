@@ -22,7 +22,6 @@ import com.acornui.component.*
 import com.acornui.component.layout.LayoutContainerImpl
 import com.acornui.component.layout.algorithm.CanvasLayout
 import com.acornui.component.layout.algorithm.CanvasLayoutData
-import com.acornui.component.layout.algorithm.canvasLayoutData
 import com.acornui.component.style.StyleBase
 import com.acornui.component.style.StyleType
 import com.acornui.component.style.styleTag
@@ -51,8 +50,9 @@ interface PopUpManager : Clearable {
 	val currentPopUps: List<PopUpInfo<*>>
 
 	/**
-	 * Adds the pop-up to the pop-up layer. In a standard implementation the child may have a [CanvasLayoutData] object
-	 * set as the [LayoutElement.layoutData] value. If no layout data is set, the child will be centered.
+	 * Adds the pop-up to the pop-up layer.
+	 *
+	 * Note: The child's layoutData property is set to the layoutData defined in the PopUpInfo object.
 	 */
 	fun <T : UiComponent> addPopUp(popUpInfo: PopUpInfo<T>)
 
@@ -128,7 +128,14 @@ class PopUpInfo<T : UiComponent>(
 		 * When this pop-up is removed, this callback will be invoked.
 		 * If [dispose] is true, this callback will be called before disposal
 		 */
-		val onClosed: (child: T) -> Unit = {}
+		val onClosed: (child: T) -> Unit = {},
+
+		/**
+		 * The layout data used for the pup-up's layout.
+		 */
+		val layoutData: CanvasLayoutData = CanvasLayoutData().apply {
+			center()
+		}
 )
 
 class PopUpManagerStyle : StyleBase() {
@@ -143,7 +150,7 @@ class PopUpManagerStyle : StyleBase() {
 	companion object : StyleType<PopUpManagerStyle>
 }
 
-class PopUpManagerImpl(owner: Owned) : LayoutContainerImpl<PopUpManagerStyle, CanvasLayoutData>(owner, CanvasLayout, PopUpManagerStyle()), PopUpManager {
+class PopUpManagerImpl(owner: Owned) : LayoutContainerImpl<PopUpManagerStyle, CanvasLayoutData>(owner, CanvasLayout(), PopUpManagerStyle()), PopUpManager {
 
 	override val view: UiComponent = this
 
@@ -267,14 +274,7 @@ class PopUpManagerImpl(owner: Owned) : LayoutContainerImpl<PopUpManagerStyle, Ca
 			addElementBefore(child, _currentPopUps[index + 1].child)
 		}
 		refresh()
-
-		if (child.layoutData !is CanvasLayoutData) {
-			val defaultLayoutData = canvasLayoutData {
-				horizontalCenter = 0f
-				verticalCenter = 0f
-			}
-			child.layoutData = (defaultLayoutData)
-		}
+		child.layoutData = popUpInfo.layoutData
 	}
 
 	override fun <T : UiComponent> removePopUp(popUpInfo: PopUpInfo<T>) {

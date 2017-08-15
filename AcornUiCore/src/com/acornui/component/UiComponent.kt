@@ -371,7 +371,7 @@ open class UiComponentImpl(
 		}
 
 
-	protected val layoutDataChangedHandler = {
+	private fun layoutDataChangedHandler() {
 		invalidate(ValidationFlags.LAYOUT)
 		Unit
 	}
@@ -383,11 +383,11 @@ open class UiComponentImpl(
 		set(value) {
 			if (_layoutData == value) return
 			if (_layoutData != null) {
-				_layoutData!!.changed.remove(layoutDataChangedHandler)
+				_layoutData!!.changed.remove(this::layoutDataChangedHandler)
 			}
 			_layoutData = value
 			if (_layoutData != null) {
-				_layoutData!!.changed.add(layoutDataChangedHandler)
+				_layoutData!!.changed.add(this::layoutDataChangedHandler)
 			}
 			invalidate(ValidationFlags.LAYOUT)
 		}
@@ -1048,7 +1048,6 @@ open class UiComponentImpl(
 			}
 		}
 
-		layoutData?.dispose()
 		layoutData = null
 
 		// InteractiveElement

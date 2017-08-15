@@ -93,7 +93,7 @@ interface BasicLayoutAlgorithm<in S, out T : LayoutData> : LayoutDataProvider<T>
 }
 
 /**
- * A sequenced layout is a layout where the the elements are laid out in a serial manner.
+ * A sequenced layout is a basic layout where the the elements are laid out in a serial manner.
  */
 interface SequencedLayout<in S, out T : LayoutData> : BasicLayoutAlgorithm<S, T> {
 

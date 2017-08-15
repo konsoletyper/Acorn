@@ -636,8 +636,7 @@ fun radioButtonSkin(theme: Theme, buttonState: ButtonState): Owned.() -> Checkbo
 			style.borderRadius = Corners(1000f)
 			style.backgroundColor = Color.DARK_GRAY.copy()
 			layoutData = radio.createLayoutData().apply {
-				widthPercent = 1f
-				heightPercent = 1f
+				fill()
 			}
 		}
 		radio.addElement(filledCircle)
