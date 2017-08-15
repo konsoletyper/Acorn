@@ -16,6 +16,7 @@
 
 package com.acornui.js.dom.component
 
+import com.acornui.collection.find2
 import com.acornui.component.*
 import com.acornui.component.layout.algorithm.FlowDisplay
 import com.acornui.component.layout.algorithm.FlowHAlign
@@ -24,12 +25,10 @@ import com.acornui.component.layout.setSize
 import com.acornui.component.text.*
 import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
-import com.acornui.core.di.own
 import com.acornui.core.input.keyDown
 import com.acornui.core.input.keyUp
 import com.acornui.core.selection.SelectionManager
 import com.acornui.core.selection.SelectionRange
-import com.acornui.core.selection.SelectionTarget
 import com.acornui.math.Bounds
 import com.acornui.signal.Signal0
 import org.w3c.dom.HTMLDivElement
@@ -37,7 +36,6 @@ import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLInputElement
 import org.w3c.dom.HTMLTextAreaElement
 import kotlin.browser.document
-import kotlin.text.Regex
 
 open class DomTextField(
 		owner: Owned,
@@ -49,7 +47,6 @@ open class DomTextField(
 	override final val flowStyle = bind(FlowLayoutStyle())
 
 	// TODO: DomTextSelection
-	override final val selection = own(SelectionTarget(this, inject(SelectionManager)))
 
 	init {
 		styleTags.add(TextField)
@@ -119,7 +116,7 @@ open class DomTextInput(
 	private var _editable: Boolean = true
 	private var _maxLength: Int? = null
 
-	override final val selection = own(SelectionTarget(this, inject(SelectionManager)))
+	private val selectionManager = inject(SelectionManager)
 
 	private fun selectionChangedHandler(old: List<SelectionRange>, new: List<SelectionRange>) {
 		refreshSelection()
@@ -127,7 +124,7 @@ open class DomTextInput(
 
 	private fun refreshSelection() {
 		if (!isActive) return // IE has a problem setting the selection range on elements not yet active.
-		val new = selection.selection.firstOrNull()
+		val new = selectionManager.selection.find2 { it.target == this }
 		try {
 			inputElement.setSelectionRange(new?.startIndex ?: 0, new?.endIndex ?: 0)
 		} catch (e: Throwable) {
@@ -166,7 +163,7 @@ open class DomTextInput(
 		keyDown().add({ it.handled = true })
 		keyUp().add({ it.handled = true })
 
-		selection.changed.add(this::selectionChangedHandler)
+		selectionManager.selectionChanged.add(this::selectionChangedHandler)
 
 		inputElement.autofocus = false
 		inputElement.tabIndex = 0
