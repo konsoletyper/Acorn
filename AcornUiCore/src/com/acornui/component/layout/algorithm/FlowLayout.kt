@@ -186,7 +186,7 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 		return (layoutData as FlowLayoutData?)?.display == FlowDisplay.BLOCK
 	}
 
-	override fun getNearestElementIndex(x: Float, y: Float, elements: List<BasicLayoutElement>): Int {
+	override fun getNearestElementIndex(x: Float, y: Float, elements: List<BasicLayoutElement>, props: FlowLayoutStyle): Int {
 		if (lines.isEmpty()) return -1
 		if (y < lines.first().y) return 0
 		if (y >= lines.last().bottom) return elements.lastIndex

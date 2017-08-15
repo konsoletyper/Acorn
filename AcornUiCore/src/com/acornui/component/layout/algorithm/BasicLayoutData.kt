@@ -18,8 +18,23 @@ package com.acornui.component.layout.algorithm
 
 import com.acornui.component.ComponentInit
 import com.acornui.component.layout.LayoutData
+import com.acornui.signal.Signal
+import com.acornui.signal.Signal0
+import kotlin.properties.Delegates
+import kotlin.properties.ReadWriteProperty
 
-open class BasicLayoutData : LayoutData() {
+open class BasicLayoutData : LayoutData {
+
+	protected val _changed = Signal0()
+	override val changed: Signal<() -> Unit>
+		get() = _changed
+
+	protected fun <T> bindable(initial: T): ReadWriteProperty<Any?, T> {
+		return Delegates.observable(initial) {
+			meta, old, new ->
+			if (old != new) _changed.dispatch()
+		}
+	}
 
 	/**
 	 * The preferred width of this component.

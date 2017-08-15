@@ -369,7 +369,7 @@ class TfContainer<S, out U : LayoutData>(
 	}
 
 	override fun getSelectionChar(x: Float, y: Float): Int {
-		val i = layout.getNearestElementIndex(x, y, children)
+		val i = layout.getNearestElementIndex(x, y, children, layoutStyle)
 		if (i < 0) return rangeStart
 		if (i >= children.size) return rangeEnd
 		val child = children[i]

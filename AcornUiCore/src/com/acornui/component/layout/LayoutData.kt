@@ -16,26 +16,16 @@
 
 package com.acornui.component.layout
 
-import com.acornui.core.Disposable
-import com.acornui.signal.Signal0
-import kotlin.properties.Delegates
-import kotlin.properties.ReadWriteProperty
+import com.acornui.signal.Signal
 
 /**
  * A class representing extra layout data, specific to use with LayoutAlgorithm objects.
  */
-abstract class LayoutData : Disposable {
+interface LayoutData {
 
-	val changed: Signal0 = Signal0()
-
-	protected fun <T> bindable(initial: T): ReadWriteProperty<Any?, T> {
-		return Delegates.observable(initial) {
-			meta, old, new ->
-			if (old != new) changed.dispatch()
-		}
-	}
-
-	override fun dispose() {
-		changed.dispose()
-	}
+	/**
+	 * Dispatched when a property in this layout data has changed.
+	 */
+	val changed: Signal<() -> Unit>
 }
+

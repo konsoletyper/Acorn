@@ -25,7 +25,7 @@ import com.acornui.component.style.NoopStyle
 import com.acornui.core.di.Owned
 import com.acornui.math.Bounds
 
-object CanvasLayout : LayoutAlgorithm<Any, CanvasLayoutData>, BasicLayoutAlgorithm<Any, CanvasLayoutData> {
+class CanvasLayout : LayoutAlgorithm<Any, CanvasLayoutData>, BasicLayoutAlgorithm<Any, CanvasLayoutData> {
 
 	//-----------------------------------
 	// Getters / setters
@@ -94,7 +94,7 @@ object CanvasLayout : LayoutAlgorithm<Any, CanvasLayoutData>, BasicLayoutAlgorit
 	override fun createLayoutData() = CanvasLayoutData()
 }
 
-open class CanvasLayoutContainer(owner: Owned) : LayoutContainerImpl<NoopStyle, CanvasLayoutData>(owner, CanvasLayout, NoopStyle())
+open class CanvasLayoutContainer(owner: Owned) : LayoutContainerImpl<NoopStyle, CanvasLayoutData>(owner, CanvasLayout(), NoopStyle())
 
 fun Owned.canvas(init: ComponentInit<CanvasLayoutContainer> = {}): CanvasLayoutContainer {
 	val canvasContainer = CanvasLayoutContainer(this)

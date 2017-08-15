@@ -103,6 +103,6 @@ interface SequencedLayout<in S, out T : LayoutData> : BasicLayoutAlgorithm<S, T>
 	 * If there are zero elements, this returns -1, otherwise,
 	 * the return value will be an index in the range of 0 to elements.lastIndex
 	 */
-	fun getNearestElementIndex(x: Float, y: Float, elements: List<BasicLayoutElement>): Int
+	fun getNearestElementIndex(x: Float, y: Float, elements: List<BasicLayoutElement>, props: S): Int
 
 }
