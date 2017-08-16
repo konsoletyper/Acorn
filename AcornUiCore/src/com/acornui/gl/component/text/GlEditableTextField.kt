@@ -17,30 +17,61 @@
 package com.acornui.gl.component.text
 
 import com.acornui.component.BoxStyle
+import com.acornui.component.ContainerImpl
+import com.acornui.component.UiComponent
+import com.acornui.component.layout.algorithm.FlowLayoutStyle
 import com.acornui.component.scroll.ScrollPolicy
 import com.acornui.component.scroll.ScrollModelImpl
+import com.acornui.component.text.CharStyle
 import com.acornui.component.text.EditableTextField
 import com.acornui.component.text.TextCommander
 import com.acornui.core.di.Owned
 import com.acornui.graphics.Color
+import com.acornui.math.Bounds
 
-open class GlEditableTextField(owner: Owned) : GlTextField(owner), EditableTextField {
+@Suppress("LeakingThis")
+open class GlEditableTextField(owner: Owned) : ContainerImpl(owner), EditableTextField {
+
+	override var focusEnabled = true
+	override var focusOrder = 0f
+	override var highlight: UiComponent? by createSlot()
 
 	override val boxStyle: BoxStyle = bind(BoxStyle())
 	override val hScrollModel = ScrollModelImpl()
 	override val vScrollModel = ScrollModelImpl()
-	override var hScrollPolicy = ScrollPolicy.OFF
-	override var vScrollPolicy = ScrollPolicy.OFF
+	override var hScrollPolicy = ScrollPolicy.AUTO
+	override var vScrollPolicy = ScrollPolicy.AUTO
 
 	override var editable: Boolean = true
 
+	override val textCommander: TextCommander = GlTextCommander(this)
+
+	private val textField = GlTextField(this)
+
+	override val charStyle: CharStyle
+		get() = textField.charStyle
+	override val flowStyle: FlowLayoutStyle
+		get() = textField.flowStyle
+	override var text: String?
+		get() = textField.text
+		set(value) {
+			textField.text = value
+		}
+	override var htmlText: String?
+		get() = textField.htmlText
+		set(value) {
+			textField.htmlText = value
+		}
+
 	init {
 		styleTags.add(EditableTextField)
-		hScrollPolicy = ScrollPolicy.AUTO
-		vScrollPolicy = ScrollPolicy.AUTO
 	}
 
-	override val textCommander: TextCommander = GlTextCommander(this)
+	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
+		textField.setSize(explicitWidth, explicitHeight)
+		out.set(textField.bounds)
+		highlight?.setSize(out.width, out.height)
+	}
 
 	override fun dispose() {
 		super.dispose()

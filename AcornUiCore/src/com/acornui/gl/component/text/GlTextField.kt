@@ -20,7 +20,6 @@ import com.acornui.collection.copy
 import com.acornui.collection.indexOfFirst2
 import com.acornui.collection.sortedInsertionIndex
 import com.acornui.component.ContainerImpl
-import com.acornui.component.UiComponent
 import com.acornui.component.ValidationFlags
 import com.acornui.component.invalidateStyles
 import com.acornui.component.layout.BasicLayoutElement
@@ -34,7 +33,6 @@ import com.acornui.core.cursor.RollOverCursor
 import com.acornui.core.cursor.StandardCursors
 import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
-import com.acornui.core.focus.Focusable
 import com.acornui.core.graphics.BlendMode
 import com.acornui.core.input.interaction.DragInteraction
 import com.acornui.core.input.interaction.dragAttachment
@@ -56,11 +54,7 @@ import com.acornui.string.isBreaking
  * @author nbilyk
  */
 @Suppress("LeakingThis")
-open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusable {
-
-	override var focusEnabled = false
-	override var focusOrder = 0f
-	override var highlight: UiComponent? by createSlot()
+open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 
 	override final val flowStyle = bind(FlowLayoutStyle())
 	protected val root = TfContainer(FlowLayout(), flowStyle, this)
@@ -211,7 +205,6 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField, Focusabl
 		out.set(root.bounds)
 		if (explicitWidth != null) out.width = explicitWidth
 		if (explicitHeight != null) out.height = explicitHeight
-		highlight?.setSize(out.width, out.height)
 	}
 
 	override fun draw() {
