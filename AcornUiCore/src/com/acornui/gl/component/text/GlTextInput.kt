@@ -6,9 +6,15 @@ import com.acornui.component.layout.setSize
 import com.acornui.component.style.set
 import com.acornui.component.text.*
 import com.acornui.core.di.Owned
+import com.acornui.core.di.inject
 import com.acornui.core.focus.blurred
 import com.acornui.core.focus.focused
+import com.acornui.core.input.Ascii
 import com.acornui.core.input.char
+import com.acornui.core.input.keyDown
+import com.acornui.core.repeat2
+import com.acornui.core.selection.SelectionManager
+import com.acornui.core.selection.SelectionRange
 import com.acornui.core.selection.selectAll
 import com.acornui.core.selection.unselect
 import com.acornui.math.Bounds
@@ -31,10 +37,12 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 	protected val background = addChild(rect())
 	protected val tF = addChild(GlTextField(this).apply { selectionTarget = this@GlTextInput })
 
+	private var _text: String = ""
 	override var text: String
-		get() = tF.text ?: ""
+		get() = _text
 		set(value) {
-			tF.text = value
+			tF.text = if (_password) value.toPassword() else value
+			_text = value
 		}
 
 	override var placeholder: String = ""
@@ -45,11 +53,24 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 	override final val flowStyle: FlowLayoutStyle = tF.flowStyle
 	override final val textInputStyle = bind(TextInputStyle())
 
+	private val selectionManager = inject(SelectionManager)
+
+	/**
+	 * The mask to use as replacement characters when [password] is set to true.
+	 */
+	var passwordMask = "*"
+
 	private var _password = false
 	override var password: Boolean
 		get() = _password
 		set(value) {
+			if (value == _password) return
 			_password
+			if (value) {
+				tF.text = _text.toPassword()
+			} else {
+				tF.text = _text
+			}
 		}
 
 	init {
@@ -60,11 +81,51 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 		watch(textInputStyle) {
 			invalidateLayout()
 		}
-		focused().add(this::selectAll)
+		focused().add {
+			selectAll()
+			// todo: open mobile keyboard
+		}
 		blurred().add(this::unselect)
 		char().add {
-			println("Char ${it.char}")
+			replaceSelection(it.char.toString())
 		}
+
+		keyDown().add {
+			if (it.keyCode == Ascii.BACKSPACE) {
+				backspace()
+			} else if (it.keyCode == Ascii.DELETE) {
+				delete()
+			}
+		}
+
+	}
+
+	private fun backspace() {
+		val sel = selectionManager.selection.firstOrNull { it.target == this } ?: return
+		if (sel.startIndex != sel.endIndex) {
+			replaceTextRange(sel.startIndex, sel.endIndex, "")
+			selectionManager.selection = listOf(SelectionRange(this, sel.startIndex, sel.startIndex))
+		} else if (sel.startIndex > 0) {
+			replaceTextRange(sel.startIndex - 1, sel.startIndex, "")
+			selectionManager.selection = listOf(SelectionRange(this, sel.startIndex - 1, sel.startIndex - 1))
+		}
+	}
+
+	private fun delete() {
+		val sel = selectionManager.selection.firstOrNull { it.target == this } ?: return
+		if (sel.startIndex != sel.endIndex) {
+			replaceTextRange(sel.startIndex, sel.endIndex, "")
+			selectionManager.selection = listOf(SelectionRange(this, sel.startIndex, sel.startIndex))
+		} else if (sel.startIndex < _text.length) {
+			replaceTextRange(sel.startIndex, sel.startIndex + 1, "")
+			selectionManager.selection = listOf(SelectionRange(this, sel.startIndex, sel.startIndex))
+		}
+	}
+
+	private fun replaceSelection(str: String) {
+		val sel = selectionManager.selection.firstOrNull { it.target == this } ?: return
+		replaceTextRange(sel.startIndex, sel.endIndex, str)
+		selectionManager.selection = listOf(SelectionRange(this, sel.startIndex + str.length, sel.startIndex + str.length))
 	}
 
 	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
@@ -80,7 +141,12 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 		highlight?.setSize(background.bounds)
 		highlight?.setPosition(margin.left, margin.top)
 	}
+
+	private fun String.toPassword(): String? {
+		return passwordMask.repeat2(this.length)
+	}
 }
+
 
 open class GlTextArea(owner: Owned) : GlTextInput(owner), TextArea {
 

@@ -214,6 +214,24 @@ interface TextInput : Focusable, SelectableComponent, Styleable {
 
 	var password: Boolean
 
+	/**
+	 * Replaces the given range with the provided text.
+	 * This is functionally the same as:
+	 * text.substring(0, startIndex) + newText + text.substring(endIndex, text.length)
+	 *
+	 * @param startIndex The starting character index for the replacement. (Inclusive)
+	 * @param endIndex The ending character index for the replacement. (Exclusive)
+	 *
+	 * E.g.
+	 * +text("Hello World") {
+	 *   replaceTextRange(1, 5, "i") // Hi World
+	 * }
+	 */
+	fun replaceTextRange(startIndex: Int, endIndex: Int, newText: String) {
+		val text = text
+		this.text = text.substring(0, maxOf(0, startIndex)) + newText + text.substring(minOf(text.length, endIndex), text.length)
+	}
+
 	companion object : StyleTag {
 		val FACTORY_KEY: DKey<(owner: Owned) -> TextInput> = DependencyKeyImpl()
 	}
