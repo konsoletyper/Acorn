@@ -22,6 +22,7 @@ import com.acornui.component.ValidationFlags
 import com.acornui.core.assets.AssetTypes
 import com.acornui.core.assets.assetBinding
 import com.acornui.core.di.Owned
+import com.acornui.core.graphics.BlendMode
 import com.acornui.core.graphics.Texture
 import com.acornui.js.dom.DomTexture
 import com.acornui.math.Bounds
@@ -82,6 +83,13 @@ open class DomTextureComponent(
 		set(value) {
 			_assetBinding.path = value
 		}
+
+	/**
+	 * Dom side does not support blend modes.
+	 */
+	override var blendMode: BlendMode
+		get() = BlendMode.NORMAL
+		set(value) {}
 
 	override var texture: Texture?
 		get() = _texture

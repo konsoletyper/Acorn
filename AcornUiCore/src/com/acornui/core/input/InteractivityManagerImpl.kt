@@ -22,10 +22,7 @@ import com.acornui.component.InteractiveElement
 import com.acornui.component.UiComponent
 import com.acornui.core.ancestry
 import com.acornui.core.focus.FocusManager
-import com.acornui.core.input.interaction.KeyInteraction
-import com.acornui.core.input.interaction.MouseInteraction
-import com.acornui.core.input.interaction.TouchInteraction
-import com.acornui.core.input.interaction.WheelInteraction
+import com.acornui.core.input.interaction.*
 import com.acornui.core.time.time
 import com.acornui.signal.StoppableSignalImpl
 
@@ -50,6 +47,7 @@ open class InteractivityManagerImpl(
 	private val touch = TouchInteraction()
 	private val wheel = WheelInteraction()
 	private val key = KeyInteraction()
+	private val char = CharInteraction()
 
 	private val overTargets = ArrayList<InteractiveElement>()
 
@@ -130,6 +128,11 @@ open class InteractivityManagerImpl(
 		keyHandler(KeyInteraction.KEY_UP, event)
 	}
 
+	private val charHandler = {
+		event: CharInteraction ->
+		charHandler(CharInteraction.CHAR, event)
+	}
+
 	private fun <T : KeyInteraction> keyHandler(type: InteractionType<T>, event: KeyInteraction) {
 		val f = focus.focused() ?: return
 		key.clear()
@@ -137,6 +140,15 @@ open class InteractivityManagerImpl(
 		key.set(event)
 		dispatch(f, key)
 		if (key.defaultPrevented()) event.preventDefault()
+	}
+
+	private fun <T : CharInteraction> charHandler(type: InteractionType<T>, event: CharInteraction) {
+		val f = focus.focused() ?: return
+		char.clear()
+		char.type = CharInteraction.CHAR
+		char.set(event)
+		dispatch(f, char)
+		if (char.defaultPrevented()) event.preventDefault()
 	}
 
 	override fun init(root: UiComponent) {
@@ -154,6 +166,7 @@ open class InteractivityManagerImpl(
 
 		keyInput.keyDown.add(keyDownHandler)
 		keyInput.keyUp.add(keyUpHandler)
+		keyInput.char.add(charHandler)
 	}
 
 	private fun overTarget(target: InteractiveElement?) {
@@ -257,5 +270,6 @@ open class InteractivityManagerImpl(
 		val key = keyInput
 		key.keyDown.remove(keyDownHandler)
 		key.keyUp.remove(keyUpHandler)
+		key.char.remove(charHandler)
 	}
 }

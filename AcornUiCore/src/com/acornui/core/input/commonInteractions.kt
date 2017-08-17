@@ -57,6 +57,13 @@ fun InteractiveElement.keyUp(isCapture: Boolean = false): StoppableSignal<KeyInt
 }
 
 /**
+ * Dispatched when a character has been inputted while this interactive element has focus.
+ */
+fun InteractiveElement.char(isCapture: Boolean = false): StoppableSignal<CharInteraction> {
+	return createOrReuse(CharInteraction.CHAR, isCapture)
+}
+
+/**
  * Dispatched when the mouse is moved over this target. This will not trigger for touch surface interaction.
  */
 fun InteractiveElement.mouseOver(isCapture: Boolean = false): StoppableSignal<MouseInteraction> {

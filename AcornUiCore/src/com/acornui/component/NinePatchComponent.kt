@@ -18,6 +18,7 @@ package com.acornui.component
 
 import com.acornui.component.layout.SizeConstraints
 import com.acornui.core.di.Owned
+import com.acornui.core.graphics.BlendMode
 import com.acornui.core.graphics.Texture
 import com.acornui.math.Bounds
 import com.acornui.math.IntRectangleRo
@@ -26,7 +27,7 @@ import com.acornui.math.Rectangle
 /**
  * @author nbilyk
  */
-class NinePatchComponent(owner: Owned) : ElementContainerImpl(owner) {
+class NinePatchComponent(owner: Owned) : ContainerImpl(owner) {
 
 	private var _isRotated: Boolean = false
 	private var _region: FloatArray = floatArrayOf(0f, 0f, 0f, 0f)
@@ -56,9 +57,17 @@ class NinePatchComponent(owner: Owned) : ElementContainerImpl(owner) {
 
 	init {
 		for (i in regions) {
-			addElement(numChildren, i)
+			addChild(numChildren, i)
 		}
 	}
+
+	var blendMode: BlendMode
+		get() = leftC.blendMode
+		set(value) {
+			for (i in 0..regions.lastIndex) {
+				regions[i].blendMode = value
+			}
+		}
 
 	var path: String?
 		get() {

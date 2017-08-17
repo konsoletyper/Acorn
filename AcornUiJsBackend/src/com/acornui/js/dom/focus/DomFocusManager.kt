@@ -27,12 +27,10 @@ open class DomFocusManager: FocusManagerImpl() {
 
 	override fun onFocusedChanged(oldFocused: Focusable?, value: Focusable?) {
 		if (oldFocused != null) {
-			oldFocused.onBlurred()
 			(oldFocused.native as DomComponent).blur()
 		}
 		if (value != null) {
 			(value.native as DomComponent).focus()
-			value.onFocused()
 		}
 	}
 }

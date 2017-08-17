@@ -40,6 +40,8 @@ interface TextField : UiComponent, Labelable, SelectableComponent, Styleable {
 	val flowStyle: FlowLayoutStyle
 
 	var text: String?
+
+	@Deprecated("Will create text component builders.")
 	var htmlText: String?
 
 	/**

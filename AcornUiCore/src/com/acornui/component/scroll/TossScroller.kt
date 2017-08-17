@@ -28,7 +28,6 @@ import com.acornui.core.input.interaction.*
 import com.acornui.core.time.EnterFrame
 import com.acornui.core.time.enterFrame
 import com.acornui.core.time.time
-import com.acornui.math.Matrix4
 import com.acornui.math.Matrix4Ro
 import com.acornui.math.Vector2
 import com.acornui.signal.StoppableSignal
@@ -47,7 +46,7 @@ class TossScroller(
 		 */
 		var dampening: Float = TossScroller.DEFAULT_DAMPENING,
 
-		val dragAttachment: Drag = target.dragAttachment(TossScroller.minTossDistance)
+		val dragAttachment: DragAttachment = target.dragAttachment(TossScroller.minTossDistance)
 ) : Disposable {
 
 	private val stepTime = target.inject(AppConfig).stepTime

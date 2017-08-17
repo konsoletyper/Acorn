@@ -97,7 +97,7 @@ open class GlTextureComponent(owner: Owned) : UiComponentImpl(owner), TextureCom
 			invalidate(ValidationFlags.LAYOUT)
 		}
 
-	var blendMode: BlendMode
+	override var blendMode: BlendMode
 		get() {
 			return sprite.blendMode
 		}

@@ -11,6 +11,8 @@ import com.acornui.component.text.styleWithCSS
 import com.acornui.component.scroll.toCssString
 import com.acornui.core.UserInfo
 import com.acornui.core.di.Owned
+import com.acornui.core.focus.blurred
+import com.acornui.core.focus.focused
 import com.acornui.core.input.Ascii
 import com.acornui.core.input.keyDown
 import com.acornui.core.input.keyUp
@@ -201,6 +203,9 @@ open class DomEditableTextField(
 		watch(flowStyle) {
 			flowStyle.applyCss(element)
 		}
+
+		focused().add(this::focusedHandler)
+		blurred().add(this::blurredHandler)
 	}
 
 	override var htmlText: String?
@@ -214,7 +219,7 @@ open class DomEditableTextField(
 	 */
 	protected var lastRange: Range? = null
 
-	override fun onFocused() {
+	private fun focusedHandler() {
 		if (lastRange != null) {
 			val s = document.getSelection()
 			s.removeAllRanges()
@@ -223,7 +228,7 @@ open class DomEditableTextField(
 		}
 	}
 
-	override fun onBlurred() {
+	private fun blurredHandler() {
 		val s = document.getSelection()
 		if (s.rangeCount > 0) {
 			lastRange = s.getRangeAt(0).cloneRange()

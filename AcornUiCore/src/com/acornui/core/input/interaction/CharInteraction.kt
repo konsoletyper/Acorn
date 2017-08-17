@@ -1,11 +1,12 @@
 package com.acornui.core.input.interaction
 
 import com.acornui.core.input.InteractionEventBase
+import com.acornui.core.input.InteractionType
 
 /**
  * An event representing a character input.
  */
-class CharInteraction : InteractionEventBase() {
+open class CharInteraction : InteractionEventBase() {
 
 	var char: Char = 0.toChar()
 
@@ -16,5 +17,9 @@ class CharInteraction : InteractionEventBase() {
 	override fun clear() {
 		super.clear()
 		char = 0.toChar()
+	}
+
+	companion object {
+		val CHAR = InteractionType<CharInteraction>("char")
 	}
 }

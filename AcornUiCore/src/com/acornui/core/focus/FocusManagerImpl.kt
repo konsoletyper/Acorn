@@ -145,8 +145,6 @@ open class FocusManagerImpl : FocusManager {
 	}
 
 	protected open fun onFocusedChanged(oldFocused: Focusable?, value: Focusable?) {
-		oldFocused?.onBlurred()
-		value?.onFocused()
 	}
 
 	override fun nextFocusable(): Focusable {

@@ -67,7 +67,7 @@ data class SelectionRange(val target: Selectable, val startIndex: Int, val endIn
 }
 
 /**
- * A marker interface indicating that a component can be selected.
+ * A marker interface indicating that an object can be selected by the [SelectionManager].
  */
 interface Selectable
 interface SelectableComponent : UiComponent, Selectable
@@ -77,4 +77,12 @@ interface SelectableComponent : UiComponent, Selectable
  */
 fun SelectableComponent.selectAll() {
 	inject(SelectionManager).selection = listOf(SelectionRange(this, 0, Int.MAX_VALUE))
+}
+
+/**
+ * Sets the current selection to exclude this component.
+ */
+fun SelectableComponent.unselect() {
+	val sM = inject(SelectionManager)
+	sM.selection = sM.selection.filterNot { it.target == this }
 }

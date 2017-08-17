@@ -19,6 +19,7 @@ package com.acornui.component
 import com.acornui.core.di.DKey
 import com.acornui.core.di.DependencyKeyImpl
 import com.acornui.core.di.Owned
+import com.acornui.core.graphics.BlendMode
 import com.acornui.core.graphics.Texture
 import com.acornui.math.IntRectangleRo
 import com.acornui.math.Rectangle
@@ -33,6 +34,11 @@ interface TextureComponent : UiComponent {
 	 * If true, the texture's region is rotated.
 	 */
 	var isRotated: Boolean
+
+	/**
+	 * Only applicable for GL backends, sets the blend mode for this component.
+	 */
+	var blendMode: BlendMode
 
 	/**
 	 * Sets the region of the texture to display.

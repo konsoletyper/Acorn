@@ -25,6 +25,7 @@ import com.acornui.component.layout.setSize
 import com.acornui.component.text.*
 import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
+import com.acornui.core.focus.focused
 import com.acornui.core.input.keyDown
 import com.acornui.core.input.keyUp
 import com.acornui.core.selection.SelectionManager
@@ -186,6 +187,7 @@ open class DomTextInput(
 			it.applyCss(inputElement)
 			it.applyBox(native as DomComponent)
 		}
+		focused().add(this::refreshSelection)
 	}
 
 	override fun onActivated() {
@@ -223,11 +225,6 @@ open class DomTextInput(
 		set(value) {
 			inputElement.type = if (value) "password" else "text"
 		}
-
-	override fun onFocused() {
-		super.onFocused()
-		refreshSelection()
-	}
 
 	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
 		native.setSize(explicitWidth ?: textInputStyle.defaultWidth, explicitHeight)

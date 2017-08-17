@@ -21,6 +21,7 @@ import com.acornui.core.di.DKey
 import com.acornui.core.input.interaction.CharInteraction
 import com.acornui.core.input.interaction.KeyInteraction
 import com.acornui.core.input.interaction.KeyLocation
+import com.acornui.signal.Signal
 import com.acornui.signal.Signal1
 
 /**
@@ -42,18 +43,19 @@ interface KeyInput : KeyState {
 	 * Dispatched when the user has pressed down a key
 	 * Do not keep a reference to this event, it will be recycled.
 	 */
-	val keyDown: Signal1<KeyInteraction>
+	val keyDown: Signal<(KeyInteraction) -> Unit>
 
 	/**
 	 * Dispatched when the user has released a key
 	 * Do not keep a reference to this event, it will be recycled.
 	 */
-	val keyUp: Signal1<KeyInteraction>
+	val keyUp: Signal<(KeyInteraction) -> Unit>
 
 	/**
 	 * Dispatched when the user has inputted a character.
+	 * Do not keep a reference to this event, it will be recycled.
 	 */
-	val char: Signal1<CharInteraction>
+	val char: Signal<(CharInteraction) -> Unit>
 
 	companion object : DKey<KeyInput> {
 		override val extends: DKey<*>? = KeyState

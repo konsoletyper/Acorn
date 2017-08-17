@@ -6,9 +6,15 @@ import com.acornui.component.layout.setSize
 import com.acornui.component.style.set
 import com.acornui.component.text.*
 import com.acornui.core.di.Owned
+import com.acornui.core.focus.blurred
+import com.acornui.core.focus.focused
+import com.acornui.core.input.char
+import com.acornui.core.selection.selectAll
+import com.acornui.core.selection.unselect
 import com.acornui.math.Bounds
 import com.acornui.signal.Signal0
 
+@Suppress("LeakingThis")
 open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 
 	override val input: Signal0 = Signal0()
@@ -53,6 +59,11 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 		}
 		watch(textInputStyle) {
 			invalidateLayout()
+		}
+		focused().add(this::selectAll)
+		blurred().add(this::unselect)
+		char().add {
+			println("Char ${it.char}")
 		}
 	}
 

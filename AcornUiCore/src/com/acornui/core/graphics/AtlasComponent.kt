@@ -64,6 +64,15 @@ open class AtlasComponent(owner: Owned) : ContainerImpl(owner), Clearable {
 	val textureComponent: TextureComponent?
 		get() = _textureComponent
 
+	private var _blendMode = BlendMode.NORMAL
+	var blendMode: BlendMode
+		get() = _blendMode
+		set(value) {
+			_blendMode = value
+			_textureComponent?.blendMode = value
+			_ninePatchComponent?.blendMode = value
+		}
+
 	private fun clearRegionAndTexture() {
 		_ninePatchComponent?.dispose()
 		_ninePatchComponent = null
@@ -81,6 +90,7 @@ open class AtlasComponent(owner: Owned) : ContainerImpl(owner), Clearable {
 			}
 			if (_textureComponent == null) {
 				_textureComponent = addChild(textureC())
+				_textureComponent?.blendMode = _blendMode
 				_textureC = _textureComponent
 			}
 			val t = _textureComponent!!
@@ -93,6 +103,7 @@ open class AtlasComponent(owner: Owned) : ContainerImpl(owner), Clearable {
 			}
 			if (_ninePatchComponent == null) {
 				_ninePatchComponent = addChild(ninePatch())
+				_ninePatchComponent?.blendMode = _blendMode
 				_textureC = _ninePatchComponent
 			}
 			val t = _ninePatchComponent!!

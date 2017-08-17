@@ -114,8 +114,8 @@ fun <T : InteractionEvent> InteractiveElement.createOrReuse(type: InteractionTyp
 	if (existing != null) {
 		return existing
 	} else {
-		val interactivity = inject(InteractivityManager)
-		val newHandler = interactivity.getSignal(this, type, isCapture)
+		val interactivityManager = inject(InteractivityManager)
+		val newHandler = interactivityManager.getSignal(this, type, isCapture)
 		addInteractionSignal(type, newHandler, isCapture)
 		return newHandler
 	}

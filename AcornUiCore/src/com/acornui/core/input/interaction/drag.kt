@@ -25,67 +25,29 @@ import com.acornui.math.Vector2
 import com.acornui.signal.Signal
 import com.acornui.signal.Signal1
 
-interface Drag : Disposable {
-
-	/**
-	 * Dispatched when the drag has begun. For typical implementations this will be after the drag has passed the
-	 * affordance value.
-	 */
-	val dragStart: Signal<(DragInteraction) -> Unit>
-
-	/**
-	 * Dispatched on each move during a drag.
-	 * This will not be dispatched if the target is not on the stage.
-	 */
-	val drag: Signal<(DragInteraction) -> Unit>
-
-	/**
-	 * Dispatched when the drag has completed.
-	 */
-	val dragEnd: Signal<(DragInteraction) -> Unit>
-
-	/**
-	 * If true, drag operations are enabled.
-	 */
-	var enabled: Boolean
-
-	/**
-	 * True if the user is currently dragging.
-	 */
-	val isDragging: Boolean
-
-	companion object {
-
-		/**
-		 * The manhattan distance the target must be dragged before the dragStart and drag events begin.
-		 */
-		val DEFAULT_AFFORDANCE: Float = 5f
-
-	}
-}
-
 /**
  * A behavior for a touch down, touch move, then touch up on a target UiComponent.
  */
-open class DragImpl(
+class DragAttachment(
 		val target: UiComponent,
 
 		/**
 		 * The manhattan distance between the start drag position and the current position before dragging will begin.
 		 */
-		var affordance: Float = Drag.DEFAULT_AFFORDANCE
-) : Drag {
+		var affordance: Float = DEFAULT_AFFORDANCE
+) : Disposable {
 
 	private val stage = target.stage
 
 	private var watchingMouse = false
 	private var watchingTouch = false
 
+	private var _isDragging = false
+
 	/**
 	 * The movement has passed the affordance, and is currently dragging.
 	 */
-	private var _isDragging = false
-	override val isDragging: Boolean
+	val isDragging: Boolean
 		get() = _isDragging
 
 	private val dragEvent: DragInteraction = DragInteraction()
@@ -95,23 +57,30 @@ open class DragImpl(
 	/**
 	 * Dispatched when the drag has passed the [affordance] distance.
 	 */
-	override val dragStart: Signal<(DragInteraction) -> Unit>
+	val dragStart: Signal<(DragInteraction) -> Unit>
 		get() = _dragStart
 
 	private val _drag = Signal1<DragInteraction>()
 
-	override val drag: Signal<(DragInteraction) -> Unit>
+	/**
+	 * Dispatched on each move during a drag.
+	 * This will not be dispatched if the target is not on the stage.
+	 */
+	val drag: Signal<(DragInteraction) -> Unit>
 		get() = _drag
 
 	private val _dragEnd = Signal1<DragInteraction>()
 
-	override val dragEnd: Signal<(DragInteraction) -> Unit>
+	/**
+	 * Dispatched when the drag has completed.
+	 */
+	val dragEnd: Signal<(DragInteraction) -> Unit>
 		get() = _dragEnd
 
-	protected val position = Vector2()
-	protected val startPosition = Vector2()
-	protected val startPositionLocal = Vector2()
-	protected var startElement: InteractiveElement? = null
+	private val position = Vector2()
+	private val startPosition = Vector2()
+	private val startPositionLocal = Vector2()
+	private var startElement: InteractiveElement? = null
 
 	private fun targetDeactivatedHandler(c: Lifecycle) {
 		stop()
@@ -180,11 +149,11 @@ open class DragImpl(
 	 * This does not determine if a drag start may begin.
 	 * @see allowMouseDragStart
 	 */
-	protected open fun allowMouseStart(event: MouseInteraction): Boolean {
+	private fun allowMouseStart(event: MouseInteraction): Boolean {
 		return enabled && !event.isFabricated && event.button == WhichButton.LEFT && !event.handled
 	}
 
-	protected open fun allowMouseDragStart(event: MouseInteraction): Boolean {
+	private fun allowMouseDragStart(event: MouseInteraction): Boolean {
 		return position.manhattanDst(startPosition) >= affordance
 	}
 
@@ -212,15 +181,15 @@ open class DragImpl(
 	 * This does not determine if a drag start may begin.
 	 * @see allowTouchDragStart
 	 */
-	protected open fun allowTouchStart(event: TouchInteraction): Boolean {
+	private fun allowTouchStart(event: TouchInteraction): Boolean {
 		return enabled && !event.handled
 	}
 
-	protected open fun allowTouchDragStart(event: TouchInteraction): Boolean {
+	private fun allowTouchDragStart(event: TouchInteraction): Boolean {
 		return position.manhattanDst(startPosition) >= affordance
 	}
 
-	protected open fun allowTouchEnd(event: TouchInteraction): Boolean {
+	private fun allowTouchEnd(event: TouchInteraction): Boolean {
 		return event.touches.isEmpty()
 	}
 
@@ -301,7 +270,11 @@ open class DragImpl(
 	}
 
 	private var _enabled = true
-	override var enabled: Boolean
+
+	/**
+	 * If true, drag operations are enabled.
+	 */
+	var enabled: Boolean
 		get() = _enabled
 		set(value) {
 			if (_enabled == value) return
@@ -330,6 +303,15 @@ open class DragImpl(
 		target.deactivated.remove(this::targetDeactivatedHandler)
 		target.mouseDown().remove(this::mouseDownHandler)
 		target.touchStart().remove(this::touchStartHandler)
+	}
+
+	companion object {
+
+		/**
+		 * The manhattan distance the target must be dragged before the dragStart and drag events begin.
+		 */
+		val DEFAULT_AFFORDANCE: Float = 5f
+
 	}
 }
 
@@ -378,26 +360,26 @@ class DragInteraction : InteractionEventBase() {
 
 }
 
-fun UiComponent.dragAttachment(affordance: Float = Drag.DEFAULT_AFFORDANCE): Drag {
-	return createOrReuseAttachment(Drag, { DragImpl(this, affordance) })
+fun UiComponent.dragAttachment(affordance: Float = DragAttachment.DEFAULT_AFFORDANCE): DragAttachment {
+	return createOrReuseAttachment(DragAttachment, { DragAttachment(this, affordance) })
 }
 
 /**
- * @see Drag.dragStart
+ * @see DragAttachment.dragStart
  */
 fun UiComponent.dragStart(): Signal<(DragInteraction) -> Unit> {
 	return dragAttachment().dragStart
 }
 
 /**
- * @see Drag.drag
+ * @see DragAttachment.drag
  */
 fun UiComponent.drag(): Signal<(DragInteraction) -> Unit> {
 	return dragAttachment().drag
 }
 
 /**
- * @see Drag.dragEnd
+ * @see DragAttachment.dragEnd
  */
 fun UiComponent.dragEnd(): Signal<(DragInteraction) -> Unit> {
 	return dragAttachment().dragEnd

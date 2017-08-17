@@ -182,18 +182,6 @@ interface Focusable : UiComponent {
 	}
 
 	/**
-	 * Invoked when this component has been given focus.
-	 */
-	fun onFocused() {
-	}
-
-	/**
-	 * Invoked when this component no longer has focus.
-	 */
-	fun onBlurred() {
-	}
-
-	/**
 	 * Returns true if this component is currently in focus.
 	 *
 	 * This is not true if one of its ancestors is focused.
