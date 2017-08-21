@@ -132,11 +132,11 @@ class ValidationNodeTest {
 			}
 		}
 
-		validation.addNode(TextValidationFlags.COMPONENTS, 0, ValidationFlags.STYLES or ValidationFlags.LAYOUT, {})
+		validation.addNode(ValidationFlags.RESERVED_1, 0, ValidationFlags.STYLES or ValidationFlags.LAYOUT, {})
 
 		validation.validate()
 
-		validation.invalidate(TextValidationFlags.COMPONENTS)
+		validation.invalidate(ValidationFlags.RESERVED_1)
 		assertFalse(validation.isValid(ValidationFlags.STYLES))
 	}
 

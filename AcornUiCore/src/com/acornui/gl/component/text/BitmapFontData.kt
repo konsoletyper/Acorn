@@ -64,7 +64,6 @@ data class BitmapFontPageData(
 		var imagePath: String
 )
 
-
 /**
  * Represents a single character in a font page.
  */

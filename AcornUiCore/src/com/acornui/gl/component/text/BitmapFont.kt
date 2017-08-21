@@ -19,6 +19,7 @@ package com.acornui.gl.component.text
 import com.acornui.action.onFailed
 import com.acornui.action.onSuccess
 import com.acornui.collection.Clearable
+import com.acornui.component.text.CharStyle
 import com.acornui.core.Disposable
 import com.acornui.core.assets.AssetManager
 import com.acornui.core.assets.AssetTypes
@@ -81,12 +82,12 @@ data class FontStyle(
 		/**
 		 * The name of the font face. (case sensitive)
 		 */
-		var face: String,
+		var face: String = "[Unknown]",
 
 		/**
 		 * The size of the font.
 		 */
-		var size: Int,
+		var size: Int = 0,
 
 		var bold: Boolean = false,
 
@@ -381,4 +382,17 @@ object BitmapFontRegistry : Clearable, Disposable {
 		clear()
 	}
 
+}
+
+private val tmp = FontStyle()
+
+/**
+ * Retrieves the bitmap font based on the char style.
+ */
+fun BitmapFontRegistry.getFont(charStyle: CharStyle): BitmapFont? {
+	tmp.face = charStyle.face
+	tmp.size = charStyle.size
+	tmp.bold = charStyle.bold
+	tmp.italic = charStyle.italic
+	return BitmapFontRegistry.getFont(tmp)
 }

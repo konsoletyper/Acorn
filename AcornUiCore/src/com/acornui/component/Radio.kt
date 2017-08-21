@@ -81,13 +81,13 @@ class RadioGroup<T>(val owner: Owned) : Disposable {
 	}
 
 	fun register(button: RadioButton<T>) {
-		button.selectedChanged.add(selectedChangedHandler)
+		button.toggledChanged.add(selectedChangedHandler)
 		button.disposed.add(disposedHandler)
 		_radioButtons.add(button)
 	}
 
 	fun unregister(button: RadioButton<T>) {
-		button.selectedChanged.remove(selectedChangedHandler)
+		button.toggledChanged.remove(selectedChangedHandler)
 		if (_selectedButton == button)
 			selectedButton = null
 		_radioButtons.remove(button)

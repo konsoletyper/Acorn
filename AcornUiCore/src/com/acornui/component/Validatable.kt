@@ -111,7 +111,7 @@ class ValidationTree {
 
 	private var invalidFlags = -1
 
-	fun addNode(flag: Int, onValidate: () -> Unit) = addNode(flag, 0, onValidate)
+	fun addNode(flag: Int, onValidate: () -> Unit) = addNode(flag, 0, 0, onValidate)
 
 	fun addNode(flag: Int, dependencies: Int, onValidate: () -> Unit) = addNode(flag, dependencies, 0, onValidate)
 

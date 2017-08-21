@@ -63,7 +63,7 @@ interface LayoutDataProvider<out T : LayoutData> {
 	/**
 	 * Constructs a new layout data object and applies it to the receiver layout element.
 	 */
-	infix fun <R : LayoutElement> R.layout(init: T.() -> Unit): R {
+	infix fun <R : BasicLayoutElement> R.layout(init: T.() -> Unit): R {
 		val layoutData = createLayoutData()
 		layoutData.init()
 		this.layoutData = layoutData

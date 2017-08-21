@@ -195,10 +195,10 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 			y.compareTo(line.bottom)
 		})
 		val line = _lines[lineIndex]
-		return elements.sortedInsertionIndex(x, {
+		return minOf(elements.lastIndex, elements.sortedInsertionIndex(x, {
 			x, element ->
 			x.compareTo(element.right)
-		}, line.startIndex, line.endIndex)
+		}, line.startIndex, line.endIndex))
 	}
 
 }

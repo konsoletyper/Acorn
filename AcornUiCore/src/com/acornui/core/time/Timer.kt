@@ -59,6 +59,14 @@ open class Timer private constructor() : DrivableChildBase(), Clearable {
 		callback = NOOP
 	}
 
+	/**
+	 * Sets the duration to 0f and the current repetition to 0
+	 */
+	fun rewind() {
+		duration = 0f
+		currentRepetition = 0
+	}
+
 	override fun dispose() {
 		super.dispose()
 		remove()
@@ -81,12 +89,12 @@ open class Timer private constructor() : DrivableChildBase(), Clearable {
  */
 fun Scoped.timer(duration: Float, repetitions: Int = 1, callback: () -> Unit): Timer {
 	if (repetitions == 0) throw IllegalArgumentException("repetitions argument may not be zero.")
-	val wait = Timer.obtain()
-	wait.duration = duration
-	wait.callback = callback
-	wait.repetitions = repetitions
-	inject(TimeDriver).addChild(wait)
-	return wait
+	val timer = Timer.obtain()
+	timer.duration = duration
+	timer.callback = callback
+	timer.repetitions = repetitions
+	inject(TimeDriver).addChild(timer)
+	return timer
 }
 
 /**

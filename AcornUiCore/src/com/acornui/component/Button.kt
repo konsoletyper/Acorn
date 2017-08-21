@@ -44,9 +44,9 @@ open class Button(
 	val style = bind(ButtonStyle())
 
 	/**
-	 * Dispatched when the selected flag has changed.
+	 * Dispatched when the toggled flag has changed.
 	 */
-	val selectedChanged = own(Signal1<Button>())
+	val toggledChanged = own(Signal1<Button>())
 
 	/**
 	 * If true, when this button is pressed, the selected state will be toggled.
@@ -170,7 +170,7 @@ open class Button(
 			if (_selected == value) return
 			_selected = value
 			refreshState()
-			selectedChanged.dispatch(this)
+			toggledChanged.dispatch(this)
 		}
 
 	protected open fun refreshState() {
