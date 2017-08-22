@@ -105,6 +105,7 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 			refreshText()
 		}
 
+	// TODO: text input multiline
 	/**
 	 * If true, this text input can have text on multiple lines.
 	 */
@@ -184,12 +185,14 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 		return passwordMask.repeat2(length)
 	}
 
+	private val cursorRect = Rectangle()
+
 	private fun selectionChangedHandler(old: List<SelectionRange>, new: List<SelectionRange>) {
 		val sel = firstSelection
 		if (sel != null && sel.startIndex == sel.endIndex) {
 			caret.visible = true
-			// TODO
-			tF.getCharAt(sel.startIndex)
+// TODO
+//			tF.getRectAt(sel.startIndex, cursorRect)
 		} else {
 			caret.visible = false
 		}

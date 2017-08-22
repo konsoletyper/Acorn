@@ -56,6 +56,7 @@ interface UiComponent : Lifecycle, ColorTransformable, InteractiveElement, Valid
 
 	/**
 	 * The parent on the display graph.
+	 * This should only be set by the container.
 	 */
 	override var parent: Container?
 

@@ -230,8 +230,7 @@ open class ParentBase<T : ParentBase<T>> : MutableParent<T>, Child, Disposable {
 	 * Use [numChildren] to ensure that the index is within bounds.
 	 */
 	override fun removeChild(index: Int): T {
-		val c = _children
-		val child = c.removeAt(index)
+		val child = _children.removeAt(index)
 		child.parent = null
 		return child
 	}

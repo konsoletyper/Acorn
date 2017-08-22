@@ -41,7 +41,7 @@ fun TfContainer<*, FlowLayoutData>.add(index: Int, text: String) {
 				overhangs = true
 			}
 		}
-		children.add(word)
+		addChild(word)
 	}
 }
 
@@ -49,22 +49,15 @@ private fun createWords(text: String, tfCharStyle: TfCharStyle): List<TfWord> {
 	val words = ArrayList<TfWord>()
 	if (text.isEmpty()) return words
 	var word = TfWord()
-	var prevChar: Char? = null
 	for (i in 0..text.lastIndex) {
 		val char = text[i]
-		val wasSpace = prevChar == ' '
-		val isSpace = char == ' '
-		if (isSpace != wasSpace && word.isNotEmpty()) {
+		val tfChar = TfChar(char, i, tfCharStyle)
+		if (!word.canAddChar(char)) {
+			// Need a new word
 			words.add(word)
 			word = TfWord()
 		}
-		word.chars.add(TfChar(char, i, tfCharStyle))
-
-		if (char.isBreaking() && word.isNotEmpty()) {
-			words.add(word)
-			word = TfWord()
-		}
-		prevChar = char
+		word.chars.add(tfChar)
 	}
 	if (word.isNotEmpty())
 		words.add(word)
@@ -72,4 +65,9 @@ private fun createWords(text: String, tfCharStyle: TfCharStyle): List<TfWord> {
 	return words
 }
 
-
+private fun TfWord.canAddChar(char: Char): Boolean {
+	val last = chars.lastOrNull() ?: return true
+	val lastC = last.char
+	if (lastC.isBreaking()) return false
+	return (lastC == ' ') == (char == ' ')
+}
