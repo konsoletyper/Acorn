@@ -23,6 +23,7 @@ import com.acornui.gl.component.drawing.lineStyle
 import com.acornui.gl.component.drawing.quad
 import com.acornui.graphics.Color
 import com.acornui.math.Bounds
+import com.acornui.math.MathUtils.clamp
 import com.acornui.math.Rectangle
 import com.acornui.signal.Signal0
 
@@ -42,15 +43,12 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 
 	protected val background = addChild(rect())
 	protected val tF = addChild(GlTextField(this).apply { selectionTarget = this@GlTextInput })
-	protected val caret = addChild(dynamicMeshC {
+	protected val textCursor = addChild(dynamicMeshC {
 		buildMesh {
 			lineStyle.isVisible = false
-			fillStyle.colorTint.set(Color.RED)
-			+quad(0f, 0f, 1f, 0f, 1f, 1f, 0f, 1f)
 			fillStyle.colorTint.set(Color.WHITE)
-			+quad(1f, 0f, 2f, 0f, 2f, 1f, 1f, 1f)
+			+quad(0f, 0f, 1f, 0f, 1f, 1f, 0f, 1f)
 		}
-		scaleY = 20f
 	})
 
 	/**
@@ -63,7 +61,7 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 	override var text: String
 		get() = _text
 		set(value) {
-			_text = value
+			_text = if (_restrictPattern == null) value else value.replace(Regex(_restrictPattern!!), "")
 			refreshText()
 		}
 
@@ -80,9 +78,7 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 		}
 
 	private fun refreshText() {
-		var v = if (multiline) _text else _text.replace("\n", "")
-		if (_restrictPattern != null)
-			v = v.replace(Regex(_restrictPattern!!), "")
+		val v = if (multiline) _text else _text.replace("\n", "")
 		tF.text = if (_password) v.toPassword() else v
 	}
 
@@ -119,6 +115,7 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 			background.style.set(it)
 		}
 		watch(textInputStyle) {
+			textCursor.colorTint = it.cursorColor
 			invalidateLayout()
 		}
 		focused().add {
@@ -126,23 +123,33 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 			// todo: open mobile keyboard
 		}
 		blurred().add {
-			caret.visible = false
+			textCursor.visible = false
 			unselect()
+			if (isActive)
+				changed.dispatch()
 		}
 		char().add {
 			it.handled = true
 			replaceSelection(it.char.toString())
+			input.dispatch()
 		}
 
 		keyDown().add {
 			if (it.keyCode == Ascii.BACKSPACE) {
 				it.handled = true
 				backspace()
+				input.dispatch()
 			} else if (it.keyCode == Ascii.DELETE) {
 				it.handled = true
 				delete()
-			} else if (multiline && (it.keyCode == Ascii.ENTER || it.keyCode == Ascii.RETURN)) {
-				replaceSelection("\n")
+				input.dispatch()
+			} else if (it.keyCode == Ascii.ENTER || it.keyCode == Ascii.RETURN) {
+				if (multiline) {
+					replaceSelection("\n")
+					input.dispatch()
+				} else {
+					changed.dispatch()
+				}
 			}
 		}
 
@@ -181,20 +188,18 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 		selectionManager.selection = listOf(SelectionRange(this, sel.startIndex + str.length, sel.startIndex + str.length))
 	}
 
+	override fun replaceTextRange(startIndex: Int, endIndex: Int, newText: String) {
+		val text = this.text
+		this.text = text.substring(0, clamp(startIndex, 0, text.length)) + newText + text.substring(clamp(endIndex, 0, text.length), text.length)
+	}
+
 	private fun String.toPassword(): String? {
 		return passwordMask.repeat2(length)
 	}
 
-	private val cursorRect = Rectangle()
-
 	private fun selectionChangedHandler(old: List<SelectionRange>, new: List<SelectionRange>) {
-		val sel = firstSelection
-		if (sel != null && sel.startIndex == sel.endIndex) {
-			caret.visible = true
-// TODO
-//			tF.getRectAt(sel.startIndex, cursorRect)
-		} else {
-			caret.visible = false
+		if (old.filter { it.target == this } != new.filter { it.target == this }) {
+			invalidateLayout()
 		}
 	}
 
@@ -210,6 +215,33 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 		background.setPosition(margin.left, margin.top)
 		highlight?.setSize(background.bounds)
 		highlight?.setPosition(margin.left, margin.top)
+
+		updateTextCursor()
+	}
+
+	private val cursorRect = Rectangle()
+
+	private fun updateTextCursor() {
+		val sel = firstSelection
+		if (sel != null) {
+			val start = clamp(sel.startIndex, 0, tF.contents.rangeEnd)
+			val end = clamp(sel.endIndex, 0, tF.contents.rangeEnd)
+			if (start == end) {
+				textCursor.visible = true
+				if (start < tF.contents.rangeEnd) {
+					tF.contents.getBoundsAt(start, cursorRect)
+					textCursor.x = cursorRect.x + tF.x
+					textCursor.y = cursorRect.y + tF.y
+					textCursor.scaleY = cursorRect.height / textCursor.height
+				} else {
+
+				}
+			} else {
+				textCursor.visible = false
+			}
+		} else {
+			textCursor.visible = false
+		}
 	}
 
 	override fun dispose() {

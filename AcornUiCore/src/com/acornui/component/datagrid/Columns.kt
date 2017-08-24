@@ -19,6 +19,7 @@ package com.acornui.component.datagrid
 import com.acornui.component.ContainerImpl
 import com.acornui.component.layout.HAlign
 import com.acornui.component.layout.algorithm.FlowHAlign
+import com.acornui.component.text.RestrictPatterns
 import com.acornui.component.text.selectable
 import com.acornui.component.text.text
 import com.acornui.component.text.textInput
@@ -99,7 +100,7 @@ abstract class NumberEditorCell(owner: Owned) : ContainerImpl(owner) {
 class IntEditorCell(owner: Owned) : NumberEditorCell(owner), DataGridEditorCell<Int?> {
 
 	init {
-		input.restrictPattern = "[^0-9]"
+		input.restrictPattern = RestrictPatterns.INTEGER
 	}
 
 	override fun validateData(): Boolean {

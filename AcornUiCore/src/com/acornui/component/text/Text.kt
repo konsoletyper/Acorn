@@ -214,6 +214,7 @@ interface TextInput : Focusable, SelectableComponent, Styleable {
 
 	var password: Boolean
 
+	// TODO: Make this efficient in GlTextInput.
 	/**
 	 * Replaces the given range with the provided text.
 	 * This is functionally the same as:
@@ -284,6 +285,13 @@ class TextInputStyle : StyleBase() {
 	override val type = Companion
 
 	var defaultWidth by prop(180f)
+	var cursorColor: ColorRo by prop(Color(0.1f, 0.1f, 0.1f, 1f))
 
 	companion object : StyleType<TextInputStyle>
+}
+
+object RestrictPatterns {
+
+	val INTEGER = "[^0-9+-]"
+	val FLOAT = "[^0-9+-.]"
 }

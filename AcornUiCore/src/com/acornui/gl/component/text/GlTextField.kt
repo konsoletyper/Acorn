@@ -57,7 +57,7 @@ import com.acornui.math.Vector3
  * A TextField implementation for the OpenGL back-ends.
  * @author nbilyk
  */
-@Suppress("LeakingThis")
+@Suppress("LeakingThis", "UNUSED_PARAMETER")
 open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 
 	override final val flowStyle = bind(FlowLayoutStyle())
@@ -76,8 +76,8 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 	 */
 	var selectionTarget: Selectable = this
 
-	protected var _contents: TfPart = TfContainer(FlowLayout(), charStyle, flowStyle, this)
-	var contents: TfPart
+	protected var _contents: TextFieldNode = TfContainer(FlowLayout(), charStyle, flowStyle, this)
+	var contents: TextFieldNode
 		get() = _contents
 		set(value) {
 			_contents = value
@@ -176,10 +176,6 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 		_contents.render(glState)
 	}
 
-	fun getRectAt(index: Int, out: Rectangle) {
-		return _contents.getRectAt(index, out)
-	}
-
 	override fun dispose() {
 		super.dispose()
 		BitmapFontRegistry.fontRegistered.remove(this::fontRegisteredHandler)
@@ -203,9 +199,9 @@ class TfCharStyle {
 	val backgroundColor: Color = Color()
 }
 
-interface TfPart : BasicLayoutElement, Parent<TfPart> {
+interface TextFieldNode : BasicLayoutElement, Parent<TextFieldNode> {
 
-	override var parent: TfContainer<*, *>?
+	override var parent: TextFieldNode?
 
 	/**
 	 * The start index of this section (inclusive)
@@ -237,10 +233,10 @@ interface TfPart : BasicLayoutElement, Parent<TfPart> {
 	fun getSelectionChar(x: Float, y: Float): Int
 
 	/**
-	 * Returns a rectangle representing the size and position of the object at the given index.
+	 * Populates a rectangle representing the size and position of the object at the given index.
 	 * @param index The index of the object. This must be in the range of [rangeStart] <= [index] < [rangeEnd]
 	 */
-	fun getRectAt(index: Int, out: Rectangle)
+	fun getBoundsAt(index: Int, out: Rectangle)
 
 	val text: String
 
@@ -251,7 +247,7 @@ class TfContainer<out S, out U : LayoutData>(
 		val charStyle: CharStyle,
 		val layoutStyle: S,
 		override val styleParent: Styleable? = null
-) : BasicLayoutElementImpl(), TfPart, MutableParent<TfPart>, LayoutDataProvider<U>, Styleable {
+) : BasicLayoutElementImpl(), TextFieldNode, MutableParent<TextFieldNode>, LayoutDataProvider<U>, Styleable {
 
 	val tfCharStyle = TfCharStyle()
 
@@ -270,11 +266,11 @@ class TfContainer<out S, out U : LayoutData>(
 
 	override fun createLayoutData(): U = layout.createLayoutData()
 
-	private val _children: MutableList<TfPart> = ArrayList()
+	override var parent: TextFieldNode? = null
 
-	override val children: List<TfPart>
+	private val _children: MutableList<TextFieldNode> = ArrayList()
+	override val children: List<TextFieldNode>
 		get() = _children
-	override var parent: TfContainer<*, *>? = null
 
 	override val rangeStart: Int
 		get() = if (_children.isEmpty()) 0 else _children.first().rangeStart
@@ -282,13 +278,13 @@ class TfContainer<out S, out U : LayoutData>(
 	override val rangeEnd: Int
 		get() = if (_children.isEmpty()) 0 else _children.last().rangeEnd
 
-	override fun <S : TfPart> addChild(index: Int, child: S): S {
+	override fun <S : TextFieldNode> addChild(index: Int, child: S): S {
 		_children.add(index, child)
 		child.parent = this
 		return child
 	}
 
-	override fun removeChild(index: Int): TfPart {
+	override fun removeChild(index: Int): TextFieldNode {
 		val child = _children.removeAt(index)
 		child.parent = null
 		return child
@@ -347,12 +343,14 @@ class TfContainer<out S, out U : LayoutData>(
 		return child.getSelectionChar(x - child.x, y - child.y)
 	}
 
-	override fun getRectAt(index: Int, out: Rectangle) {
+	override fun getBoundsAt(index: Int, out: Rectangle) {
 		val childIndex = _children.sortedInsertionIndex(index, {
 			index, element ->
 			index.compareTo(element.rangeEnd)
 		})
-		_children[childIndex].getRectAt(index, out)
+		_children[childIndex].getBoundsAt(index, out)
+		out.x += x
+		out.y += y
 	}
 
 	override val text: String
@@ -370,11 +368,11 @@ class TfContainer<out S, out U : LayoutData>(
 /**
  * An unbreakable segment of characters in a [GlTextField].
  */
-class TfWord : BasicLayoutElementImpl(), TfPart {
+class TfWord : BasicLayoutElementImpl(), TextFieldNode {
 
 	val chars: MutableList<TfChar> = ArrayList()
-	override val children = emptyList<TfPart>()
-	override var parent: TfContainer<*, *>? = null
+	override val children = emptyList<TextFieldNode>()
+	override var parent: TextFieldNode? = null
 
 	override val rangeStart: Int
 		get() = chars.first().index
@@ -387,12 +385,12 @@ class TfWord : BasicLayoutElementImpl(), TfPart {
 	}
 
 	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
-		var x = 0
-		var maxHeight = 0
+		var x = 0f
+		var maxHeight = 0f
 		for (i in 0..chars.lastIndex) {
 			val char = chars[i]
 			val glyph = char.glyph ?: continue
-			maxHeight = maxOf(maxHeight, glyph.lineHeight)
+			maxHeight = maxOf(maxHeight, glyph.lineHeight.toFloat())
 			char.x = x
 			x += glyph.advanceX
 			if (i < chars.lastIndex) {
@@ -402,10 +400,10 @@ class TfWord : BasicLayoutElementImpl(), TfPart {
 		for (i in 0..chars.lastIndex) {
 			val char = chars[i]
 			val glyph = char.glyph ?: continue
-			char.y = maxHeight - glyph.lineHeight
+			char.y = maxHeight - glyph.lineHeight.toFloat()
 		}
-		out.width = x.toFloat()
-		out.height = maxHeight.toFloat()
+		out.width = x
+		out.height = maxHeight
 	}
 
 	override fun validateSelection(selection: List<SelectionRange>) {
@@ -429,20 +427,20 @@ class TfWord : BasicLayoutElementImpl(), TfPart {
 	}
 
 	override fun getSelectionChar(x: Float, y: Float): Int {
-		if (x >= width || y >= bottom) return rangeEnd
-		if (x <= 0f || y <= 0f) return rangeStart
+		if (y <= 0f) return rangeStart
+		if (y >= height) return rangeEnd
+		if (x <= 0f) return rangeStart
+		if (x >= width) return rangeEnd
 		return rangeStart + chars.sortedInsertionIndex(x, { o1: Float, char: TfChar ->
 			o1.compareTo(char.x + char.width * 0.5f)
 		}, matchForwards = true)
 	}
 
-	override fun getRectAt(index: Int, out: Rectangle) {
+	override fun getBoundsAt(index: Int, out: Rectangle) {
 		val char = chars[index - rangeStart]
-		val glyph = char.glyph
-		if (glyph == null) {
-			out.clear()
-			return
-		}
+		val glyph = char.glyph ?: return out.clear()
+		out.x = char.x
+		out.y = 0f
 		out.width = glyph.advanceX.toFloat()
 		out.height = glyph.lineHeight.toFloat()
 	}
@@ -474,12 +472,12 @@ class TfChar(
 			return style.font?.getGlyphSafe(char)
 		}
 
-	var x: Int = 0
-	var y: Int = 0
-	val width: Int
-		get() = glyph?.width ?: 0
-	val height: Int
-		get() = glyph?.height ?: 0
+	var x: Float = 0f
+	var y: Float = 0f
+	val width: Float
+		get() = glyph?.width?.toFloat() ?: 0f
+	val height: Float
+		get() = glyph?.height?.toFloat() ?: 0f
 
 	private var u = 0f
 	private var v = 0f

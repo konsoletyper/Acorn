@@ -64,6 +64,9 @@ open class FocusManagerImpl : FocusManager {
 			if (event.shiftKey) focusPrevious()
 			else focusNext()
 			highlightFocused()
+		} else if (!event.defaultPrevented() && event.keyCode == Ascii.ESCAPE) {
+			event.preventDefault()
+			clearFocused()
 		}
 	}
 
