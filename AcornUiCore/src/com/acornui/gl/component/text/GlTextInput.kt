@@ -78,7 +78,7 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 		}
 
 	private fun refreshText() {
-		val v = if (multiline) _text else _text.replace("\n", "")
+		val v = if (flowStyle.multiline) _text else _text.replace("\n", "")
 		tF.text = if (_password) v.toPassword() else v
 	}
 
@@ -100,12 +100,6 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 			_password = value
 			refreshText()
 		}
-
-	// TODO: text input multiline
-	/**
-	 * If true, this text input can have text on multiple lines.
-	 */
-	var multiline = false
 
 	private val selectionManager = inject(SelectionManager)
 
@@ -144,7 +138,7 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 				delete()
 				input.dispatch()
 			} else if (it.keyCode == Ascii.ENTER || it.keyCode == Ascii.RETURN) {
-				if (multiline) {
+				if (flowStyle.multiline) {
 					replaceSelection("\n")
 					input.dispatch()
 				} else {
@@ -222,26 +216,26 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 	private val cursorRect = Rectangle()
 
 	private fun updateTextCursor() {
-		val sel = firstSelection
-		if (sel != null) {
-			val start = clamp(sel.startIndex, 0, tF.contents.rangeEnd)
-			val end = clamp(sel.endIndex, 0, tF.contents.rangeEnd)
-			if (start == end) {
-				textCursor.visible = true
-				if (start < tF.contents.rangeEnd) {
-					tF.contents.getBoundsAt(start, cursorRect)
-					textCursor.x = cursorRect.x + tF.x
-					textCursor.y = cursorRect.y + tF.y
-					textCursor.scaleY = cursorRect.height / textCursor.height
-				} else {
-
-				}
-			} else {
-				textCursor.visible = false
-			}
-		} else {
-			textCursor.visible = false
-		}
+//		val sel = firstSelection
+//		if (sel != null) {
+//			val start = clamp(sel.startIndex, 0, tF.contents.rangeEnd)
+//			val end = clamp(sel.endIndex, 0, tF.contents.rangeEnd)
+//			if (start == end) {
+//				textCursor.visible = true
+//				if (start < tF.contents.rangeEnd) {
+//					tF.contents.getBoundsAt(start, cursorRect)
+//					textCursor.x = cursorRect.x + tF.x
+//					textCursor.y = cursorRect.y + tF.y
+//					textCursor.scaleY = cursorRect.height / textCursor.height
+//				} else {
+//
+//				}
+//			} else {
+//				textCursor.visible = false
+//			}
+//		} else {
+//			textCursor.visible = false
+//		}
 	}
 
 	override fun dispose() {
@@ -254,7 +248,6 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 open class GlTextArea(owner: Owned) : GlTextInput(owner), TextArea {
 
 	init {
-		multiline = true
 		styleTags.add(TextArea)
 	}
 }

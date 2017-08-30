@@ -31,7 +31,6 @@ import org.lwjgl.glfw.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL20
-import org.lwjgl.opengl.GLUtil
 import org.lwjgl.system.MemoryUtil
 
 /**
@@ -41,7 +40,7 @@ class GlfwWindowImpl(
 		windowConfig: WindowConfig,
 		private val glConfig: GlConfig,
 		private val gl: Gl20,
-		private val debug: Boolean
+		debug: Boolean
 ) : Window {
 
 	override val isActiveChanged: Signal1<Boolean> = Signal1()
@@ -186,18 +185,11 @@ class GlfwWindowImpl(
 		sizeChanged.dispatch(_width, _height, userInteraction)
 	}
 
-	/**
-	 * If true, every tick will do a full render. If false, only render requests will cause a render.
-	 */
-	private var _continuousRendering: Boolean = false
+	override var continuousRendering: Boolean = false
 	private var _renderRequested: Boolean = true
 
-	override fun continuousRendering(value: Boolean) {
-		_continuousRendering = value
-	}
-
 	override fun shouldRender(clearRenderRequest: Boolean): Boolean {
-		val shouldRender = _continuousRendering || _renderRequested
+		val shouldRender = continuousRendering || _renderRequested
 		if (clearRenderRequest && _renderRequested) _renderRequested = false
 		return shouldRender
 	}

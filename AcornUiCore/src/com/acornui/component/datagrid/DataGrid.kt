@@ -1023,7 +1023,7 @@ class DataGrid<E>(
 				val newHeaderCell  = column.createHeaderCell(headerCells)
 				newHeaderCell.interactivityMode = column.headerCellInteractivityMode
 				newHeaderCell.styleTags.add(DataGrid.HEADER_CELL)
-				headerCells.addElement(minOf(columnIndex, headerCells.numElements), newHeaderCell)
+				headerCells.addElement(minOf(columnIndex, headerCells.elements.size), newHeaderCell)
 				columnCache.headerCell = newHeaderCell
 			}
 			val headerCell = columnCache.headerCell!!
@@ -1104,7 +1104,7 @@ class DataGrid<E>(
 		}
 
 		// Hide header cell backgrounds and resize handles that are no longer shown.
-		for (i in cellBackgroundIndex..headerCellBackgrounds.numElements - 1) {
+		for (i in cellBackgroundIndex..headerCellBackgrounds.elements.size - 1) {
 			headerCellBackgrounds.getElementAt(i)!!.visible = false
 			columnResizeHandles.getElementAt(i)!!.visible = false
 		}
@@ -1544,7 +1544,7 @@ class DataGrid<E>(
 	private fun updateVerticalDividers(width: Float, height: Float) {
 		var shownColumns = 0
 		iterateVisibleColumnsInternal { columnIndex, column, columnX, columnWidth ->
-			if (columnDividersHeader.numElements <= shownColumns) {
+			if (columnDividersHeader.elements.size <= shownColumns) {
 				columnDividersHeader.addElement(style.verticalDivider(this))
 				columnDividersContents.addElement(style.verticalDivider(this))
 			}
@@ -1560,7 +1560,7 @@ class DataGrid<E>(
 			true
 		}
 		// Hide extra dividers.
-		for (i in shownColumns..columnDividersHeader.numElements - 1) {
+		for (i in shownColumns..columnDividersHeader.elements.size - 1) {
 			columnDividersHeader.getElementAt(i)!!.visible = false
 			columnDividersContents.getElementAt(i)!!.visible = false
 		}

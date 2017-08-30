@@ -16,7 +16,6 @@
 
 package com.acornui.component.layout.algorithm
 
-import com.acornui.component.layout.BasicLayoutElement
 import com.acornui.component.layout.LayoutData
 import com.acornui.component.layout.LayoutElement
 import com.acornui.component.layout.SizeConstraints
@@ -63,7 +62,7 @@ interface LayoutDataProvider<out T : LayoutData> {
 	/**
 	 * Constructs a new layout data object and applies it to the receiver layout element.
 	 */
-	infix fun <R : BasicLayoutElement> R.layout(init: T.() -> Unit): R {
+	infix fun <R : LayoutElement> R.layout(init: T.() -> Unit): R {
 		val layoutData = createLayoutData()
 		layoutData.init()
 		this.layoutData = layoutData
@@ -77,32 +76,17 @@ fun <T> bindable(changed: Signal0, initialValue: T): ReadWriteProperty<Any?, T> 
 	}
 }
 
-
-interface BasicLayoutAlgorithm<in S, out T : LayoutData> : LayoutDataProvider<T> {
-
-	/**
-	 * Sizes and positions the given layout elements.
-	 *
-	 * @param explicitWidth
-	 * @param explicitHeight
-	 * @param elements The list of objects to lay out.
-	 * @param out This will be set to bounds that the layout elements take up.
-	 */
-	fun basicLayout(explicitWidth: Float?, explicitHeight: Float?, elements: List<BasicLayoutElement>, props: S, out: Bounds)
-
-}
-
 /**
- * A sequenced layout is a basic layout where the the elements are laid out in a serial manner.
+ * A sequenced layout is a layout where the the elements are laid out in a serial manner.
+ * This means that for elements `a, b, c`, b will always be spatially positioned between a and c.
  */
-interface SequencedLayout<in S, out T : LayoutData> : BasicLayoutAlgorithm<S, T> {
+interface SequencedLayout<in S, out T : LayoutData> : LayoutAlgorithm<S, T> {
 
 	/**
-	 * Given the x, y position, returns the index of the nearest element.
-	 * This assumes the elements were laid out via [basicLayout].
-	 * If there are zero elements, this returns -1, otherwise,
-	 * the return value will be an index in the range of 0 to elements.lastIndex
+	 * Returns the index of the element at the given position.
+	 * This assumes the elements were laid out via [layout].
+	 * the return value will be an index in the range of 0 to elements.size
 	 */
-	fun getNearestElementIndex(x: Float, y: Float, elements: List<BasicLayoutElement>, props: S): Int
+	fun getElementInsertionIndex(x: Float, y: Float, elements: List<LayoutElement>, props: S): Int
 
 }

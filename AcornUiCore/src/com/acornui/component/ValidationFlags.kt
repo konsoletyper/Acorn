@@ -65,8 +65,3 @@ fun Validatable.invalidateProperties() {
 	invalidate(ValidationFlags.PROPERTIES)
 	Unit
 }
-
-fun Validatable.invalidateStyles() {
-	invalidate(ValidationFlags.STYLES)
-	Unit
-}

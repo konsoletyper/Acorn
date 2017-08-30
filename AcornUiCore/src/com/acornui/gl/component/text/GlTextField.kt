@@ -16,30 +16,25 @@
 
 package com.acornui.gl.component.text
 
-import com.acornui.collection.indexOfFirst2
-import com.acornui.collection.sortedInsertionIndex
-import com.acornui.component.ContainerImpl
-import com.acornui.component.ValidationFlags
-import com.acornui.component.invalidateStyles
-import com.acornui.component.layout.BasicLayoutElement
-import com.acornui.component.layout.BasicLayoutElementImpl
-import com.acornui.component.layout.LayoutData
-import com.acornui.component.layout.algorithm.FlowLayout
-import com.acornui.component.layout.algorithm.FlowLayoutStyle
-import com.acornui.component.layout.algorithm.LayoutDataProvider
-import com.acornui.component.layout.algorithm.SequencedLayout
+import com.acornui._assert
+import com.acornui.collection.*
+import com.acornui.component.*
+import com.acornui.component.layout.LayoutElement
+import com.acornui.component.layout.algorithm.*
 import com.acornui.component.style.*
 import com.acornui.component.text.CharStyle
 import com.acornui.component.text.TextField
-import com.acornui.core.MutableParent
-import com.acornui.core.Parent
+import com.acornui.core.TreeWalk
+import com.acornui.core.childWalkLevelOrder
 import com.acornui.core.cursor.RollOverCursor
 import com.acornui.core.cursor.StandardCursors
 import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
+import com.acornui.core.floor
 import com.acornui.core.graphics.BlendMode
 import com.acornui.core.input.interaction.DragInteraction
 import com.acornui.core.input.interaction.dragAttachment
+import com.acornui.core.round
 import com.acornui.core.selection.Selectable
 import com.acornui.core.selection.SelectionManager
 import com.acornui.core.selection.SelectionRange
@@ -47,11 +42,9 @@ import com.acornui.gl.core.GlState
 import com.acornui.gl.core.pushQuadIndices
 import com.acornui.graphics.Color
 import com.acornui.graphics.ColorRo
-import com.acornui.math.Bounds
-import com.acornui.math.Matrix4Ro
-import com.acornui.math.Rectangle
-import com.acornui.math.Vector3
-
+import com.acornui.math.*
+import com.acornui.observe.bind
+import com.acornui.string.isBreaking
 
 /**
  * A TextField implementation for the OpenGL back-ends.
@@ -65,8 +58,6 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 
 	private val selectionManager = inject(SelectionManager)
 
-	private val glState = inject(GlState)
-
 	protected var _selectionCursor: RollOverCursor? = null
 
 	private val drag = dragAttachment(0f)
@@ -76,14 +67,16 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 	 */
 	var selectionTarget: Selectable = this
 
-	protected var _contents: TextFieldNode = TfContainer(FlowLayout(), charStyle, flowStyle, this)
-	var contents: TextFieldNode
+	protected var _contents: UiComponent = UiComponentImpl(this)
+	var contents: UiComponent
 		get() = _contents
 		set(value) {
+			_contents.dispose()
 			_contents = value
-			invalidate(ValidationFlags.STYLES or ValidationFlags.LAYOUT)
+			addChild(value)
 		}
 
+	private val _leaves = ArrayList<TextFieldLeaf>()
 
 	init {
 		styleTags.add(TextField)
@@ -95,12 +88,19 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 		}
 
 		validation.addNode(TextValidationFlags.SELECTION, this::updateSelection)
-		validation.addNode(TextValidationFlags.VERTICES, TextValidationFlags.SELECTION or ValidationFlags.LAYOUT or ValidationFlags.CONCATENATED_TRANSFORM or ValidationFlags.STYLES, 0, this::updateVertices)
-		validation.addNode(TextValidationFlags.COLOR, ValidationFlags.CONCATENATED_COLOR_TRANSFORM or ValidationFlags.STYLES, 0, this::updateTextColor)
 
 		selectionManager.selectionChanged.add(this::selectionChangedHandler)
 
 		drag.drag.add(this::dragHandler)
+	}
+
+	override fun updateHierarchyAscending() {
+		_leaves.clear()
+		childWalkLevelOrder<UiComponent> {
+			if (it is TextFieldLeaf)
+				_leaves.add(it)
+			TreeWalk.CONTINUE
+		}
 	}
 
 	private fun selectionChangedHandler(old: List<SelectionRange>, new: List<SelectionRange>) {
@@ -108,15 +108,15 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 	}
 
 	private fun dragHandler(event: DragInteraction) {
-		val p1 = event.startPositionLocal
-		val p2 = event.positionLocal
-		val p1A = _contents.getSelectionChar(p1.x, p1.y)
-		val p2A = _contents.getSelectionChar(p2.x, p2.y)
-		if (p2A > p1A) {
-			selectionManager.selection = listOf(SelectionRange(selectionTarget, p1A, p2A))
-		} else {
-			selectionManager.selection = listOf(SelectionRange(selectionTarget, p2A, p1A))
-		}
+//		val p1 = event.startPositionLocal
+//		val p2 = event.positionLocal
+//		val p1A = _contents.getSelectionIndex(p1.x, p1.y)
+//		val p2A = _contents.getSelectionIndex(p2.x, p2.y)
+//		if (p2A > p1A) {
+//			selectionManager.selection = listOf(SelectionRange(selectionTarget, p1A, p2A))
+//		} else {
+//			selectionManager.selection = listOf(SelectionRange(selectionTarget, p2A, p1A))
+//		}
 	}
 
 	protected open fun refreshCursor() {
@@ -130,12 +130,20 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 	}
 
 	override var text: String?
-		get() = contents.text
+		get() {
+			validate(ValidationFlags.HIERARCHY_ASCENDING)
+			val builder = StringBuilder()
+			for (i in 0.._leaves.lastIndex) {
+				_leaves[i].buildText(builder)
+			}
+			return builder.toString()
+		}
 		set(value) {
-			val newRoot = TfContainer(FlowLayout(), charStyle, flowStyle, this)
-			if (value != null)
-				newRoot.add(value)
-			contents = newRoot
+			contents = textFlow {
+				+span {
+					+value
+				}
+			}
 		}
 
 	override var htmlText: String?
@@ -147,33 +155,25 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 		invalidateStyles()
 	}
 
-	override fun updateStyles() {
-		super.updateStyles()
-		_contents.validateStyles()
-	}
 
 	protected open fun updateSelection() {
-		_contents.validateSelection(selectionManager.selection.filter { it.target == selectionTarget })
-	}
-
-	protected open fun updateVertices() {
-		_contents.validateVertices(concatenatedTransform, explicitWidth ?: Float.MAX_VALUE, explicitHeight ?: Float.MAX_VALUE)
-	}
-
-	protected open fun updateTextColor() {
-		_contents.setTint(concatenatedColorTint)
+		var rangeStart = 0
+		for (i in 0.._leaves.lastIndex) {
+			val leaf = _leaves[i]
+			leaf.setSelection(rangeStart, selectionManager.selection.filter { it.target == selectionTarget })
+			rangeStart += leaf.size
+		}
 	}
 
 	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
 		_contents.setSize(explicitWidth, explicitHeight)
 		out.set(_contents.bounds)
+
+		val lineHeight = BitmapFontRegistry.getFont(charStyle)?.data?.lineHeight?.toFloat() ?: 0f
+		if (out.height < lineHeight) out.height = lineHeight
+
 		if (explicitWidth != null) out.width = explicitWidth
 		if (explicitHeight != null) out.height = explicitHeight
-	}
-
-	override fun draw() {
-		glState.camera(camera)
-		_contents.render(glState)
 	}
 
 	override fun dispose() {
@@ -188,7 +188,6 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 object TextValidationFlags {
 	const val SELECTION = 1 shl 16
 	const val VERTICES = 1 shl 17
-	const val COLOR = 1 shl 18
 }
 
 class TfCharStyle {
@@ -199,285 +198,501 @@ class TfCharStyle {
 	val backgroundColor: Color = Color()
 }
 
-interface TextFieldNode : BasicLayoutElement, Parent<TextFieldNode> {
+class TextSpanElement : Styleable, Clearable {
 
-	override var parent: TextFieldNode?
-
-	/**
-	 * The start index of this section (inclusive)
-	 */
-	val rangeStart: Int
-
-	/**
-	 * The end index of this section (exclusive)
-	 */
-	val rangeEnd: Int
-
-	fun validateStyles()
-
-	fun validateSelection(selection: List<SelectionRange>)
-
-	fun validateVertices(transform: Matrix4Ro, rightClip: Float, bottomClip: Float)
-
-	/**
-	 * Sets the color tint.
-	 */
-	fun setTint(concatenatedColorTint: ColorRo)
-
-	fun render(glState: GlState)
-
-	/**
-	 * Returns the index of the character nearest [x,y]. The character index will be separated at the half-width of
-	 * the character.
-	 */
-	fun getSelectionChar(x: Float, y: Float): Int
-
-	/**
-	 * Populates a rectangle representing the size and position of the object at the given index.
-	 * @param index The index of the object. This must be in the range of [rangeStart] <= [index] < [rangeEnd]
-	 */
-	fun getBoundsAt(index: Int, out: Rectangle)
-
-	val text: String
-
-}
-
-class TfContainer<out S, out U : LayoutData>(
-		private val layout: SequencedLayout<S, U>,
-		val charStyle: CharStyle,
-		val layoutStyle: S,
-		override val styleParent: Styleable? = null
-) : BasicLayoutElementImpl(), TextFieldNode, MutableParent<TextFieldNode>, LayoutDataProvider<U>, Styleable {
-
-	val tfCharStyle = TfCharStyle()
-
-	override val styleTags = ArrayList<StyleTag>()
-	override val styleRules = ArrayList<StyleRule<*>>()
+	private val _styleTags = ActiveList<StyleTag>()
+	override val styleTags: MutableList<StyleTag>
+		get() = _styleTags
+	private val _styleRules = ActiveList<StyleRule<*>>()
+	override val styleRules: MutableList<StyleRule<*>>
+		get() = _styleRules
 
 	override fun <T : Style> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) {
 		out.clear()
-		for (i in 0..styleRules.lastIndex) {
-			val e = styleRules[i]
-			@Suppress("UNCHECKED_CAST")
-			if (e.style.type == type)
-				out.add(e as StyleRule<T>)
+		@Suppress("UNCHECKED_CAST")
+		(styleRules as Iterable<StyleRule<T>>).filterTo(out, { it.style.type == type })
+	}
+
+	var parent: Container? = null
+
+	override val styleParent: Styleable?
+		get() = parent
+
+	override fun invalidateStyles() {
+		styleParent?.invalidateStyles()
+	}
+
+	private val _parts = ArrayList<SpanPart>()
+	val parts: List<SpanPart>
+		get() = _parts
+
+	val charStyle = CharStyle()
+
+	private val tfCharStyle = TfCharStyle()
+
+	init {
+		_styleTags.bind(this::invalidateStyles)
+		_styleRules.bind(this::invalidateStyles)
+	}
+
+	operator fun String?.unaryPlus() {
+		if (this == null) return
+		for (i in 0..length - 1) {
+			_parts.add(TfChar(this[i], tfCharStyle))
 		}
+		parent?.invalidate(ValidationFlags.HIERARCHY_ASCENDING or ValidationFlags.LAYOUT)
 	}
 
-	override fun createLayoutData(): U = layout.createLayoutData()
-
-	override var parent: TextFieldNode? = null
-
-	private val _children: MutableList<TextFieldNode> = ArrayList()
-	override val children: List<TextFieldNode>
-		get() = _children
-
-	override val rangeStart: Int
-		get() = if (_children.isEmpty()) 0 else _children.first().rangeStart
-
-	override val rangeEnd: Int
-		get() = if (_children.isEmpty()) 0 else _children.last().rangeEnd
-
-	override fun <S : TextFieldNode> addChild(index: Int, child: S): S {
-		_children.add(index, child)
-		child.parent = this
-		return child
+	operator fun Char?.unaryPlus() {
+		if (this == null) return
+		+TfChar(this, tfCharStyle)
 	}
 
-	override fun removeChild(index: Int): TextFieldNode {
-		val child = _children.removeAt(index)
-		child.parent = null
-		return child
+	operator fun SpanPart.unaryPlus() {
+		_parts.add(this)
+		parent?.invalidate(ValidationFlags.HIERARCHY_ASCENDING or ValidationFlags.LAYOUT)
 	}
 
-	override fun validateStyles() {
-		layoutIsValid = false
+	operator fun SpanPart.unaryMinus() {
+		_parts.remove(this)
+		parent?.invalidate(ValidationFlags.HIERARCHY_ASCENDING or ValidationFlags.LAYOUT)
+	}
+
+	override fun clear() {
+		_parts.clear()
+		parent?.invalidate(ValidationFlags.HIERARCHY_ASCENDING or ValidationFlags.LAYOUT)
+	}
+
+	fun validateStyles() {
 		CascadingStyleCalculator.calculate(charStyle, this)
 		tfCharStyle.font = BitmapFontRegistry.getFont(charStyle)
-
-		for (i in 0.._children.lastIndex) {
-			_children[i].validateStyles()
-		}
 	}
 
-	override fun validateSelection(selection: List<SelectionRange>) {
-		for (i in 0.._children.lastIndex) {
-			_children[i].validateSelection(selection)
-		}
-	}
-
-	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
-		layout.basicLayout(explicitWidth, explicitHeight, _children, layoutStyle, out)
-
-		val lineHeight = tfCharStyle.font?.data?.lineHeight?.toFloat() ?: 0f
-		if (out.height < lineHeight) out.height = lineHeight
-	}
-
-	override fun setTint(concatenatedColorTint: ColorRo) {
+	fun setColorTint(concatenatedColorTint: ColorRo) {
 		tfCharStyle.selectedTextColorTint.set(concatenatedColorTint).mul(charStyle.selectedColorTint)
 		tfCharStyle.selectedBackgroundColor.set(concatenatedColorTint).mul(charStyle.selectedBackgroundColor)
 		tfCharStyle.textColorTint.set(concatenatedColorTint).mul(charStyle.colorTint)
 		tfCharStyle.backgroundColor.set(concatenatedColorTint).mul(charStyle.backgroundColor)
-		for (i in 0..children.lastIndex) {
-			_children[i].setTint(concatenatedColorTint)
-		}
 	}
-
-	override fun validateVertices(transform: Matrix4Ro, rightClip: Float, bottomClip: Float) {
-		for (i in 0.._children.lastIndex) {
-			_children[i].validateVertices(transform, rightClip, bottomClip)
-		}
-	}
-
-	override fun render(glState: GlState) {
-		for (i in 0.._children.lastIndex) {
-			_children[i].render(glState)
-		}
-	}
-
-	override fun getSelectionChar(x: Float, y: Float): Int {
-		val i = layout.getNearestElementIndex(x, y, _children, layoutStyle)
-		if (i < 0) return rangeStart
-		if (i >= _children.size) return rangeEnd
-		val child = _children[i]
-		return child.getSelectionChar(x - child.x, y - child.y)
-	}
-
-	override fun getBoundsAt(index: Int, out: Rectangle) {
-		val childIndex = _children.sortedInsertionIndex(index, {
-			index, element ->
-			index.compareTo(element.rangeEnd)
-		})
-		_children[childIndex].getBoundsAt(index, out)
-		out.x += x
-		out.y += y
-	}
-
-	override val text: String
-		get() {
-			var str = ""
-			iterateChildren {
-				str += it.text
-				true
-			}
-			return str
-		}
 }
 
+interface SpanPart {
+
+	val char: Char?
+
+	var x: Float
+	var y: Float
+	val width: Float
+	val height: Float
+	val lineHeight: Float
+	val advanceX: Float
+
+	fun getKerning(next: SpanPart): Float
+
+	/**
+	 * If true, this element will cause the line to break after this element.
+	 */
+	val clearsLine: Boolean
+
+	/**
+	 * If true, the tabstop should be cleared after placing this element.
+	 */
+	val clearsTabstop: Boolean
+
+	/**
+	 * If true, this part may be used as a word break. (The part after this part may be placed on the next line).
+	 */
+	val isBreaking: Boolean
+	val overhangs: Boolean
+
+	fun setSelected(value: Boolean)
+	fun validateVertices(transform: Matrix4Ro, rightClip: Float, bottomClip: Float)
+	fun render(glState: GlState)
+}
+
+private fun span(init: ComponentInit<TextSpanElement>): TextSpanElement {
+	val s = TextSpanElement()
+	s.init()
+	return s
+}
+
+interface TextFieldLeaf {
+
+	/**
+	 * The number of selectable objects this leaf represents.
+	 */
+	val size: Int
+
+	/**
+	 * Appends this leaf's text to the builder.
+	 */
+	fun buildText(stringBuilder: StringBuilder)
+
+	/**
+	 * Sets the text selection.
+	 * @param rangeStart The starting index of this leaf.
+	 * @param selection A list of ranges that are selected.
+	 */
+	fun setSelection(rangeStart: Int, selection: List<SelectionRange>)
+
+	/**
+	 * Returns the relative index of the object nearest [x,y]. The object index will be separated at the half-width of
+	 * the character.
+	 */
+	fun getSelectionIndex(x: Float, y: Float): Int
+
+	/**
+	 * Populates a rectangle representing the size and position of the object at the given index.
+	 * @param index The index of the object relative to this leaf. This must be in the range of [index] < [size]
+	 */
+	fun getBoundsAt(index: Int, out: Rectangle)
+}
 
 /**
- * An unbreakable segment of characters in a [GlTextField].
+ * A TextFlow component is a container of text, to be used inside of a TextField.
  */
-class TfWord : BasicLayoutElementImpl(), TextFieldNode {
+class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
 
-	val chars: MutableList<TfChar> = ArrayList()
-	override val children = emptyList<TextFieldNode>()
-	override var parent: TextFieldNode? = null
+	val flowStyle = bind(FlowLayoutStyle())
 
-	override val rangeStart: Int
-		get() = chars.first().index
+	init {
+		validation.addNode(TextValidationFlags.VERTICES, ValidationFlags.LAYOUT or ValidationFlags.CONCATENATED_TRANSFORM or ValidationFlags.STYLES, 0, this::updateVertices)
+	}
 
-	override val rangeEnd: Int
-		get() = chars.last().index + 1
+	override val size: Int
+		get() {
+			var c = 0
+			for (i in 0.._elements.lastIndex) {
+				c += _elements[i].parts.size
+			}
+			return c
+		}
 
-	override fun validateStyles() {
-		layoutIsValid = false
+	private val _elements = ArrayList<TextSpanElement>()
+	val elements: List<TextSpanElement>
+		get() = _elements
+
+	private val _lines = ArrayList<LineInfo>()
+
+	/**
+	 * The list of current lines. This is valid after a layout.
+	 */
+	val lines: List<LineInfoRo>
+		get() = _lines
+
+	operator fun TextSpanElement.unaryPlus(): TextSpanElement {
+		this@TextFlow.addElement(_elements.size, this)
+		return this
+	}
+
+	operator fun TextSpanElement.unaryMinus(): TextSpanElement {
+		this@TextFlow.removeElement(this)
+		return this
+	}
+
+	fun addElement(child: TextSpanElement): TextSpanElement {
+		return addElement(_elements.size, child)
+	}
+
+	fun addElement(index: Int, element: TextSpanElement): TextSpanElement {
+		_assert(element.styleParent == null)
+		_elements.add(index, element)
+		element.parent = this
+		invalidate(bubblingFlags)
+		return element
+	}
+
+	fun removeElement(element: TextSpanElement?): Boolean {
+		if (element == null) return false
+		val index = _elements.indexOf(element)
+		if (index == -1) return false
+		removeElement(index)
+		return true
+	}
+
+	fun removeElement(index: Int): TextSpanElement {
+		val element = _elements.removeAt(index)
+		element.parent = null
+		invalidate(bubblingFlags)
+		return element
+	}
+
+	fun clearElements() {
+		val c = _elements
+		while (c.isNotEmpty()) {
+			removeElement(_elements.lastIndex)
+		}
+	}
+
+	override fun updateStyles() {
+		super.updateStyles()
+		for (i in 0.._elements.lastIndex) {
+			_elements[i].validateStyles()
+		}
 	}
 
 	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
 		var x = 0f
 		var maxHeight = 0f
-		for (i in 0..chars.lastIndex) {
-			val char = chars[i]
-			val glyph = char.glyph ?: continue
-			maxHeight = maxOf(maxHeight, glyph.lineHeight.toFloat())
-			char.x = x
-			x += glyph.advanceX
-			if (i < chars.lastIndex) {
-				x += glyph.data.getKerning(chars[i + 1].char)
+		for (i in 0.._elements.lastIndex) {
+			val parts = _elements[i].parts
+			for (j in 0..parts.lastIndex) {
+				val part = parts[j]
+				maxHeight = maxOf(maxHeight, part.lineHeight)
+				part.x = x
+				x += part.advanceX
+				if (j < parts.lastIndex) {
+					x += part.getKerning(parts[j + 1])
+				}
 			}
 		}
-		for (i in 0..chars.lastIndex) {
-			val char = chars[i]
-			val glyph = char.glyph ?: continue
-			char.y = maxHeight - glyph.lineHeight.toFloat()
+		iterateParts {
+			it.y = maxHeight - it.lineHeight
 		}
 		out.width = x
 		out.height = maxHeight
 	}
 
-	override fun validateSelection(selection: List<SelectionRange>) {
-		for (i in 0..chars.lastIndex) {
-			chars[i].validateSelection(selection)
+
+	//---------------------
+
+//	override fun layout(explicitWidth: Float?, explicitHeight: Float?, elements: List<LayoutElement>, out: Bounds) {
+//		val padding = flowStyle.padding
+//		val childAvailableWidth: Float? = padding.reduceWidth(explicitWidth)
+//		val childAvailableHeight: Float? = padding.reduceHeight(explicitHeight)
+//
+//		var measuredW: Float = 0f
+//		_lines.freeTo(linesPool)
+//		var line = linesPool.obtain()
+//		var x = 0f
+//		var y = 0f
+//		var previousElement: LayoutElement? = null
+//
+//		for (i in 0..elements.lastIndex) {
+//			val element = elements[i]
+//			val layoutData = element.layoutData as FlowLayoutData?
+//
+////			element.setSize(layoutData?.getPreferredWidth(childAvailableWidth), layoutData?.getPreferredHeight(childAvailableHeight))
+//
+//			val w = element.width
+//			val h = element.height
+//			val doesOverhang = layoutData?.overhangs ?: false
+//
+//			if (flowStyle.multiline && i > line.startIndex &&
+//					(previousElement!!.clearsLine() || element.startsNewLine() ||
+//							(childAvailableWidth != null && !doesOverhang && x + w > childAvailableWidth))) {
+//				line.endIndex = i
+//				positionLine(line, childAvailableWidth, elements)
+//				_lines.add(line)
+//				x = 0f
+//				y += line.height + flowStyle.verticalGap
+//				// New line
+//				line = linesPool.obtain()
+//				line.startIndex = i
+//				line.y = y + padding.top
+//			}
+//			x += w
+//
+//			if (layoutData?.clearsTabstop ?: false) {
+//				val tabIndex = MathUtils.floor(x / flowStyle.tabSize) + 1
+//				x = tabIndex * flowStyle.tabSize
+//			}
+//
+//			if (!doesOverhang) {
+//				line.width = x
+//				if (x > measuredW) measuredW = x
+//			}
+//			x += flowStyle.horizontalGap
+//			if (h > line.height) line.height = h
+//			val baseline = layoutData?.baseline ?: h
+//			if (baseline > line.baseline) line.baseline = baseline
+//			previousElement = element
+//		}
+//		line.endIndex = elements.size
+//		positionLine(line, childAvailableWidth, elements)
+//		_lines.add(line)
+//		measuredW += padding.left + padding.right
+//		if (measuredW > out.width) out.width = measuredW // Use the measured width if it is larger than the explicit.
+//		val measuredH = y + line.height + padding.top + padding.bottom
+//		if (measuredH > out.height) out.height = measuredH
+//	}
+//
+//	/**
+//	 * Adjusts the elements within a line to apply the horizontal and vertical alignment.
+//	 */
+//	private fun positionLine(line: LineInfoRo, availableWidth: Float?, elements: List<LayoutElement>) {
+//		if (line.startIndex > line.endIndex) return
+//
+//		val hGap: Float
+//		val xOffset: Float
+//		if (availableWidth != null) {
+//			val remainingSpace = availableWidth - line.width
+//			xOffset = when (flowStyle.horizontalAlign) {
+//				FlowHAlign.LEFT -> 0f
+//				FlowHAlign.CENTER -> (remainingSpace * 0.5f).round()
+//				FlowHAlign.RIGHT -> remainingSpace
+//				FlowHAlign.JUSTIFY -> 0f
+//			}
+//
+//			if (flowStyle.horizontalAlign == FlowHAlign.JUSTIFY &&
+//					line.endIndex != line.startIndex &&
+//					line.endIndex != elements.size &&
+//					!elements[line.endIndex - 1].clearsLine() &&
+//					!elements[line.endIndex].startsNewLine()) {
+//				// Apply JUSTIFY spacing if this is not the last line, and there are more than one elements.
+//				hGap = (flowStyle.horizontalGap + remainingSpace / (line.endIndex - line.startIndex - 1)).floor()
+//			} else {
+//				hGap = flowStyle.horizontalGap
+//			}
+//		} else {
+//			xOffset = 0f
+//			hGap = flowStyle.horizontalGap
+//		}
+//
+//		var x = flowStyle.padding.left
+//		for (j in line.startIndex..line.endIndex - 1) {
+//			val element = elements[j]
+//
+//			val layoutData = element.layoutData as FlowLayoutData?
+//			val yOffset = when (layoutData?.verticalAlign ?: flowStyle.verticalAlign) {
+//				FlowVAlign.TOP -> 0f
+//				FlowVAlign.MIDDLE -> MathUtils.round((line.height - element.height) * 0.5f).toFloat()
+//				FlowVAlign.BOTTOM -> (line.height - element.height)
+//				FlowVAlign.BASELINE -> (line.baseline - (layoutData?.baseline ?: element.height))
+//			}
+//
+//			element.moveTo(x + xOffset, line.y + yOffset)
+//			x += element.width + hGap
+//
+//			if (layoutData?.clearsTabstop ?: false) {
+//				val tabIndex = MathUtils.floor(x / flowStyle.tabSize) + 1
+//				x = tabIndex * flowStyle.tabSize
+//			}
+//		}
+//	}
+//
+//	private fun LayoutElement.clearsLine(): Boolean {
+//		return (layoutData as FlowLayoutData?)?.clearsLine ?: false
+//	}
+//
+//	private fun LayoutElement.startsNewLine(): Boolean {
+//		return (layoutData as FlowLayoutData?)?.startsNewLine ?: false
+//	}
+
+	//---------------------
+
+
+	override fun setSelection(rangeStart: Int, selection: List<SelectionRange>) {
+		var i = rangeStart
+		iterateParts {
+			val selected = selection.indexOfFirst2 { it.contains(i++) } != -1
+			it.setSelected(selected)
 		}
 	}
 
-	override fun validateVertices(transform: Matrix4Ro, rightClip: Float, bottomClip: Float) {
-		for (i in 0..chars.lastIndex) {
-			chars[i].validateVertices(transform, x, y, rightClip, bottomClip)
+	private fun updateVertices() {
+		val rightClip = explicitWidth ?: Float.MAX_VALUE
+		val bottomClip = explicitHeight ?: Float.MAX_VALUE
+		iterateParts {
+			it.validateVertices(concatenatedTransform, rightClip, bottomClip)
 		}
 	}
 
-	override fun setTint(concatenatedColorTint: ColorRo) {}
+	private val glState = inject(GlState)
 
-	override fun render(glState: GlState) {
-		for (i in 0..chars.lastIndex) {
-			chars[i].render(glState)
+	override fun draw() {
+		glState.camera(camera)
+		iterateParts {
+			it.render(glState)
 		}
 	}
 
-	override fun getSelectionChar(x: Float, y: Float): Int {
-		if (y <= 0f) return rangeStart
-		if (y >= height) return rangeEnd
-		if (x <= 0f) return rangeStart
-		if (x >= width) return rangeEnd
-		return rangeStart + chars.sortedInsertionIndex(x, { o1: Float, char: TfChar ->
-			o1.compareTo(char.x + char.width * 0.5f)
-		}, matchForwards = true)
+	private inline fun iterateParts(inner: (it: SpanPart) -> Unit) {
+		for (i in 0.._elements.lastIndex) {
+			val parts = _elements[i].parts
+			for (j in 0..parts.lastIndex) {
+				val char = parts[j]
+				inner(char)
+			}
+		}
+	}
+
+	override fun getSelectionIndex(x: Float, y: Float): Int {
+//		if (y <= 0f) return rangeStart
+//		if (y >= height) return rangeEnd
+//		if (x <= 0f) return rangeStart
+//		if (x >= width) return rangeEnd
+//		return rangeStart + chars.sortedInsertionIndex(x, { o1: Float, char: TfChar ->
+//			o1.compareTo(char.x + char.width * 0.5f)
+//		}, matchForwards = true)
+		return 0
 	}
 
 	override fun getBoundsAt(index: Int, out: Rectangle) {
-		val char = chars[index - rangeStart]
-		val glyph = char.glyph ?: return out.clear()
-		out.x = char.x
-		out.y = 0f
-		out.width = glyph.advanceX.toFloat()
-		out.height = glyph.lineHeight.toFloat()
+//		val char = chars[index - rangeStart]
+//		val glyph = char.glyph ?: return out.clear()
+//		out.x = char.x
+//		out.y = 0f
+//		out.width = glyph.advanceX.toFloat()
+//		out.height = glyph.lineHeight.toFloat()
 	}
 
-	fun isEmpty(): Boolean = chars.isEmpty()
-	fun isNotEmpty(): Boolean = chars.isNotEmpty()
-
-	override val text: String
-		get() {
-			var str = ""
-			for (i in 0..chars.lastIndex) {
-				str += chars[i].char
-			}
-			return str
+	override fun updateConcatenatedColorTransform() {
+		super.updateConcatenatedColorTransform()
+		for (i in 0.._elements.lastIndex) {
+			_elements[i].setColorTint(_concatenatedColorTint)
 		}
+	}
+
+	override fun buildText(stringBuilder: StringBuilder) {
+		iterateParts {
+			val char = it.char
+			if (char != null)
+				stringBuilder.append(char)
+		}
+	}
+
+	companion object {
+		private val linesPool = ClearableObjectPool { LineInfo() }
+	}
+}
+
+private fun Owned.textFlow(init: ComponentInit<TextFlow>): TextFlow {
+	val f = TextFlow(this)
+	f.init()
+	return f
 }
 
 /**
- * Represents a single character, typically within a [TfWord].
+ * Represents a single character, typically within a [TextSpanElement].
  */
 class TfChar(
-		val char: Char,
-		var index: Int,
-		val style: TfCharStyle
-) {
+		override val char: Char,
+		private val style: TfCharStyle
+) : SpanPart {
 
 	val glyph: Glyph?
 		get() {
 			return style.font?.getGlyphSafe(char)
 		}
 
-	var x: Float = 0f
-	var y: Float = 0f
-	val width: Float
+	override var x: Float = 0f
+	override var y: Float = 0f
+	override val width: Float
 		get() = glyph?.width?.toFloat() ?: 0f
-	val height: Float
+	override val height: Float
 		get() = glyph?.height?.toFloat() ?: 0f
+	override val lineHeight: Float
+		get() = glyph?.lineHeight?.toFloat() ?: 0f
+
+	override val advanceX: Float
+		get() = (glyph?.advanceX?.toFloat() ?: 0f)
+
+	override fun getKerning(next: SpanPart): Float {
+		val d = glyph?.data ?: return 0f
+		val c = next.char ?: return 0f
+		return d.getKerning(c).toFloat()
+	}
 
 	private var u = 0f
 	private var v = 0f
@@ -497,8 +712,17 @@ class TfChar(
 	private var fontColor = Color.BLACK
 	private var backgroundColor = Color.CLEAR
 
-	fun validateSelection(selection: List<SelectionRange>) {
-		if (selection.indexOfFirst2 { it.contains(index) } != -1) {
+	override val clearsLine: Boolean
+		get() = char == '\n'
+	override val clearsTabstop: Boolean
+		get() = char == '\t'
+	override val isBreaking: Boolean
+		get() = char.isBreaking()
+	override val overhangs: Boolean
+		get() = char == ' '
+
+	override fun setSelected(value: Boolean) {
+		if (value) {
 			fontColor = style.selectedTextColorTint
 			backgroundColor = style.selectedBackgroundColor
 		} else {
@@ -507,20 +731,22 @@ class TfChar(
 		}
 	}
 
-	fun validateVertices(transform: Matrix4Ro, wordX: Float, wordY: Float, rightClip: Float, bottomClip: Float) {
+	override fun validateVertices(transform: Matrix4Ro, rightClip: Float, bottomClip: Float) {
+		val x = x
+		val y = y
 		val glyph = glyph ?: return
 
-		val bgL = maxOf(0f, x + wordX)
-		val bgT = maxOf(0f, y + wordY)
-		val bgR = minOf(rightClip, x + wordX + glyph.advanceX)
-		val bgB = minOf(bottomClip, y + wordY + glyph.lineHeight)
+		val bgL = maxOf(0f, x)
+		val bgT = maxOf(0f, y)
+		val bgR = minOf(rightClip, x + glyph.advanceX)
+		val bgB = minOf(bottomClip, y + glyph.lineHeight)
 
 		visible = bgL < bgR && bgT < bgB
 		if (!visible)
 			return
 
-		var charL = x + glyph.offsetX + wordX
-		var charT = y + glyph.offsetY + wordY
+		var charL = glyph.offsetX + x
+		var charT = glyph.offsetY + y
 		var charR = charL + glyph.width
 		var charB = charT + glyph.height
 
@@ -574,7 +800,7 @@ class TfChar(
 		transform.rot(normal.set(Vector3.NEG_Z)).nor()
 	}
 
-	fun render(glState: GlState) {
+	override fun render(glState: GlState) {
 		if (!visible) return
 		val glyph = glyph ?: return
 		val batch = glState.batch

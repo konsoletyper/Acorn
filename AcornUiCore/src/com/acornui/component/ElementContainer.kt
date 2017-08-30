@@ -45,6 +45,7 @@ interface ElementParent {
 	/**
 	 * Returns the child at the given index, or null if the index is out of bounds.
 	 */
+	@Deprecated("Use elements.getOrNull(index)", ReplaceWith("elements.getOrNull(index)"))
 	fun getElementAt(index: Int): UiComponent?
 
 	fun <S : UiComponent> addElement(child: S): S
@@ -132,6 +133,7 @@ open class ElementContainerImpl(
 	override val elements: List<UiComponent>
 		get() = _elements
 
+	@Deprecated("Use elements.size", ReplaceWith("elements.size"))
 	override val numElements: Int
 		get() = _elements.size
 
@@ -170,13 +172,14 @@ open class ElementContainerImpl(
 		cyclicListPool.free(openList)
 	}
 
+	@Deprecated("Use elements.getOrNull(index)", ReplaceWith("elements.getOrNull(index)"))
 	override fun getElementAt(index: Int): UiComponent? {
-		if (index < 0 || index >= numElements) return null
+		if (index < 0 || index >= elements.size) return null
 		return elements[index]
 	}
 
 	override fun <S : UiComponent> addElement(child: S): S {
-		return addElement(numElements, child)
+		return addElement(elements.size, child)
 	}
 
 	override fun <S : UiComponent> addElement(index: Int, element: S): S {
@@ -210,7 +213,7 @@ open class ElementContainerImpl(
 	 * override fun onElementRemoved(index: Int, child: UiComponent) { otherContainer.removeElement(child) }
 	 */
 	protected open fun onElementAdded(index: Int, element: UiComponent) {
-		if (index == numElements - 1) {
+		if (index == elements.size - 1) {
 			addChild(element)
 		} else if (index == 0) {
 			val nextElement = _elements[index + 1]
@@ -244,7 +247,7 @@ open class ElementContainerImpl(
 	override fun clearElements(dispose: Boolean) {
 		val c = elements
 		while (c.isNotEmpty()) {
-			val element = removeElement(numElements - 1)
+			val element = removeElement(elements.size - 1)
 			if (dispose) element.dispose()
 		}
 	}

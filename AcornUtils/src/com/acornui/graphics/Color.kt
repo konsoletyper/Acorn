@@ -370,6 +370,12 @@ data class Color(
 		return this
 	}
 
+	fun invert() {
+		r = 1 - r
+		g = 1 - g
+		b = 1 - b
+	}
+
 	/**
 	 * Multiplies the RGB values by the alpha.
 	 */

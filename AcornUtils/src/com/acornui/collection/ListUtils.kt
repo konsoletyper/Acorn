@@ -464,7 +464,10 @@ inline fun <T> List<T>.find2(startIndex: Int = 0, predicate: (T) -> Boolean): T?
  * Returns index of the first element matching the given [predicate], or -1 if this list does not contain such element.
  */
 inline fun <T> List<T>.indexOfFirst2(startIndex: Int = 0, predicate: (T) -> Boolean): Int {
-	for (i in startIndex..lastIndex) {
+	val n = size
+	if (n == 0) return -1
+	if (n - startIndex == 1) return if (predicate(this[startIndex])) startIndex else -1
+	for (i in startIndex..n - 1) {
 		if (predicate(this[i]))
 			return i
 	}
@@ -475,6 +478,9 @@ inline fun <T> List<T>.indexOfFirst2(startIndex: Int = 0, predicate: (T) -> Bool
  * Returns index of the last element matching the given [predicate], or -1 if this list does not contain such element.
  */
 inline fun <T> List<T>.indexOfLast2(startIndex: Int = lastIndex, predicate: (T) -> Boolean): Int {
+	val n = size
+	if (n == 0) return -1
+	if (startIndex == 0) return if (predicate(this[0])) 0 else -1
 	for (i in startIndex downTo 0) {
 		if (predicate(this[i]))
 			return i

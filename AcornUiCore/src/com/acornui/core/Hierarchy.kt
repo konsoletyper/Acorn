@@ -29,22 +29,24 @@ interface Child {
 
 	val parent: Parent<out Child>?
 
-	fun previousSibling(): Child? {
-		val p = parent ?: return null
-		val c = p.children
-		val index = c.indexOf(this)
-		if (index == 0) return null
-		return c[index - 1]
-	}
+}
 
-	fun nextSibling(): Child? {
-		val p = parent ?: return null
-		val c = p.children
-		val index = c.indexOf(this)
-		if (index == c.lastIndex) return null
-		return c[index + 1]
-	}
+fun <T: Child> T.previousSibling(): T? {
+	@Suppress("UNCHECKED_CAST")
+	val p = parent as? Parent<T> ?: return null
+	val c = p.children
+	val index = c.indexOf(this)
+	if (index == 0) return null
+	return c[index - 1]
+}
 
+fun <T : Child> T.nextSibling(): T? {
+	@Suppress("UNCHECKED_CAST")
+	val p = parent as? Parent<T> ?: return null
+	val c = p.children
+	val index = c.indexOf(this)
+	if (index == c.lastIndex) return null
+	return c[index + 1]
 }
 
 /**
@@ -60,6 +62,7 @@ interface Parent<T : Child> : Child {
 	/**
 	 * Returns the number of children this parent contains.
 	 */
+	@Deprecated("Use children.size", ReplaceWith("children.size"))
 	val numChildren: Int
 		get() = children.size
 
@@ -71,6 +74,7 @@ interface Parent<T : Child> : Child {
 	/**
 	 * Returns true if this container contains the given child.
 	 */
+	@Deprecated("Use children.contains(child)", ReplaceWith("children.contains(child)"))
 	fun containsChild(child: T): Boolean {
 		return children.contains(child)
 	}
@@ -78,6 +82,7 @@ interface Parent<T : Child> : Child {
 	/**
 	 * Returns the child at the given index, or null if the index is out of bounds.
 	 */
+	@Deprecated("Use children.getOrNull(index)", ReplaceWith(("children.getOrNull(index)")))
 	fun getChildAt(index: Int): T? {
 		if (index < 0 || index >= numChildren) return null
 		return children[index]
@@ -204,7 +209,7 @@ interface MutableParent<T : Child> : Parent<T> {
  */
 open class ParentBase<T : ParentBase<T>> : MutableParent<T>, Child, Disposable {
 
-	override var parent: MutableParent<T>? = null
+	override var parent: Parent<T>? = null
 
 	protected open val _children: MutableList<T> = ArrayList()
 

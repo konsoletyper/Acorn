@@ -21,7 +21,6 @@ import com.acornui.collection.ClearableObjectPool
 import com.acornui.collection.freeTo
 import com.acornui.collection.sortedInsertionIndex
 import com.acornui.component.ComponentInit
-import com.acornui.component.layout.BasicLayoutElement
 import com.acornui.component.layout.LayoutContainerImpl
 import com.acornui.component.layout.LayoutElement
 import com.acornui.component.layout.SizeConstraints
@@ -37,15 +36,13 @@ import com.acornui.math.*
  */
 class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLayout<FlowLayoutStyle, FlowLayoutData> {
 
-	val _lines = ArrayList<LineInfo>()
+	private val _lines = ArrayList<LineInfo>()
 
 	/**
 	 * The list of current lines. This is valid after a layout.
 	 */
 	val lines: List<LineInfoRo>
 		get() = _lines
-
-	private val linesPool = ClearableObjectPool { LineInfo() }
 
 	override fun calculateSizeConstraints(elements: List<LayoutElement>, props: FlowLayoutStyle, out: SizeConstraints) {
 		val padding = props.padding
@@ -56,9 +53,7 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 		out.width.min = minWidth + padding.left + padding.right
 	}
 
-	override fun layout(explicitWidth: Float?, explicitHeight: Float?, elements: List<LayoutElement>, props: FlowLayoutStyle, out: Bounds) = basicLayout(explicitWidth, explicitHeight, elements, props, out)
-
-	override fun basicLayout(explicitWidth: Float?, explicitHeight: Float?, elements: List<BasicLayoutElement>, props: FlowLayoutStyle, out: Bounds) {
+	override fun layout(explicitWidth: Float?, explicitHeight: Float?, elements: List<LayoutElement>, props: FlowLayoutStyle, out: Bounds) {
 		val padding = props.padding
 		val childAvailableWidth: Float? = padding.reduceWidth(explicitWidth)
 		val childAvailableHeight: Float? = padding.reduceHeight(explicitHeight)
@@ -68,7 +63,7 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 		var line = linesPool.obtain()
 		var x = 0f
 		var y = 0f
-		var previousElement: BasicLayoutElement? = null
+		var previousElement: LayoutElement? = null
 
 		for (i in 0..elements.lastIndex) {
 			val element = elements[i]
@@ -123,7 +118,7 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 	/**
 	 * Adjusts the elements within a line to apply the horizontal and vertical alignment.
 	 */
-	private fun positionLine(line: LineInfoRo, availableWidth: Float?, props: FlowLayoutStyle, elements: List<BasicLayoutElement>) {
+	private fun positionLine(line: LineInfoRo, availableWidth: Float?, props: FlowLayoutStyle, elements: List<LayoutElement>) {
 		if (line.startIndex > line.endIndex) return
 
 		val hGap: Float
@@ -178,27 +173,31 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 		return FlowLayoutData()
 	}
 
-	private fun BasicLayoutElement.clearsLine(): Boolean {
+	private fun LayoutElement.clearsLine(): Boolean {
 		return (layoutData as FlowLayoutData?)?.clearsLine ?: false
 	}
 
-	private fun BasicLayoutElement.startsNewLine(): Boolean {
-		return (layoutData as FlowLayoutData?)?.display == FlowDisplay.BLOCK
+	private fun LayoutElement.startsNewLine(): Boolean {
+		return (layoutData as FlowLayoutData?)?.startsNewLine ?: false
 	}
 
-	override fun getNearestElementIndex(x: Float, y: Float, elements: List<BasicLayoutElement>, props: FlowLayoutStyle): Int {
-		if (lines.isEmpty()) return -1
+	override fun getElementInsertionIndex(x: Float, y: Float, elements: List<LayoutElement>, props: FlowLayoutStyle): Int {
+		if (lines.isEmpty()) return 0
 		if (y < lines.first().y) return 0
-		if (y >= lines.last().bottom) return elements.lastIndex
+		if (y >= lines.last().bottom) return elements.size
 		val lineIndex = _lines.sortedInsertionIndex(y, {
 			y, line ->
 			y.compareTo(line.bottom)
 		})
 		val line = _lines[lineIndex]
-		return minOf(elements.lastIndex, elements.sortedInsertionIndex(x, {
+		return elements.sortedInsertionIndex(x, {
 			x, element ->
 			x.compareTo(element.right)
-		}, line.startIndex, line.endIndex))
+		}, line.startIndex, line.endIndex)
+	}
+
+	companion object {
+		private val linesPool = ClearableObjectPool { LineInfo() }
 	}
 
 }
@@ -263,9 +262,14 @@ class FlowLayoutStyle : StyleBase() {
 class FlowLayoutData : BasicLayoutData() {
 
 	/**
-	 * If true, this element will cause the line to break.
+	 * If true, this element will cause the line to break after this element.
 	 */
 	var clearsLine by bindable(false)
+
+	/**
+	 * If true, this element will cause the line to break before this element.
+	 */
+	var startsNewLine by bindable(false)
 
 	/**
 	 * True if this layout element can overhang off the edge of the boundaries.
@@ -283,36 +287,12 @@ class FlowLayoutData : BasicLayoutData() {
 	var verticalAlign: FlowVAlign? by bindable(null)
 
 	/**
-	 * @see FlowDisplay
-	 */
-	var display by bindable(FlowDisplay.INLINE_BLOCK)
-
-	/**
 	 * A child whose vertical alignment is [FlowVAlign.BASELINE] will be positioned so that the baseline attribute
 	 * will align with the baseline position on its line. If left null, the height will be used.
 	 */
 	var baseline by bindable<Float?>(null)
 
 }
-
-enum class FlowDisplay {
-
-	/**
-	 * Inline-block display elements will not reset a line and will be laid out as a rectangular child.
-	 */
-	INLINE_BLOCK,
-
-	/**
-	 * Inline display elements will have the container's children displayed within the parent FlowLayout.
-	 */
-	INLINE,
-
-	/**
-	 * Block display elements will start on their own line.
-	 */
-	BLOCK
-}
-
 
 enum class FlowHAlign {
 	LEFT,

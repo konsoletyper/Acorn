@@ -25,7 +25,7 @@ import com.acornui.component.style.NoopStyle
 import com.acornui.core.di.Owned
 import com.acornui.math.Bounds
 
-class CanvasLayout : LayoutAlgorithm<Any, CanvasLayoutData>, BasicLayoutAlgorithm<Any, CanvasLayoutData> {
+class CanvasLayout : LayoutAlgorithm<Any, CanvasLayoutData> {
 
 	//-----------------------------------
 	// Getters / setters
@@ -45,9 +45,7 @@ class CanvasLayout : LayoutAlgorithm<Any, CanvasLayoutData>, BasicLayoutAlgorith
 		out.height.min = minHeight
 	}
 
-	override fun layout(explicitWidth: Float?, explicitHeight: Float?, elements: List<LayoutElement>, props: Any, out: Bounds) = basicLayout(explicitWidth, explicitHeight, elements, props, out)
-
-	override fun basicLayout(explicitWidth: Float?, explicitHeight: Float?, elements: List<BasicLayoutElement>, props: Any, out: Bounds) {
+	override fun layout(explicitWidth: Float?, explicitHeight: Float?, elements: List<LayoutElement>, props: Any, out: Bounds) {
 		val w = explicitWidth ?: 0f
 		val h = explicitHeight ?: 0f
 

@@ -18,7 +18,6 @@ package com.acornui.js.dom.component
 
 import com.acornui.collection.find2
 import com.acornui.component.*
-import com.acornui.component.layout.algorithm.FlowDisplay
 import com.acornui.component.layout.algorithm.FlowHAlign
 import com.acornui.component.layout.algorithm.FlowLayoutStyle
 import com.acornui.component.layout.setSize
@@ -86,7 +85,7 @@ open class DomTextField(
 		}
 
 	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
-		if (!flowStyle.multiline || explicitWidth == null && (domContainer.display == FlowDisplay.BLOCK || domContainer.display == FlowDisplay.INLINE_BLOCK)) {
+		if (!flowStyle.multiline || explicitWidth == null) {
 			element.style.whiteSpace = "nowrap"
 		} else {
 			element.style.whiteSpace = "normal"

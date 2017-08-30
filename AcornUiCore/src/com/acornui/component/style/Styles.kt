@@ -4,10 +4,11 @@ package com.acornui.component.style
 
 import com.acornui._assert
 import com.acornui.assertionsEnabled
-import com.acornui.collection.*
+import com.acornui.collection.ActiveList
+import com.acornui.collection.addSorted
+import com.acornui.collection.find2
+import com.acornui.collection.removeFirst
 import com.acornui.component.AttachmentHolder
-import com.acornui.component.UiComponent
-import com.acornui.component.invalidateStyles
 import com.acornui.core.Disposable
 import com.acornui.observe.Observable
 import com.acornui.observe.bind
@@ -32,6 +33,8 @@ interface Styleable {
 	 * The next ancestor of this styleable component.
 	 */
 	val styleParent: Styleable?
+
+	fun invalidateStyles()
 }
 
 fun Styleable.addStyleRule(style: Style, filter: StyleFilter, priority: Float = 0f) {
@@ -42,7 +45,7 @@ fun Styleable.addStyleRule(style: Style, priority: Float = 0f) {
 	styleRules.add(StyleRule(style, AlwaysFilter, priority))
 }
 
-class StylesImpl(private val host: UiComponent) : Disposable {
+class StylesImpl(private val host: Styleable) : Disposable {
 
 	val styleTags = ActiveList<StyleTag>()
 	val styleRules = ActiveList<StyleRule<*>>()

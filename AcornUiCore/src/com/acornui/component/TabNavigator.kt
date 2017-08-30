@@ -100,7 +100,7 @@ open class TabNavigator(owner: Owned) : ContainerImpl(owner), LayoutDataProvider
 		}
 
 	val numTabs: Int
-		get() = tabBar.numElements
+		get() = tabBar.elements.size
 
 	fun addTab(value: String, component: UiComponent) {
 		addTab(numTabs, value, component)
@@ -123,11 +123,11 @@ open class TabNavigator(owner: Owned) : ContainerImpl(owner), LayoutDataProvider
 	}
 
 	fun addTab(tab: Button, component: UiComponent) {
-		addTab(tabBar.numElements, tab, { component })
+		addTab(tabBar.elements.size, tab, { component })
 	}
 
 	fun addTab(tab: Button, factory: Owned.() -> UiComponent) {
-		addTab(tabBar.numElements, tab, factory)
+		addTab(tabBar.elements.size, tab, factory)
 	}
 
 	fun addTab(index: Int, tab: Button, factory: Owned.() -> UiComponent) {

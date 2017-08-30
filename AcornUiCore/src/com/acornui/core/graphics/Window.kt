@@ -75,7 +75,7 @@ interface Window : Disposable {
 	 * If true, every frame will invoke a render. If false, only frames where [requestRender] has been called
 	 * will trigger a render.
 	 */
-	fun continuousRendering(value: Boolean)
+	var continuousRendering: Boolean
 
 	/**
 	 * True if a render and update has been requested, or if [continuousRendering] is true.

@@ -260,15 +260,15 @@ open class UiComponentImpl(
 			ValidationFlags.apply {
 				addNode(STYLES, r::updateStyles)
 				addNode(PROPERTIES, STYLES, r::updateProperties)
-				addNode(SIZE_CONSTRAINTS, PROPERTIES, r::validateSizeConstraints)
-				addNode(LAYOUT, PROPERTIES or SIZE_CONSTRAINTS, r::validateLayout)
+				addNode(HIERARCHY_ASCENDING, PROPERTIES, r::updateHierarchyAscending)
+				addNode(HIERARCHY_DESCENDING, PROPERTIES, r::updateHierarchyDescending)
+				addNode(SIZE_CONSTRAINTS, HIERARCHY_DESCENDING or HIERARCHY_ASCENDING or PROPERTIES, r::validateSizeConstraints)
+				addNode(LAYOUT, SIZE_CONSTRAINTS, r::validateLayout)
 				addNode(TRANSFORM, r::updateTransform)
-				addNode(CONCATENATED_TRANSFORM, TRANSFORM, r::updateConcatenatedTransform)
+				addNode(CONCATENATED_TRANSFORM, HIERARCHY_DESCENDING or TRANSFORM, r::updateConcatenatedTransform)
 				addNode(COLOR_TRANSFORM, r::updateColorTransform)
 				addNode(CONCATENATED_COLOR_TRANSFORM, COLOR_TRANSFORM, r::updateConcatenatedColorTransform)
 				addNode(INTERACTIVITY_MODE, r::updateInheritedInteractivityMode)
-				addNode(HIERARCHY_ASCENDING, PROPERTIES, r::updateHierarchyAscending)
-				addNode(HIERARCHY_DESCENDING, PROPERTIES, r::updateHierarchyDescending)
 			}
 		}
 	}
@@ -286,7 +286,7 @@ open class UiComponentImpl(
 			_visible = value
 			native.visible = value
 			if (value) {
-				childWalkLevelOrder {
+				childWalkLevelOrder<UiComponent> {
 					// This is only necessary because browsers cannot measure elements with `display: none`.
 					// Otherwise we would just invalidate this component's HIERARCHY_ASCENDING.
 					it.onAncestorVisibleChanged(this, value)
@@ -370,7 +370,6 @@ open class UiComponentImpl(
 			_includeInLayout = value
 			invalidate(ValidationFlags.HIERARCHY_ASCENDING)
 		}
-
 
 	private fun layoutDataChangedHandler() {
 		invalidate(ValidationFlags.LAYOUT)
@@ -677,10 +676,15 @@ open class UiComponentImpl(
 		styles.bind(style, calculator)
 		return style
 	}
+
 	protected fun <T : MutableStyle> watch(style: T, priority: Float = 0f, callback: (T) -> Unit) = styles.watch(style, priority, callback)
 	protected fun unwatch(style: MutableStyle) = styles.unwatch(style)
 
 	protected fun unbind(style: Style) = styles.unbind(style)
+
+	override fun invalidateStyles() {
+		invalidate(ValidationFlags.STYLES)
+	}
 
 	protected open fun updateStyles() {
 		_styles?.validateStyles()

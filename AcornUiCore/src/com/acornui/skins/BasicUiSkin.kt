@@ -114,20 +114,25 @@ open class BasicUiSkin(
 		if (UserInfo.isOpenGl)
 			loadBitmapFonts()
 
-		val divStyle = BoxStyle()
-		divStyle.apply {
+		val textInputBoxStyle = BoxStyle()
+		textInputBoxStyle.apply {
 			backgroundColor = Color(0.97f, 0.97f, 0.97f, 1f)
 			borderColor = BorderColors(Color(0.3f, 0.3f, 0.3f, 1f))
 			borderThickness = Pad(1f)
 			padding = Pad(2f)
 		}
-		target.addStyleRule(divStyle, TextInput)
-		target.addStyleRule(divStyle, TextArea)
+		target.addStyleRule(textInputBoxStyle, TextInput)
+		target.addStyleRule(textInputBoxStyle, TextArea)
 
 		val flowStyle = FlowLayoutStyle()
 		flowStyle.horizontalGap = 0f
 		flowStyle.verticalGap = 0f
-		target.addStyleRule(flowStyle, TextField)
+		flowStyle.multiline = false
+		target.addStyleRule(flowStyle, withAncestor(TextField))
+
+		val textAreaFlowStyle = FlowLayoutStyle()
+		textAreaFlowStyle.multiline = true
+		target.addStyleRule(textAreaFlowStyle, withAncestor(TextArea))
 	}
 
 	protected open fun Scoped.loadBitmapFonts() {

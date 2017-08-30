@@ -73,6 +73,8 @@ class CascadingStyleCalculatorTest {
 			override fun <T : Style> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) = filterRules(type, out)
 
 			override val styleParent: Styleable? = null
+
+			override fun invalidateStyles() {}
 		}
 
 		val b = object : Styleable {
@@ -91,6 +93,8 @@ class CascadingStyleCalculatorTest {
 			override fun <T : Style> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) = filterRules(type, out)
 
 			override val styleParent: Styleable? = a
+
+			override fun invalidateStyles() {}
 		}
 
 		val c = object : Styleable {
@@ -108,6 +112,8 @@ class CascadingStyleCalculatorTest {
 			override fun <T : Style> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) = filterRules(type, out)
 
 			override val styleParent = a
+
+			override fun invalidateStyles() {}
 		}
 
 		val styleC = SimpleStyle()

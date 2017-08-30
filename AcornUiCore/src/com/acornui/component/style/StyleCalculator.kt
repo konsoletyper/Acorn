@@ -25,7 +25,7 @@ object CascadingStyleCalculator : StyleCalculator {
 	override fun calculate(style: MutableStyle, target: Styleable) {
 		calculated.clear()
 
-		// Collect all style entry objects for the bound style type and tags.
+		// Collect all style rule objects for the bound style type and tags.
 		// These entries will be sorted first by priority, and then by ancestry level.
 		entries.clear()
 		target.walkStyleableAncestry {

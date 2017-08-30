@@ -16,10 +16,7 @@
 
 package com.acornui.component.layout
 
-import com.acornui.math.Bounds
-import com.acornui.math.BoundsRo
-import com.acornui.math.Ray
-import com.acornui.math.Vector3
+import com.acornui.math.*
 
 /**
  * A LayoutElement is a Transformable component that can be used in layout algorithms.
@@ -217,61 +214,3 @@ interface Sizable {
 }
 
 fun LayoutElement.setSize(bounds: BoundsRo) = setSize(bounds.width, bounds.height)
-
-abstract class BasicLayoutElementImpl : BasicLayoutElement {
-
-	override var layoutData: LayoutData? = null
-	protected val _bounds = Bounds()
-	override val bounds: BoundsRo
-		get() = _bounds
-	private var _explicitWidth: Float? = null
-	override val explicitWidth: Float?
-		get() = _explicitWidth
-	private var _explicitHeight: Float? = null
-	override val explicitHeight: Float?
-		get() = _explicitHeight
-	override var x: Float
-		get() = position.x
-		set(value) {
-			position.x = value
-		}
-
-	override var y: Float
-		get() = position.y
-		set(value) {
-			position.y = value
-		}
-	override var z: Float
-		get() = position.z
-		set(value) {
-			position.z = value
-		}
-
-	override val position = Vector3()
-
-	protected var layoutIsValid = false
-
-	fun invalidateLayout() {
-		layoutIsValid = false
-	}
-
-	override fun setSize(width: Float?, height: Float?) {
-		if (layoutIsValid && _explicitWidth == width && _explicitHeight == height) return
-		layoutIsValid = true
-		_explicitWidth = width
-		_explicitHeight = height
-		_bounds.clear()
-		updateLayout(width, height, _bounds)
-	}
-
-	abstract fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds)
-
-	override fun setPosition(x: Float, y: Float, z: Float) {
-		position.set(x, y, z)
-	}
-
-	override fun width(value: Float?) = setSize(value, _explicitHeight)
-
-	override fun height(value: Float?) = setSize(_explicitWidth, value)
-
-}
