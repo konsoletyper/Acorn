@@ -2,9 +2,7 @@ package com.acornui.component
 
 import com.acornui.collection.CyclicList
 import com.acornui.collection.cyclicListPool
-import com.acornui.core.Child
 import com.acornui.core.Disposable
-import com.acornui.core.Parent
 import com.acornui.core.TreeWalk
 import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
@@ -12,7 +10,7 @@ import com.acornui.math.Bounds
 
 inline fun <reified T : UiComponent> ElementContainer.createOrReuseContents(factory: Owned.() -> T): T {
 	val existing: T
-	val contents = getElementAt(0)
+	val contents = elements.getOrNull(0)
 	if (contents !is T) {
 		removeElement(contents)
 		contents?.dispose()
@@ -24,20 +22,26 @@ inline fun <reified T : UiComponent> ElementContainer.createOrReuseContents(fact
 	return existing
 }
 
-interface ElementParent {
+/**
+ * An element parent is an interface that externally exposes the ability to add and remove elements.
+ */
+interface ElementParent<T> {
 
-	val elements: List<UiComponent>
+	val elements: List<T>
+
+	@Deprecated("Use elements.size", ReplaceWith("elements.size"))
 	val numElements: Int
+		get() = elements.size
 
 	/**
 	 * Syntax sugar for addElement.
 	 */
-	operator fun <P : UiComponent> P.unaryPlus(): P {
-		this@ElementParent.addElement(this@ElementParent.numElements, this)
+	operator fun <P : T> P.unaryPlus(): P {
+		this@ElementParent.addElement(this@ElementParent.elements.size, this)
 		return this
 	}
 
-	operator fun <P : UiComponent> P.unaryMinus(): P {
+	operator fun <P : T> P.unaryMinus(): P {
 		this@ElementParent.removeElement(this)
 		return this
 	}
@@ -46,29 +50,36 @@ interface ElementParent {
 	 * Returns the child at the given index, or null if the index is out of bounds.
 	 */
 	@Deprecated("Use elements.getOrNull(index)", ReplaceWith("elements.getOrNull(index)"))
-	fun getElementAt(index: Int): UiComponent?
+	fun getElementAt(index: Int): T? = elements.getOrNull(index)
 
-	fun <S : UiComponent> addElement(child: S): S
-	fun <S : UiComponent> addOptionalElement(child: S?): S? {
+	fun <S : T> addElement(child: S): S = addElement(elements.size, child)
+	fun <S : T> addOptionalElement(child: S?): S? {
 		if (child == null) return null
 		return addElement(child)
 	}
 
-	fun <S : UiComponent> addOptionalElement(index: Int, child: S?): S? {
+	fun <S : T> addOptionalElement(index: Int, child: S?): S? {
 		if (child == null) return null
 		return addElement(index, child)
 	}
 
-	fun <S : UiComponent> addElement(index: Int, element: S): S
-	fun removeElement(element: UiComponent?): Boolean
-	fun removeElement(index: Int): UiComponent
+	fun <S : T> addElement(index: Int, element: S): S
+	fun removeElement(element: T?): Boolean {
+		if (element == null) return false
+		val index = elements.indexOf(element)
+		if (index == -1) return false
+		removeElement(index)
+		return true
+	}
+
+	fun removeElement(index: Int): T
 
 	fun clearElements(dispose: Boolean = true)
 
 	/**
 	 * Adds an element after the provided element.
 	 */
-	fun addElementAfter(element: UiComponent, after: UiComponent): Int {
+	fun addElementAfter(element: T, after: T): Int {
 		val index = elements.indexOf(after)
 		if (index == -1) return -1
 		addElement(index + 1, element)
@@ -78,7 +89,7 @@ interface ElementParent {
 	/**
 	 * Adds an element before the provided element.
 	 */
-	fun addElementBefore(element: UiComponent, before: UiComponent): Int {
+	fun addElementBefore(element: T, before: T): Int {
 		val index = elements.indexOf(before)
 		if (index == -1) return -1
 		addElement(index, element)
@@ -91,9 +102,9 @@ interface ElementParent {
  * It is up to this element container how to treat added elements. It may add them as children, it may provide the
  * element to a child element container.
  */
-interface ElementContainer : Container, ElementParent
+interface ElementContainer : Container, ElementParent<UiComponent>
 
-inline fun ElementContainer.iterateElements(body: (UiComponent) -> Boolean, reversed: Boolean) {
+inline fun <T> ElementParent<T>.iterateElements(body: (T) -> Boolean, reversed: Boolean) {
 	if (reversed) {
 		for (i in elements.lastIndex downTo 0) {
 			body(elements[i])
@@ -105,16 +116,51 @@ inline fun ElementContainer.iterateElements(body: (UiComponent) -> Boolean, reve
 	}
 }
 
-inline fun ElementContainer.iterateElements(body: (UiComponent) -> Boolean) {
+inline fun <T> ElementParent<T>.iterateElements(body: (T) -> Boolean) {
 	for (i in 0..elements.lastIndex) {
 		body(elements[i])
 	}
 }
 
-inline fun ElementContainer.iterateElementsReversed(body: (UiComponent) -> Boolean) {
+inline fun <T> ElementParent<T>.iterateElementsReversed(body: (T) -> Boolean) {
 	for (i in elements.lastIndex downTo 0) {
 		body(elements[i])
 	}
+}
+
+@Suppress("UNCHECKED_CAST") inline fun ElementContainer.elementWalkPreOrder(callback: (UiComponent) -> TreeWalk) {
+	elementWalkPreOrder(callback, false)
+}
+
+@Suppress("UNCHECKED_CAST") inline fun ElementContainer.elementWalkPreOrderReversed(callback: (UiComponent) -> TreeWalk) {
+	elementWalkPreOrder(callback, true)
+}
+/**
+ * A pre-order child walk.
+ *
+ * @param callback The callback to invoke on each child.
+ */
+@Suppress("UNCHECKED_CAST") inline fun ElementContainer.elementWalkPreOrder(callback: (UiComponent) -> TreeWalk, reversed: Boolean) {
+	val openList = cyclicListPool.obtain() as CyclicList<UiComponent>
+	openList.add(this)
+	loop@ while (openList.isNotEmpty()) {
+		val next = openList.pop()
+		val treeWalk = callback(next)
+		when (treeWalk) {
+			TreeWalk.HALT -> break@loop
+			TreeWalk.SKIP -> continue@loop
+			TreeWalk.ISOLATE -> {
+				openList.clear()
+			}
+			else -> {
+			}
+		}
+		(next as? ElementContainer)?.iterateElements({
+			openList.add(it)
+			true
+		}, !reversed)
+	}
+	cyclicListPool.free(openList)
 }
 
 /**
@@ -132,55 +178,6 @@ open class ElementContainerImpl(
 	protected val _elements = ArrayList<UiComponent>()
 	override val elements: List<UiComponent>
 		get() = _elements
-
-	@Deprecated("Use elements.size", ReplaceWith("elements.size"))
-	override val numElements: Int
-		get() = _elements.size
-
-	@Suppress("UNCHECKED_CAST") inline fun elementWalkPreOrder(callback: (UiComponent) -> TreeWalk) {
-		elementWalkPreOrder(callback, false)
-	}
-
-	@Suppress("UNCHECKED_CAST") inline fun elementWalkPreOrderReversed(callback: (UiComponent) -> TreeWalk) {
-		elementWalkPreOrder(callback, true)
-	}
-	/**
-	 * A pre-order child walk.
-	 *
-	 * @param callback The callback to invoke on each child.
-	 */
-	@Suppress("UNCHECKED_CAST") inline fun elementWalkPreOrder(callback: (UiComponent) -> TreeWalk, reversed: Boolean) {
-		val openList = cyclicListPool.obtain() as CyclicList<UiComponent>
-		openList.add(this@ElementContainerImpl)
-		loop@ while (openList.isNotEmpty()) {
-			val next = openList.pop()
-			val treeWalk = callback(next)
-			when (treeWalk) {
-				TreeWalk.HALT -> break@loop
-				TreeWalk.SKIP -> continue@loop
-				TreeWalk.ISOLATE -> {
-					openList.clear()
-				}
-				else -> {
-				}
-			}
-			(next as? ElementContainer)?.iterateElements({
-				openList.add(it)
-				true
-			}, !reversed)
-		}
-		cyclicListPool.free(openList)
-	}
-
-	@Deprecated("Use elements.getOrNull(index)", ReplaceWith("elements.getOrNull(index)"))
-	override fun getElementAt(index: Int): UiComponent? {
-		if (index < 0 || index >= elements.size) return null
-		return elements[index]
-	}
-
-	override fun <S : UiComponent> addElement(child: S): S {
-		return addElement(elements.size, child)
-	}
 
 	override fun <S : UiComponent> addElement(index: Int, element: S): S {
 		var newIndex = index
@@ -222,14 +219,6 @@ open class ElementContainerImpl(
 			val previousElement = _elements[index - 1]
 			addChildAfter(element, previousElement)
 		}
-	}
-
-	override fun removeElement(element: UiComponent?): Boolean {
-		if (element == null) return false
-		val index = elements.indexOf(element)
-		if (index == -1) return false
-		removeElement(index)
-		return true
 	}
 
 	override fun removeElement(index: Int): UiComponent {

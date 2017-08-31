@@ -51,11 +51,11 @@ open class ContainerImpl(
 
 
 	protected fun <T : UiComponent> addChild(child: T): T {
-		return addChild(numChildren, child)
+		return addChild(children.size, child)
 	}
 
 	protected fun <T : UiComponent> addOptionalChild(child: T?): T? {
-		return addOptionalChild(numChildren, child)
+		return addOptionalChild(children.size, child)
 	}
 
 	protected fun <T : UiComponent> addOptionalChild(index: Int, child: T?): T? {
@@ -141,7 +141,7 @@ open class ContainerImpl(
 	protected fun clearChildren(dispose: Boolean = true) {
 		val c = children
 		while (c.isNotEmpty()) {
-			val child = removeChild(numChildren - 1)
+			val child = removeChild(children.size - 1)
 			if (dispose) child.dispose()
 		}
 	}

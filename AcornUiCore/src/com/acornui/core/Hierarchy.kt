@@ -84,7 +84,7 @@ interface Parent<T : Child> : Child {
 	 */
 	@Deprecated("Use children.getOrNull(index)", ReplaceWith(("children.getOrNull(index)")))
 	fun getChildAt(index: Int): T? {
-		if (index < 0 || index >= numChildren) return null
+		if (index < 0 || index >= children.size) return null
 		return children[index]
 	}
 
@@ -128,7 +128,7 @@ interface Parent<T : Child> : Child {
  */
 interface MutableParent<T : Child> : Parent<T> {
 
-	fun <S : T> addChild(child: S): S = addChild(numChildren, child)
+	fun <S : T> addChild(child: S): S = addChild(children.size, child)
 
 	/**
 	 * Adds the specified child to this container.
@@ -137,7 +137,7 @@ interface MutableParent<T : Child> : Parent<T> {
 	 */
 	fun <S : T> addChild(index: Int, child: S): S
 
-	fun addAllChildren(children: Iterable<T>) = addAllChildren(numChildren, children)
+	fun addAllChildren(children: Iterable<T>) = addAllChildren(this.children.size, children)
 
 	fun addAllChildren(index: Int, children: Iterable<T>) {
 		var i = index
@@ -146,7 +146,7 @@ interface MutableParent<T : Child> : Parent<T> {
 		}
 	}
 
-	fun addAllChildren(children: Array<T>) = addAllChildren(numChildren, children)
+	fun addAllChildren(children: Array<T>) = addAllChildren(this.children.size, children)
 
 	fun addAllChildren(index: Int, children: Array<T>) {
 		var i = index
@@ -199,7 +199,7 @@ interface MutableParent<T : Child> : Parent<T> {
 	fun clearChildren() {
 		val c = children
 		while (c.isNotEmpty()) {
-			removeChild(numChildren - 1)
+			removeChild(children.size - 1)
 		}
 	}
 }

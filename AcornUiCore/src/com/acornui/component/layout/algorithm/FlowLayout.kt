@@ -107,8 +107,12 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 			previousElement = element
 		}
 		line.endIndex = elements.size
-		positionLine(line, childAvailableWidth, props, elements)
-		_lines.add(line)
+		if (line.isNotEmpty()) {
+			positionLine(line, childAvailableWidth, props, elements)
+			_lines.add(line)
+		} else {
+			linesPool.free(line)
+		}
 		measuredW += padding.left + padding.right
 		if (measuredW > out.width) out.width = measuredW // Use the measured width if it is larger than the explicit.
 		val measuredH = y + line.height + padding.top + padding.bottom
@@ -119,8 +123,6 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 	 * Adjusts the elements within a line to apply the horizontal and vertical alignment.
 	 */
 	private fun positionLine(line: LineInfoRo, availableWidth: Float?, props: FlowLayoutStyle, elements: List<LayoutElement>) {
-		if (line.startIndex > line.endIndex) return
-
 		val hGap: Float
 		val xOffset: Float
 		if (availableWidth != null) {
@@ -212,6 +214,12 @@ interface LineInfoRo {
 
 	val bottom: Float
 		get() = y + height
+
+	fun isEmpty(): Boolean {
+		return startIndex >= endIndex
+	}
+
+	fun isNotEmpty(): Boolean = !isEmpty()
 }
 
 class LineInfo : Clearable, LineInfoRo {

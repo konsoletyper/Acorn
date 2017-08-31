@@ -1085,7 +1085,7 @@ class DataGrid<E>(
 			headerCell.moveTo(colX + x, y)
 
 			// Header cell background
-			val headerCellBackground = headerCellBackgrounds.getElementAt(cellBackgroundIndex) ?: createHeaderCellBackground()
+			val headerCellBackground = headerCellBackgrounds.elements.getOrNull(cellBackgroundIndex) ?: createHeaderCellBackground()
 			headerCellBackground.setAttachment(COL_INDEX_KEY, i)
 			headerCellBackground.interactivityMode = if (col.sortable || col.reorderable) InteractivityMode.ALL else InteractivityMode.NONE
 			headerCellBackground.visible = true
@@ -1093,7 +1093,7 @@ class DataGrid<E>(
 			headerCellBackground.setPosition(colX, 0f)
 
 			// Column resize handle
-			val resizeHandle = columnResizeHandles.getElementAt(cellBackgroundIndex) ?: createColumnResizeHandle()
+			val resizeHandle = columnResizeHandles.elements.getOrNull(cellBackgroundIndex) ?: createColumnResizeHandle()
 			resizeHandle.setAttachment(COL_INDEX_KEY, i)
 			resizeHandle.visible = col.resizable
 			resizeHandle.setSize(null, headerHeight)
@@ -1105,8 +1105,8 @@ class DataGrid<E>(
 
 		// Hide header cell backgrounds and resize handles that are no longer shown.
 		for (i in cellBackgroundIndex..headerCellBackgrounds.elements.size - 1) {
-			headerCellBackgrounds.getElementAt(i)!!.visible = false
-			columnResizeHandles.getElementAt(i)!!.visible = false
+			headerCellBackgrounds.elements.getOrNull(i)!!.visible = false
+			columnResizeHandles.elements.getOrNull(i)!!.visible = false
 		}
 
 		headerCells.setSize(width, headerHeight)
@@ -1548,11 +1548,11 @@ class DataGrid<E>(
 				columnDividersHeader.addElement(style.verticalDivider(this))
 				columnDividersContents.addElement(style.verticalDivider(this))
 			}
-			val headerDivider = columnDividersHeader.getElementAt(shownColumns)!!
+			val headerDivider = columnDividersHeader.elements.getOrNull(shownColumns)!!
 			headerDivider.visible = true
 			headerDivider.setSize(null, headerCells.height)
 			headerDivider.moveTo(columnX + columnWidth, 0f)
-			val contentsDivider = columnDividersContents.getElementAt(shownColumns)!!
+			val contentsDivider = columnDividersContents.elements.getOrNull(shownColumns)!!
 			contentsDivider.visible = (columnIndex != lastVisibleColumn)
 			contentsDivider.setSize(null, height - headerCells.height)
 			contentsDivider.moveTo(columnX + columnWidth, headerCells.height)
@@ -1561,8 +1561,8 @@ class DataGrid<E>(
 		}
 		// Hide extra dividers.
 		for (i in shownColumns..columnDividersHeader.elements.size - 1) {
-			columnDividersHeader.getElementAt(i)!!.visible = false
-			columnDividersContents.getElementAt(i)!!.visible = false
+			columnDividersHeader.elements.getOrNull(i)!!.visible = false
+			columnDividersContents.elements.getOrNull(i)!!.visible = false
 		}
 	}
 
