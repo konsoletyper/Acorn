@@ -44,6 +44,8 @@ data class UrlRequestData(
 
 		var variables: UrlParams? = null,
 
+		var body: String? = null,
+
 		var responseType: ResponseType = ResponseType.TEXT,
 
 		/**

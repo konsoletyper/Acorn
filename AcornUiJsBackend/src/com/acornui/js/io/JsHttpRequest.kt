@@ -93,6 +93,8 @@ class JsHttpRequest : BasicAction(), MutableHttpRequest {
 				}
 			}
 			httpRequest.send(formData)
+		} else if (requestData.body != null) {
+			httpRequest.send(requestData.body!!)
 		} else {
 			httpRequest.send()
 		}
