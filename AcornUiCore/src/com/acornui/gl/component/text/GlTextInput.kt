@@ -84,7 +84,7 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 
 	override final val charStyle: CharStyle = tF.charStyle
 	override final val boxStyle: BoxStyle = bind(BoxStyle())
-	override final val flowStyle: FlowLayoutStyle = tF.flowStyle
+	override final val flowStyle: TextFlowStyle = tF.flowStyle
 	override final val textInputStyle = bind(TextInputStyle())
 
 	/**
@@ -133,11 +133,18 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 				it.handled = true
 				backspace()
 				input.dispatch()
+			} else if (it.keyCode == Ascii.TAB) {
+				it.handled = true
+				if (flowStyle.multiline) {
+					replaceSelection("\t") // TODO: Consider instead, inserting a tab at beginning of the line. Style prop?
+					input.dispatch()
+				}
 			} else if (it.keyCode == Ascii.DELETE) {
 				it.handled = true
 				delete()
 				input.dispatch()
 			} else if (it.keyCode == Ascii.ENTER || it.keyCode == Ascii.RETURN) {
+				it.handled = true
 				if (flowStyle.multiline) {
 					replaceSelection("\n")
 					input.dispatch()

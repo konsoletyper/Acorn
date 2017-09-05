@@ -126,8 +126,6 @@ class Glyph(
 		 */
 		val advanceX: Int,
 
-		val lineHeight: Int,
-
 		/**
 		 * If not rotated, the uv coordinates are:
 		 * Top-left: (u, v), Top-right: (u2, v), Bottom-right: (u2, v2), Bottom-left: (u, v2)
@@ -202,7 +200,6 @@ fun Owned.loadFontFromDir(fntPath: String, imagesDir: String, onSuccess: ((font:
 									width = glyphData.region.width,
 									height = glyphData.region.height,
 									advanceX = glyphData.advanceX,
-									lineHeight = bitmapFontData.lineHeight,
 									isRotated = false,
 									region = glyphData.region.copy(),
 									texture = pageTextures[glyphData.page]!!,
@@ -319,7 +316,6 @@ fun Scoped.loadFontFromAtlas(fntPath: String, atlasPath: String, onSuccess: ((fo
 									width = if (region.isRotated) regionH else regionW,
 									height = if (region.isRotated) regionW else regionH,
 									advanceX = glyphData.advanceX,
-									lineHeight = bitmapFontData.lineHeight,
 									isRotated = region.isRotated,
 									region = IntRectangle(regionX, regionY, regionW, regionH),
 									texture = pageTextures[glyphData.page]!!,

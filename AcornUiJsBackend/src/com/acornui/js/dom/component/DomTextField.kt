@@ -40,11 +40,11 @@ import kotlin.browser.document
 open class DomTextField(
 		owner: Owned,
 		protected val element: HTMLElement = document.createElement("div") as HTMLDivElement,
-		protected val domContainer: DomContainer = DomContainer(element)
+		domContainer: DomContainer = DomContainer(element)
 ) : ContainerImpl(owner, domContainer), TextField {
 
 	override final val charStyle = bind(CharStyle())
-	override final val flowStyle = bind(FlowLayoutStyle())
+	override final val flowStyle = bind(TextFlowStyle())
 
 	// TODO: DomTextSelection
 
@@ -102,7 +102,7 @@ open class DomTextInput(
 ) : ContainerImpl(owner, DomContainer(inputElement)), TextInput {
 
 	override final val charStyle = bind(CharStyle())
-	override final val flowStyle = bind(FlowLayoutStyle())
+	override final val flowStyle = bind(TextFlowStyle())
 	override final val boxStyle = bind(BoxStyle())
 	override final val textInputStyle = bind(TextInputStyle())
 
@@ -243,7 +243,7 @@ open class DomTextArea(
 ) : ContainerImpl(owner, DomContainer(areaElement)), TextArea {
 
 	override final val charStyle = bind(CharStyle())
-	override final val flowStyle = bind(FlowLayoutStyle())
+	override final val flowStyle = bind(TextFlowStyle())
 	override final val boxStyle = bind(BoxStyle())
 	override final val textInputStyle = bind(TextInputStyle())
 
@@ -315,7 +315,7 @@ open class DomTextArea(
 
 }
 
-fun FlowLayoutStyle.applyCss(element: HTMLElement) {
+fun TextFlowStyle.applyCss(element: HTMLElement) {
 //	element.style.verticalAlign = when (verticalAlign) {
 //
 //	}

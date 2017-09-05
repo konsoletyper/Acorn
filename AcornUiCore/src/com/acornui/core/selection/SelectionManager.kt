@@ -59,6 +59,12 @@ class SelectionManagerImpl : SelectionManager {
 	}
 }
 
+/**
+ * An object representing a range of selected elements.
+ * @param target The target [Selectable].
+ * @param startIndex The starting index of the selection (inclusive)
+ * @param endIndex The starting index of the selection (exclusive)
+ */
 data class SelectionRange(val target: Selectable, val startIndex: Int, val endIndex: Int) {
 
 	fun contains(index: Int): Boolean {

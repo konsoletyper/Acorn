@@ -78,7 +78,7 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 
 			if (props.multiline && i > line.startIndex &&
 					(previousElement!!.clearsLine() || element.startsNewLine() ||
-					(childAvailableWidth != null && !doesOverhang && x + w > childAvailableWidth))) {
+							(childAvailableWidth != null && !doesOverhang && x + w > childAvailableWidth))) {
 				line.endIndex = i
 				positionLine(line, childAvailableWidth, props, elements)
 				_lines.add(line)
@@ -90,11 +90,6 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 				line.y = y + padding.top
 			}
 			x += w
-
-			if (layoutData?.clearsTabstop ?: false) {
-				val tabIndex = MathUtils.floor(x / props.tabSize) + 1
-				x = tabIndex * props.tabSize
-			}
 
 			if (!doesOverhang) {
 				line.width = x
@@ -110,12 +105,14 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 		if (line.isNotEmpty()) {
 			positionLine(line, childAvailableWidth, props, elements)
 			_lines.add(line)
+			y += line.height
 		} else {
 			linesPool.free(line)
+			y -= props.verticalGap
 		}
 		measuredW += padding.left + padding.right
 		if (measuredW > out.width) out.width = measuredW // Use the measured width if it is larger than the explicit.
-		val measuredH = y + line.height + padding.top + padding.bottom
+		val measuredH = padding.expandHeight2(y)
 		if (measuredH > out.height) out.height = measuredH
 	}
 
@@ -135,7 +132,7 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 			}
 
 			if (props.horizontalAlign == FlowHAlign.JUSTIFY &&
-					line.endIndex != line.startIndex &&
+					line.size > 1 &&
 					line.endIndex != elements.size &&
 					!elements[line.endIndex - 1].clearsLine() &&
 					!elements[line.endIndex].startsNewLine()) {
@@ -145,11 +142,12 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 				hGap = props.horizontalGap
 			}
 		} else {
-			xOffset = 0f
+			xOffset = props.padding.left
 			hGap = props.horizontalGap
 		}
 
-		var x = props.padding.left
+		var x = 0f
+		val padLeft = props.padding.left
 		for (j in line.startIndex..line.endIndex - 1) {
 			val element = elements[j]
 
@@ -161,13 +159,8 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 				FlowVAlign.BASELINE -> (line.baseline - (layoutData?.baseline ?: element.height))
 			}
 
-			element.moveTo(x + xOffset, line.y + yOffset)
+			element.moveTo(x + padLeft + xOffset, line.y + yOffset)
 			x += element.width + hGap
-
-			if (layoutData?.clearsTabstop ?: false) {
-				val tabIndex = MathUtils.floor(x / props.tabSize) + 1
-				x = tabIndex * props.tabSize
-			}
 		}
 	}
 
@@ -216,10 +209,13 @@ interface LineInfoRo {
 		get() = y + height
 
 	fun isEmpty(): Boolean {
-		return startIndex >= endIndex
+		return size <= 0
 	}
 
 	fun isNotEmpty(): Boolean = !isEmpty()
+
+	val size: Int
+		get() = endIndex - startIndex
 }
 
 class LineInfo : Clearable, LineInfoRo {
@@ -254,7 +250,6 @@ class FlowLayoutStyle : StyleBase() {
 
 	var horizontalGap by prop(5f)
 	var verticalGap by prop(5f)
-	var tabSize by prop(24f)
 
 	/**
 	 * The Padding object with left, bottom, top, and right padding.
@@ -285,11 +280,6 @@ class FlowLayoutData : BasicLayoutData() {
 	var overhangs by bindable(false)
 
 	/**
-	 * If true, the tabstop should be cleared after placing this element.
-	 */
-	var clearsTabstop by bindable(false)
-
-	/**
 	 * If set, the vertical align of this element overrides the default of the flow layout algorithm.
 	 */
 	var verticalAlign: FlowVAlign? by bindable(null)
@@ -306,6 +296,11 @@ enum class FlowHAlign {
 	LEFT,
 	CENTER,
 	RIGHT,
+
+	/**
+	 * The left edge will be at padding.left, the right edge will be at padding.right, and the horizontal gap will
+	 * be the horizontal gap plus an even distribution of remaining space.
+	 */
 	JUSTIFY
 }
 

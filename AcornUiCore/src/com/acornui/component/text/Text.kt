@@ -20,7 +20,9 @@ import com.acornui.component.BoxStyle
 import com.acornui.component.ComponentInit
 import com.acornui.component.Labelable
 import com.acornui.component.UiComponent
+import com.acornui.component.layout.algorithm.FlowHAlign
 import com.acornui.component.layout.algorithm.FlowLayoutStyle
+import com.acornui.component.layout.algorithm.FlowVAlign
 import com.acornui.component.style.*
 import com.acornui.core.di.DKey
 import com.acornui.core.di.DependencyKeyImpl
@@ -30,6 +32,8 @@ import com.acornui.core.selection.SelectableComponent
 import com.acornui.graphics.Color
 import com.acornui.graphics.ColorRo
 import com.acornui.graphics.color
+import com.acornui.math.Pad
+import com.acornui.math.PadRo
 import com.acornui.serialization.*
 import com.acornui.signal.Signal
 import com.acornui.signal.Signal0
@@ -37,7 +41,7 @@ import com.acornui.signal.Signal0
 interface TextField : UiComponent, Labelable, SelectableComponent, Styleable {
 
 	val charStyle: CharStyle
-	val flowStyle: FlowLayoutStyle
+	val flowStyle: TextFlowStyle
 
 	var text: String?
 
@@ -179,10 +183,36 @@ fun charStyle(init: CharStyle.() -> Unit = {}): CharStyle {
 	return c
 }
 
+class TextFlowStyle : StyleBase() {
+
+	override val type = Companion
+
+	/**
+	 * The vertical gap between lines.
+	 */
+	var verticalGap by prop(0f)
+
+	/**
+	 * The Padding object with left, bottom, top, and right padding.
+	 */
+	var padding: PadRo by prop(Pad())
+
+	/**
+	 * The number of space char widths a tab should occupy.
+	 */
+	var tabSize: Int by prop(4)
+
+	var horizontalAlign by prop(FlowHAlign.LEFT)
+	var verticalAlign by prop(FlowVAlign.BASELINE)
+	var multiline by prop(true)
+
+	companion object : StyleType<TextFlowStyle>
+}
+
 interface TextInput : Focusable, SelectableComponent, Styleable {
 
 	val charStyle: CharStyle
-	val flowStyle: FlowLayoutStyle
+	val flowStyle: TextFlowStyle
 	val boxStyle: BoxStyle
 	val textInputStyle: TextInputStyle
 
@@ -247,7 +277,7 @@ var TextInput.selectable: Boolean
 interface TextArea : SelectableComponent, Focusable {
 
 	val charStyle: CharStyle
-	val flowStyle: FlowLayoutStyle
+	val flowStyle: TextFlowStyle
 	val boxStyle: BoxStyle
 	val textInputStyle: TextInputStyle
 

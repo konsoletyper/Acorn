@@ -124,13 +124,7 @@ open class BasicUiSkin(
 		target.addStyleRule(textInputBoxStyle, TextInput)
 		target.addStyleRule(textInputBoxStyle, TextArea)
 
-		val flowStyle = FlowLayoutStyle()
-		flowStyle.horizontalGap = 0f
-		flowStyle.verticalGap = 0f
-		flowStyle.multiline = false
-		target.addStyleRule(flowStyle, withAncestor(TextField))
-
-		val textAreaFlowStyle = FlowLayoutStyle()
+		val textAreaFlowStyle = TextFlowStyle()
 		textAreaFlowStyle.multiline = true
 		target.addStyleRule(textAreaFlowStyle, withAncestor(TextArea))
 	}
