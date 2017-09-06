@@ -477,13 +477,13 @@ inline fun <T> List<T>.indexOfFirst2(startIndex: Int = 0, lastIndex: Int = this.
 
 /**
  * Returns index of the last element matching the given [predicate], or -1 if this list does not contain such element.
- * The search goes in reverse starting from startIndex downTo lastIndex
- * @param startIndex The starting index to search from (inclusive).
- * @param lastIndex The ending index to search to (inclusive).
+ * The search goes in reverse starting from lastIndex downTo startIndex
+ * @param lastIndex The starting index to search from (inclusive).
+ * @param startIndex The ending index to search to (inclusive).
  */
-inline fun <T> List<T>.indexOfLast2(startIndex: Int = this.lastIndex, lastIndex: Int = 0, predicate: (T) -> Boolean): Int {
-	if (startIndex == lastIndex) return if (predicate(this[startIndex])) startIndex else -1
-	for (i in startIndex downTo lastIndex) {
+inline fun <T> List<T>.indexOfLast2(lastIndex: Int = this.lastIndex, startIndex: Int = 0, predicate: (T) -> Boolean): Int {
+	if (lastIndex == startIndex) return if (predicate(this[lastIndex])) lastIndex else -1
+	for (i in lastIndex downTo startIndex) {
 		if (predicate(this[i]))
 			return i
 	}
@@ -526,10 +526,15 @@ class ListTransform<T, R>(private val target: List<T>, private val transform: (T
 
 /**
  * Returns the number of elements matching the given [predicate].
+ * @param predicate A method that returns true if the counter should increment.
+ * @param startIndex The index to start counting form (inclusive)
+ * @param lastIndex The index to count until (inclusive)
+ * @return Returns a count representing the number of times [predicate] returned true. This will always be within the
+ * range 0 and (lastIndex - startIndex + 1)
  */
-inline fun <T> List<T>.count2(predicate: (T) -> Boolean): Int {
+inline fun <T> List<T>.count2(startIndex: Int = 0, lastIndex: Int = this.lastIndex, predicate: (T) -> Boolean): Int {
 	var count = 0
-	for (i in 0..lastIndex) if (predicate(this[i])) count++
+	for (i in startIndex..lastIndex) if (predicate(this[i])) count++
 	return count
 }
 

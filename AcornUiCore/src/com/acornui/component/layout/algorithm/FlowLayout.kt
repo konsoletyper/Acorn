@@ -198,7 +198,15 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 }
 
 interface LineInfoRo {
+
+	/**
+	 * The line's start index, inclusive.
+	 */
 	val startIndex: Int
+
+	/**
+	 * The line's end index, exclusive.
+	 */
 	val endIndex: Int
 	val y: Float
 	val width: Float
@@ -220,14 +228,7 @@ interface LineInfoRo {
 
 class LineInfo : Clearable, LineInfoRo {
 
-	/**
-	 * The line's start index, inclusive.
-	 */
 	override var startIndex: Int = 0
-
-	/**
-	 * The line's end index, exclusive.
-	 */
 	override var endIndex: Int = 0
 	override var y: Float = 0f
 	override var width: Float = 0f

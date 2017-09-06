@@ -33,6 +33,7 @@ import com.acornui.core.cursor.RollOverCursor
 import com.acornui.core.cursor.StandardCursors
 import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
+import com.acornui.core.floor
 import com.acornui.core.graphics.BlendMode
 import com.acornui.core.input.interaction.DragInteraction
 import com.acornui.core.input.interaction.dragAttachment
@@ -325,6 +326,9 @@ interface SpanPart {
 	var x: Float
 	var y: Float
 
+	/**
+	 * The
+	 */
 	val xAdvance: Float
 
 	/**
@@ -336,7 +340,7 @@ interface SpanPart {
 	 * If the [TextFlowStyle] vertical alignment is BASELINE, this property will be used to vertically align the
 	 * elements.
 	 */
-	val baseLine: Float
+	val baseline: Float
 
 	fun getKerning(next: SpanPart): Float
 
@@ -501,14 +505,11 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), ElementParent<TextSpanEleme
 			if (isLast || part.clearsLine || extendsEdge) {
 				if (isLast) {
 					spanPartIndex++
-					currentLine.width = x + partW
 					currentLine.endIndex = spanPartIndex
 				} else {
 					// Find the last good breaking point.
 					var breakIndex = _parts.indexOfLast2(spanPartIndex, currentLine.startIndex) { it.isBreaking }
 					if (breakIndex == -1) breakIndex = spanPartIndex - 1
-					val breakPart = _parts[breakIndex]
-					currentLine.width = breakPart.x + breakPart.xAdvance
 					val endIndex = _parts.indexOfFirst2(breakIndex + 1, spanPartIndex) { !it.overhangs }
 					currentLine.endIndex = if (endIndex == -1) spanPartIndex + 1
 					else endIndex
@@ -542,13 +543,18 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), ElementParent<TextSpanEleme
 		for (i in 0.._lines.lastIndex) {
 			val line = _lines[i]
 			line.y = y
-			if (line.width > measuredWidth)
-				measuredWidth = line.width
+
+			var belowBaseline = 0f
 			for (j in line.startIndex..line.endIndex - 1) {
 				val part = _parts[j]
-				if (part.baseLine > line.baseline) line.baseline = part.baseLine
-				if (part.lineHeight > line.height) line.height = part.lineHeight
+				val b = part.lineHeight - part.baseline
+				if (b > belowBaseline) belowBaseline = b
+				if (part.baseline > line.baseline) line.baseline = part.baseline
+				if (!part.overhangs) line.width = part.x + part.xAdvance
 			}
+			line.height = line.baseline + belowBaseline
+			if (line.width > measuredWidth)
+				measuredWidth = line.width
 			positionPartsInLine(line, availableWidth)
 			y += line.height + flowStyle.verticalGap
 		}
@@ -572,30 +578,39 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), ElementParent<TextSpanEleme
 				FlowHAlign.JUSTIFY -> 0f
 			}
 
-//			if (flowStyle.horizontalAlign == FlowHAlign.JUSTIFY &&
-//					line.size > 1 &&
-//					//!isLastLine &&
-//					//!elements[line.endIndex - 1].clearsLine() &&
-//					//!elements[line.endIndex].startsNewLine()
-//					) {
-//				// Apply JUSTIFY spacing if this is not the last line, and there are more than one elements.
-//				hGap = (flowStyle.horizontalGap + remainingSpace / (line.endIndex - line.startIndex - 1)).floor()
-//			} else {
-//				hGap = flowStyle.horizontalGap
-//			}
+			val isLastLine = _lines.last() == line
+			if (flowStyle.horizontalAlign == FlowHAlign.JUSTIFY &&
+					line.size > 1 &&
+					!isLastLine &&
+					!_parts[line.endIndex - 1].clearsLine
+					) {
+				// Apply JUSTIFY spacing if this is not the last line, and there are more than one elements.
+				val lastIndex = _parts.indexOfLast2(line.endIndex - 1, line.startIndex) { !it.overhangs }
+				val numSpaces = _parts.count2(line.startIndex, lastIndex) { it.char == ' ' }
+				if (numSpaces > 0) {
+					val hGap = (remainingSpace / numSpaces)
+					var justifyOffset = 0f
+					for (i in line.startIndex..line.endIndex - 1) {
+						val part = _parts[i]
+						part.x = (part.x + justifyOffset).floor()
+						if (i < lastIndex && part.char == ' ') {
+							justifyOffset += hGap
+						}
+					}
+				}
+			}
 		} else {
 			xOffset = flowStyle.padding.left
-//			hGap = flowStyle.horizontalGap
 		}
 
-		for (j in line.startIndex..line.endIndex - 1) {
-			val part = _parts[j]
+		for (i in line.startIndex..line.endIndex - 1) {
+			val part = _parts[i]
 
 			val yOffset = when (flowStyle.verticalAlign) {
 				FlowVAlign.TOP -> 0f
 				FlowVAlign.MIDDLE -> round((line.height - part.lineHeight) * 0.5f).toFloat()
 				FlowVAlign.BOTTOM -> line.height - part.lineHeight
-				FlowVAlign.BASELINE -> line.baseline - part.baseLine
+				FlowVAlign.BASELINE -> line.baseline - part.baseline
 			}
 
 			part.x += xOffset
@@ -703,7 +718,7 @@ class TfChar(
 	override val lineHeight: Float
 		get() = (parent?.font?.data?.lineHeight?.toFloat() ?: 0f)
 
-	override val baseLine: Float
+	override val baseline: Float
 		get() = (parent?.font?.data?.baseLine?.toFloat() ?: 0f)
 
 	override fun getKerning(next: SpanPart): Float {
