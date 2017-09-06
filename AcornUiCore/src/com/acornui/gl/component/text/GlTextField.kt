@@ -327,12 +327,12 @@ interface SpanPart {
 	var y: Float
 
 	/**
-	 * The
+	 * The amount of horizontal space to advance after this part.
 	 */
 	val xAdvance: Float
 
 	/**
-	 *
+	 * The height of the text line.
 	 */
 	val lineHeight: Float
 
@@ -342,6 +342,14 @@ interface SpanPart {
 	 */
 	val baseline: Float
 
+	/**
+	 * If set, this part should be drawn to fit this width.
+	 */
+	var explicitWidth: Float?
+
+	/**
+	 * Returns the amount of horizontal space to offset this part from the next part.
+	 */
 	fun getKerning(next: SpanPart): Float
 
 	/**
@@ -364,8 +372,19 @@ interface SpanPart {
 	 */
 	val overhangs: Boolean
 
+	/**
+	 * If set to true, this part will be rendered using the selected styling.
+	 */
 	fun setSelected(value: Boolean)
+
+	/**
+	 * Finalizes the vertices for rendering.
+	 */
 	fun validateVertices(transform: Matrix4Ro, leftClip: Float, topClip: Float, rightClip: Float, bottomClip: Float)
+
+	/**
+	 * Draws this part.
+	 */
 	fun render(glState: GlState)
 
 }
@@ -530,7 +549,10 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), ElementParent<TextSpanEleme
 						val spaceSize = (font.data.glyphs[' ']?.advanceX?.toFloat() ?: 6f)
 						val tabSize = spaceSize * flowStyle.tabSize
 						val tabIndex = floor(x / tabSize) + 1
-						x = tabIndex * tabSize
+						var w = tabIndex * tabSize - x
+						if (w < spaceSize) w += tabSize
+						part.explicitWidth = w
+						x += w
 					}
 				}
 				spanPartIndex++
@@ -565,9 +587,6 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), ElementParent<TextSpanEleme
 	}
 
 	private fun positionPartsInLine(line: LineInfoRo, availableWidth: Float?) {
-
-
-//		val hGap: Float
 		val xOffset: Float
 		if (availableWidth != null) {
 			val remainingSpace = availableWidth - line.width
@@ -594,6 +613,7 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), ElementParent<TextSpanEleme
 						val part = _parts[i]
 						part.x = (part.x + justifyOffset).floor()
 						if (i < lastIndex && part.char == ' ') {
+							part.explicitWidth = part.xAdvance + hGap
 							justifyOffset += hGap
 						}
 					}
@@ -721,6 +741,8 @@ class TfChar(
 	override val baseline: Float
 		get() = (parent?.font?.data?.baseLine?.toFloat() ?: 0f)
 
+	override var explicitWidth: Float? = null
+
 	override fun getKerning(next: SpanPart): Float {
 		val d = glyph?.data ?: return 0f
 		val c = next.char ?: return 0f
@@ -774,15 +796,15 @@ class TfChar(
 		var charR = charL + glyph.width
 		var charB = charT + glyph.height
 
-		visible = charL < rightClip && charT < bottomClip && charR > leftClip && charB > topClip
-		if (!visible)
-			return
-
-
 		val bgL = maxOf(leftClip, x)
 		val bgT = maxOf(topClip, y)
-		val bgR = minOf(rightClip, x + xAdvance)
+		val w = explicitWidth ?: xAdvance
+		val bgR = minOf(rightClip, x + w)
 		val bgB = minOf(bottomClip, y + lineHeight)
+
+		visible = bgL < rightClip && bgT < bottomClip && bgR > leftClip && bgB > topClip
+		if (!visible)
+			return
 
 		val region = glyph.region
 		val textureW = glyph.texture.width.toFloat()
@@ -839,9 +861,6 @@ class TfChar(
 		val glyph = glyph ?: return
 		val batch = glState.batch
 
-		if (u == u2 || v == v2)
-			return
-		if (xAdvance <= 0f || lineHeight <= 0f) return // Nothing to draw
 		if (backgroundColor.a > 0f) {
 			batch.begin()
 			glState.setTexture(glState.whitePixel)
@@ -857,7 +876,7 @@ class TfChar(
 			batch.pushQuadIndices()
 		}
 
-		if (glyph.width <= 0f || glyph.height <= 0f) return // Nothing to draw
+		if (u == u2 || v == v2 || glyph.width <= 0f || glyph.height <= 0f) return // Nothing to draw
 		batch.begin()
 		glState.setTexture(glyph.texture)
 		glState.blendMode(BlendMode.NORMAL, glyph.premultipliedAlpha)
