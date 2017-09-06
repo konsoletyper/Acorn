@@ -27,17 +27,14 @@ import com.acornui.component.style.*
 import com.acornui.component.text.CharStyle
 import com.acornui.component.text.TextField
 import com.acornui.component.text.TextFlowStyle
-import com.acornui.core.TreeWalk
-import com.acornui.core.childWalkLevelOrder
+import com.acornui.core.*
 import com.acornui.core.cursor.RollOverCursor
 import com.acornui.core.cursor.StandardCursors
 import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
-import com.acornui.core.floor
 import com.acornui.core.graphics.BlendMode
 import com.acornui.core.input.interaction.DragInteraction
 import com.acornui.core.input.interaction.dragAttachment
-import com.acornui.core.round
 import com.acornui.core.selection.Selectable
 import com.acornui.core.selection.SelectionManager
 import com.acornui.core.selection.SelectionRange
@@ -118,15 +115,28 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 	}
 
 	private fun dragHandler(event: DragInteraction) {
-//		val p1 = event.startPositionLocal
-//		val p2 = event.positionLocal
-//		val p1A = _contents.getSelectionIndex(p1.x, p1.y)
-//		val p2A = _contents.getSelectionIndex(p2.x, p2.y)
-//		if (p2A > p1A) {
-//			selectionManager.selection = listOf(SelectionRange(selectionTarget, p1A, p2A))
-//		} else {
-//			selectionManager.selection = listOf(SelectionRange(selectionTarget, p2A, p1A))
-//		}
+		selectionManager.selection = getNewSelection(event) ?: emptyList()
+	}
+
+	private fun getNewSelection(event: DragInteraction): List<SelectionRange>? {
+		val startElement = event.startElement ?: return null
+		val leaf = startElement.parentWalk { it !is TextFieldLeaf } as TextFieldLeaf? ?: return null
+		var rangeStart = 0
+		for (i in 0.._leaves.lastIndex) {
+			val iLeaf = _leaves[i]
+			if (iLeaf == leaf) break
+			rangeStart += iLeaf.size
+		}
+
+		val p1 = event.startPositionLocal
+		val p2 = event.positionLocal
+		val p1A = rangeStart + leaf.getSelectionIndex(p1.x - leaf.x, p1.y - leaf.y)
+		val p2A = rangeStart + leaf.getSelectionIndex(p2.x - leaf.x, p2.y - leaf.y)
+		if (p2A > p1A) {
+			return listOf(SelectionRange(selectionTarget, p1A, p2A))
+		} else {
+			return listOf(SelectionRange(selectionTarget, p2A, p1A))
+		}
 	}
 
 	protected open fun refreshCursor() {
@@ -395,7 +405,7 @@ private fun span(init: ComponentInit<TextSpanElement>): TextSpanElement {
 	return s
 }
 
-interface TextFieldLeaf {
+interface TextFieldLeaf : UiComponent {
 
 	/**
 	 * The number of selectable objects this leaf represents.
@@ -415,8 +425,10 @@ interface TextFieldLeaf {
 	fun setSelection(rangeStart: Int, selection: List<SelectionRange>)
 
 	/**
-	 * Returns the relative index of the object nearest [x,y]. The object index will be separated at the half-width of
-	 * the character.
+	 * @param x The relative x coordinate
+	 * @param y The relative y coordinate
+	 * @return Returns the relative index of the object nearest [x,y]. The object index will be separated at the half-width of
+	 * the character. This range will be between [0, size]
 	 */
 	fun getSelectionIndex(x: Float, y: Float): Int
 
@@ -659,14 +671,18 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), ElementParent<TextSpanEleme
 	}
 
 	override fun getSelectionIndex(x: Float, y: Float): Int {
-//		if (y <= 0f) return rangeStart
-//		if (y >= height) return rangeEnd
-//		if (x <= 0f) return rangeStart
-//		if (x >= width) return rangeEnd
-//		return rangeStart + chars.sortedInsertionIndex(x, { o1: Float, char: TfChar ->
-//			o1.compareTo(char.x + char.width * 0.5f)
-//		}, matchForwards = true)
-		return 0
+		if (lines.isEmpty()) return 0
+		if (y < lines.first().y) return 0
+		if (y >= lines.last().bottom) return _parts.size
+		val lineIndex = _lines.sortedInsertionIndex(y, {
+			y, line ->
+			y.compareTo(line.bottom)
+		})
+		val line = _lines[lineIndex]
+		return _parts.sortedInsertionIndex(x, {
+			x, part ->
+			x.compareTo(part.x + (part.explicitWidth ?: part.xAdvance) / 2f)
+		}, line.startIndex, line.endIndex)
 	}
 
 	override fun getBoundsAt(index: Int, out: Rectangle) {
