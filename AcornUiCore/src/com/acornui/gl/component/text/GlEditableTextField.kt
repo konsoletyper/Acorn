@@ -53,11 +53,19 @@ open class GlEditableTextField(owner: Owned) : ContainerImpl(owner), EditableTex
 		get() = textField.charStyle
 	override val flowStyle: TextFlowStyle
 		get() = textField.flowStyle
-	override var text: String?
+
+	override var text: String
 		get() = textField.text
 		set(value) {
 			textField.text = value
 		}
+
+	override var contents: UiComponent
+		get() = textField.contents
+		set(value) {
+			textField.contents = value
+		}
+
 	override var htmlText: String?
 		get() = textField.htmlText
 		set(value) {

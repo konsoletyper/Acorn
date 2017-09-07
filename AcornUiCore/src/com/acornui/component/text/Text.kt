@@ -21,7 +21,6 @@ import com.acornui.component.ComponentInit
 import com.acornui.component.Labelable
 import com.acornui.component.UiComponent
 import com.acornui.component.layout.algorithm.FlowHAlign
-import com.acornui.component.layout.algorithm.FlowLayoutStyle
 import com.acornui.component.layout.algorithm.FlowVAlign
 import com.acornui.component.style.*
 import com.acornui.core.di.DKey
@@ -36,14 +35,21 @@ import com.acornui.math.Pad
 import com.acornui.math.PadRo
 import com.acornui.serialization.*
 import com.acornui.signal.Signal
-import com.acornui.signal.Signal0
 
 interface TextField : UiComponent, Labelable, SelectableComponent, Styleable {
 
 	val charStyle: CharStyle
 	val flowStyle: TextFlowStyle
 
-	var text: String?
+	/**
+	 *
+	 */
+	var text: String
+
+	/**
+	 *
+	 */
+	var contents: UiComponent
 
 	@Deprecated("Will create text component builders.")
 	var htmlText: String?
@@ -236,6 +242,7 @@ interface TextInput : Focusable, SelectableComponent, Styleable {
 	/**
 	 * A regular expression pattern to define what is NOT allowed in this text input.
 	 * E.g. "[a-z]" will prevent lowercase letters from being entered.
+	 * Setting this will mutate the current [text] property.
 	 *
 	 * Note: In the future, this will be changed to restrict: Regex, currently KT-17851 prevents this.
 	 * Note: The global flag will be used.
@@ -281,7 +288,7 @@ interface TextArea : SelectableComponent, Focusable {
 	val boxStyle: BoxStyle
 	val textInputStyle: TextInputStyle
 
-	val changed: Signal0
+	val changed: Signal<() -> Unit>
 
 	var editable: Boolean
 

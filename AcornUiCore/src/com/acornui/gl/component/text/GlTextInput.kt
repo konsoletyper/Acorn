@@ -1,7 +1,7 @@
 package com.acornui.gl.component.text
 
+import com.acornui.collection.forEach2
 import com.acornui.component.*
-import com.acornui.component.layout.algorithm.FlowLayoutStyle
 import com.acornui.component.layout.setSize
 import com.acornui.component.style.set
 import com.acornui.component.text.*
@@ -24,14 +24,18 @@ import com.acornui.gl.component.drawing.quad
 import com.acornui.graphics.Color
 import com.acornui.math.Bounds
 import com.acornui.math.MathUtils.clamp
-import com.acornui.math.Rectangle
+import com.acornui.signal.Signal
 import com.acornui.signal.Signal0
 
 @Suppress("LeakingThis")
 open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 
-	override val input: Signal0 = Signal0()
-	override val changed: Signal0 = Signal0()
+	private val _input = Signal0()
+	override val input: Signal<() -> Unit>
+		get() = _input
+	private val _changed = Signal0()
+	override val changed: Signal<() -> Unit>
+		get() = _changed
 
 	override var editable: Boolean = true
 
@@ -61,7 +65,8 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 	override var text: String
 		get() = _text
 		set(value) {
-			_text = if (_restrictPattern == null) value else value.replace(Regex(_restrictPattern!!), "")
+			if (_text == value) return
+			_text = if (_restrictPattern == null) value else value.replace(Regex(value), "")
 			refreshText()
 		}
 
@@ -74,12 +79,14 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 		set(value) {
 			if (_restrictPattern == value) return
 			_restrictPattern = value
+			if (value != null) {
+				_text = _text.replace(Regex(value), "")
+			}
 			refreshText()
 		}
 
 	private fun refreshText() {
-		val v = if (flowStyle.multiline) _text else _text.replace("\n", "")
-		tF.text = if (_password) v.toPassword() else v
+		tF.text = if (_password) _text.toPassword() else _text
 	}
 
 	override final val charStyle: CharStyle = tF.charStyle
@@ -120,36 +127,36 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 			textCursor.visible = false
 			unselect()
 			if (isActive)
-				changed.dispatch()
+				_changed.dispatch()
 		}
 		char().add {
 			it.handled = true
 			replaceSelection(it.char.toString())
-			input.dispatch()
+			_input.dispatch()
 		}
 
 		keyDown().add {
 			if (it.keyCode == Ascii.BACKSPACE) {
 				it.handled = true
 				backspace()
-				input.dispatch()
+				_input.dispatch()
 			} else if (it.keyCode == Ascii.TAB) {
 				it.handled = true
 				if (flowStyle.multiline) {
 					replaceSelection("\t") // TODO: Consider instead, inserting a tab at beginning of the line. Style prop?
-					input.dispatch()
+					_input.dispatch()
 				}
 			} else if (it.keyCode == Ascii.DELETE) {
 				it.handled = true
 				delete()
-				input.dispatch()
+				_input.dispatch()
 			} else if (it.keyCode == Ascii.ENTER || it.keyCode == Ascii.RETURN) {
 				it.handled = true
 				if (flowStyle.multiline) {
 					replaceSelection("\n")
-					input.dispatch()
+					_input.dispatch()
 				} else {
-					changed.dispatch()
+					_changed.dispatch()
 				}
 			}
 		}
@@ -194,7 +201,7 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 		this.text = text.substring(0, clamp(startIndex, 0, text.length)) + newText + text.substring(clamp(endIndex, 0, text.length), text.length)
 	}
 
-	private fun String.toPassword(): String? {
+	private fun String.toPassword(): String {
 		return passwordMask.repeat2(length)
 	}
 
@@ -220,37 +227,97 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 		updateTextCursor()
 	}
 
-	private val cursorRect = Rectangle()
-
 	private fun updateTextCursor() {
-//		val sel = firstSelection
-//		if (sel != null) {
-//			val start = clamp(sel.startIndex, 0, tF.contents.rangeEnd)
-//			val end = clamp(sel.endIndex, 0, tF.contents.rangeEnd)
-//			if (start == end) {
-//				textCursor.visible = true
-//				if (start < tF.contents.rangeEnd) {
-//					tF.contents.getBoundsAt(start, cursorRect)
-//					textCursor.x = cursorRect.x + tF.x
-//					textCursor.y = cursorRect.y + tF.y
-//					textCursor.scaleY = cursorRect.height / textCursor.height
-//				} else {
-//
-//				}
-//			} else {
-//				textCursor.visible = false
-//			}
-//		} else {
-//			textCursor.visible = false
-//		}
+		tF.validate(ValidationFlags.LAYOUT)
+		val textCursorVisible: Boolean
+		val sel = firstSelection
+		if (sel != null) {
+			val leaves = tF.leaves
+			var rangeEnd = 0
+			leaves.forEach2 { rangeEnd += it.parts.size }
+
+			val start = clamp(sel.startIndex, 0, rangeEnd)
+			val end = clamp(sel.endIndex, 0, rangeEnd)
+			if (start == end) {
+				if (start < rangeEnd) {
+					var textElement: TextElement? = null
+					var c = 0
+					for (i in 0..leaves.lastIndex) {
+						val leaf = leaves[i]
+						val next = c + leaf.parts.size
+						if (start < next) {
+							textElement = leaf.parts[start - c]
+							break
+						}
+						c = next
+					}
+					textCursorVisible = true
+					textCursor.x = textElement!!.textFieldX + tF.x
+					textCursor.y = textElement.textFieldY + tF.y
+					textCursor.scaleY = textElement.lineHeight / textCursor.height
+				} else {
+					val lastSpan = leaves.lastOrNull()?.elements?.lastOrNull()
+					if (lastSpan != null) {
+						textCursorVisible = true
+
+						textCursor.x = lastSpan.textFieldX + tF.x
+						textCursor.y = lastSpan.textFieldY + tF.y
+						textCursor.scaleY = (lastSpan.font?.data?.lineHeight?.toFloat() ?: 0f) / textCursor.height
+					} else {
+						textCursorVisible = false
+					}
+
+//					val spanPart = leaves.lastOrNull()?.parts?.lastOrNull()?.parent?.font
+//					textCursor.x = spanPart!!.textFieldX + tF.x
+//					textCursor.y = spanPart.textFieldY + tF.y
+//					textCursor.scaleY = spanPart.lineHeight / textCursor.height
+				}
+			} else {
+				textCursorVisible = false
+			}
+		} else {
+			textCursorVisible = false
+		}
+		textCursor.visible = textCursorVisible
 	}
+
+	private val TextElement.textFieldX: Float
+		get() {
+			return x + (parent?.textFieldX ?: 0f)
+		}
+
+	private val TextElement.textFieldY: Float
+		get() {
+			return y + (parent?.textFieldY ?: 0f)
+		}
+
+	private val TextSpanElement.textFieldX: Float
+		get() {
+			var textFieldX = x
+			var p = parent
+			while (p != null && p != tF) {
+				textFieldX += p.x
+				p = p.parent
+			}
+			return textFieldX
+		}
+
+	private val TextSpanElement.textFieldY: Float
+		get() {
+			var textFieldY = y
+			var p = parent
+			while (p != null && p != tF) {
+				textFieldY += p.y
+				p = p.parent
+			}
+			return textFieldY
+		}
 
 	override fun dispose() {
 		super.dispose()
 		selectionManager.selectionChanged.remove(this::selectionChangedHandler)
 	}
 }
-
 
 open class GlTextArea(owner: Owned) : GlTextInput(owner), TextArea {
 

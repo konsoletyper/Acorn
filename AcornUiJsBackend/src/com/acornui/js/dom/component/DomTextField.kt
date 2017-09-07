@@ -67,15 +67,19 @@ open class DomTextField(
 		invalidate(ValidationFlags.LAYOUT)
 	}
 
-	override var text: String?
+	override var text: String
 		get() {
-			return element.textContent
+			return element.textContent ?: ""
 		}
 		set(value) {
 			if (element.textContent == value) return
 			element.textContent = value
 			invalidate(ValidationFlags.LAYOUT)
 		}
+
+	override var contents: UiComponent
+		get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+		set(value) {}
 
 	override var htmlText: String?
 		get() = element.innerHTML

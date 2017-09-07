@@ -46,8 +46,8 @@ import com.acornui.math.Bounds
 import com.acornui.math.MathUtils.floor
 import com.acornui.math.MathUtils.round
 import com.acornui.math.Matrix4Ro
-import com.acornui.math.Rectangle
 import com.acornui.math.Vector3
+import com.acornui.math.ceil
 import com.acornui.observe.bind
 import com.acornui.string.isBreaking
 
@@ -72,16 +72,29 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 	 */
 	var selectionTarget: Selectable = this
 
-	protected var _contents: UiComponent? = null
-	var contents: UiComponent?
+	private val _textSpan = span()
+	private val _textContents = textFlow { +_textSpan }
+	protected var _contents: UiComponent = addChild(_textContents)
+
+	/**
+	 * The TextField contents.
+	 */
+	override var contents: UiComponent
 		get() = _contents
 		set(value) {
-			_contents?.dispose()
+			if (_contents == value) return
+			removeChild(_contents)
 			_contents = value
-			addOptionalChild(value)
+			addChild(value)
 		}
 
 	private val _leaves = ArrayList<TextFieldLeaf>()
+
+	val leaves: List<TextFieldLeaf>
+		get() {
+			validate(ValidationFlags.HIERARCHY_ASCENDING)
+			return _leaves
+		}
 
 	init {
 		addStyleRule(flowStyle)
@@ -94,16 +107,17 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 			drag.enabled = it.selectable
 		}
 
-		validation.addNode(TextValidationFlags.SELECTION, this::updateSelection)
+		validation.addNode(TextValidationFlags.SELECTION, ValidationFlags.HIERARCHY_ASCENDING, this::updateSelection)
 
 		selectionManager.selectionChanged.add(this::selectionChangedHandler)
 
 		drag.drag.add(this::dragHandler)
+
 	}
 
 	override fun updateHierarchyAscending() {
 		_leaves.clear()
-		childWalkLevelOrder<UiComponent> {
+		_contents.childWalkLevelOrder<UiComponent> {
 			if (it is TextFieldLeaf)
 				_leaves.add(it)
 			TreeWalk.CONTINUE
@@ -125,7 +139,7 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 		for (i in 0.._leaves.lastIndex) {
 			val iLeaf = _leaves[i]
 			if (iLeaf == leaf) break
-			rangeStart += iLeaf.size
+			rangeStart += iLeaf.parts.size
 		}
 
 		val p1 = event.startPositionLocal
@@ -149,21 +163,23 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 		}
 	}
 
-	override var text: String?
+	override var text: String
 		get() {
-			validate(ValidationFlags.HIERARCHY_ASCENDING)
+			val leaves = leaves
 			val builder = StringBuilder()
-			for (i in 0.._leaves.lastIndex) {
-				_leaves[i].buildText(builder)
+			for (i in 0..leaves.lastIndex) {
+				val leaf = leaves[i]
+				for (j in 0..leaf.parts.lastIndex) {
+					val char = leaf.parts[j].char
+					if (char != null)
+						builder.append(char)
+				}
 			}
 			return builder.toString()
 		}
 		set(value) {
-			contents = textFlow {
-				+span {
-					+value
-				}
-			}
+			_textSpan.text = value
+			contents = _textContents
 		}
 
 	override var htmlText: String?
@@ -175,18 +191,17 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 		invalidateStyles()
 	}
 
-
 	protected open fun updateSelection() {
 		var rangeStart = 0
 		for (i in 0.._leaves.lastIndex) {
 			val leaf = _leaves[i]
 			leaf.setSelection(rangeStart, selectionManager.selection.filter { it.target == selectionTarget })
-			rangeStart += leaf.size
+			rangeStart += leaf.parts.size
 		}
 	}
 
 	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
-		val contents = _contents ?: return
+		val contents = _contents
 		contents.setSize(explicitWidth, explicitHeight)
 		out.set(contents.bounds)
 
@@ -198,7 +213,6 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 	}
 
 	override fun dispose() {
-		_contents = null
 		super.dispose()
 		BitmapFontRegistry.fontRegistered.remove(this::fontRegisteredHandler)
 		_selectionCursor?.dispose()
@@ -220,14 +234,14 @@ class TfCharStyle {
 	val backgroundColor: Color = Color()
 }
 
-interface TextSpanElement : ElementParent<SpanPart>, Styleable {
-	var parent: Container?
+interface TextSpanElement : ElementParent<TextElement>, Styleable {
+	var parent: UiComponent?
 	val font: BitmapFont?
 
 	fun validateStyles()
 	fun setColorTint(concatenatedColorTint: ColorRo)
 
-	fun char(char: Char): SpanPart
+	fun char(char: Char): TextElement
 
 	operator fun String?.unaryPlus() {
 		if (this == null) return
@@ -252,7 +266,7 @@ class TextSpanElementImpl : TextSpanElement {
 		(styleRules as Iterable<StyleRule<T>>).filterTo(out, { it.style.type == type })
 	}
 
-	override var parent: Container? = null
+	override var parent: UiComponent? = null
 
 	override val styleParent: Styleable?
 		get() = parent
@@ -261,8 +275,8 @@ class TextSpanElementImpl : TextSpanElement {
 		styleParent?.invalidateStyles()
 	}
 
-	private val _elements = ArrayList<SpanPart>()
-	override val elements: List<SpanPart>
+	private val _elements = ArrayList<TextElement>()
+	override val elements: List<TextElement>
 		get() = _elements
 
 	val charStyle = CharStyle()
@@ -281,27 +295,32 @@ class TextSpanElementImpl : TextSpanElement {
 
 	operator fun Char?.unaryPlus() {
 		if (this == null) return
-		addElement(TfChar(this, tfCharStyle))
+		addElement(char(this))
 	}
 
-	override fun <S : SpanPart> addElement(index: Int, element: S): S {
+	override fun <S : TextElement> addElement(index: Int, element: S): S {
 		element.parent = this
 		_elements.add(index, element)
 		parent?.invalidate(bubblingFlags)
 		return element
 	}
 
-	override fun removeElement(index: Int): SpanPart {
+	override fun removeElement(index: Int): TextElement {
 		val element = _elements.removeAt(index)
 		element.parent = null
 		parent?.invalidate(bubblingFlags)
 		return element
 	}
 
+	/**
+	 * Clears all elements in this span.
+	 * @param dispose If dispose is true, the elements will be disposed.
+	 */
 	override fun clearElements(dispose: Boolean) {
-		iterateElements {
-			it.parent = null
-			true
+		for (i in 0.._elements.lastIndex) {
+			val e = _elements[i]
+			e.parent = null
+			if (dispose) e.dispose()
 		}
 		_elements.clear()
 		parent?.invalidate(bubblingFlags)
@@ -319,12 +338,35 @@ class TextSpanElementImpl : TextSpanElement {
 		tfCharStyle.backgroundColor.set(concatenatedColorTint).mul(charStyle.backgroundColor)
 	}
 
-	override fun char(char: Char): SpanPart {
-		return TfChar(char, tfCharStyle)
+	override fun char(char: Char): TextElement {
+		return TfChar.obtain(char, tfCharStyle)
 	}
 }
 
-interface SpanPart {
+/**
+ * A utility variable that when set, clears/disposes the current elements and replaces them with the new text.
+ */
+var TextSpanElement.text: String
+	get() {
+		val elements = elements
+		val builder = StringBuilder()
+		for (i in 0..elements.lastIndex) {
+			val char = elements[i].char
+			if (char != null)
+				builder.append(char)
+		}
+		return builder.toString()
+	}
+	set(value) {
+		clearElements(true)
+		+value
+	}
+
+/**
+ * The smallest unit that can be inside of a TextField.
+ * This will generally represent a single character, but may be more complex components.
+ */
+interface TextElement : Disposable {
 
 	/**
 	 * Set by the TextSpanElement when this is part is added.
@@ -358,9 +400,15 @@ interface SpanPart {
 	var explicitWidth: Float?
 
 	/**
+	 * The explicit width, if it's set, or the xAdvance.
+	 */
+	val width: Float
+		get() = explicitWidth ?: xAdvance
+
+	/**
 	 * Returns the amount of horizontal space to offset this part from the next part.
 	 */
-	fun getKerning(next: SpanPart): Float
+	fun getKerning(next: TextElement): Float
 
 	/**
 	 * If true, this element will cause the line to break after this element.
@@ -399,30 +447,18 @@ interface SpanPart {
 
 }
 
-private fun span(init: ComponentInit<TextSpanElement>): TextSpanElement {
+fun span(init: ComponentInit<TextSpanElement> = {}): TextSpanElementImpl {
 	val s = TextSpanElementImpl()
 	s.init()
 	return s
 }
 
-interface TextFieldLeaf : UiComponent {
+interface TextFieldLeaf : UiComponent, ElementParent<TextSpanElement> {
 
 	/**
-	 * The number of selectable objects this leaf represents.
+	 * The span parts this leaf contains.
 	 */
-	val size: Int
-
-	/**
-	 * Appends this leaf's text to the builder.
-	 */
-	fun buildText(stringBuilder: StringBuilder)
-
-	/**
-	 * Sets the text selection.
-	 * @param rangeStart The starting index of this leaf.
-	 * @param selection A list of ranges that are selected.
-	 */
-	fun setSelection(rangeStart: Int, selection: List<SelectionRange>)
+	val parts: List<TextElement>
 
 	/**
 	 * @param x The relative x coordinate
@@ -431,18 +467,25 @@ interface TextFieldLeaf : UiComponent {
 	 * the character. This range will be between [0, size]
 	 */
 	fun getSelectionIndex(x: Float, y: Float): Int
+}
 
-	/**
-	 * Populates a rectangle representing the size and position of the object at the given index.
-	 * @param index The index of the object relative to this leaf. This must be in the range of [index] < [size]
-	 */
-	fun getBoundsAt(index: Int, out: Rectangle)
+/**
+ * Sets the text selection.
+ * @param rangeStart The starting index of this leaf.
+ * @param selection A list of ranges that are selected.
+ */
+fun TextFieldLeaf.setSelection(rangeStart: Int, selection: List<SelectionRange>) {
+	val parts = this.parts
+	for (i in 0..parts.lastIndex) {
+		val selected = selection.indexOfFirst2 { it.contains(i + rangeStart) } != -1
+		parts[i].setSelected(selected)
+	}
 }
 
 /**
  * A TextFlow component is a container of styleable text spans, to be used inside of a TextField.
  */
-class TextFlow(owner: Owned) : ContainerImpl(owner), ElementParent<TextSpanElement>, TextFieldLeaf {
+class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
 
 	val flowStyle = bind(TextFlowStyle())
 
@@ -462,12 +505,12 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), ElementParent<TextSpanEleme
 	val lines: List<LineInfoRo>
 		get() = _lines
 
-	private val _parts = ArrayList<SpanPart>()
+	private val _parts = ArrayList<TextElement>()
 
-	override val size: Int
+	override val parts: List<TextElement>
 		get() {
 			validate(ValidationFlags.HIERARCHY_ASCENDING)
-			return _parts.size
+			return _parts
 		}
 
 	@Suppress("FINAL_UPPER_BOUND")
@@ -490,12 +533,6 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), ElementParent<TextSpanEleme
 		val c = _elements
 		while (c.isNotEmpty()) {
 			removeElement(_elements.lastIndex)
-		}
-	}
-
-	private inline fun iterateParts(inner: (SpanPart) -> Unit) {
-		for (i in 0.._parts.lastIndex) {
-			inner(_parts[i])
 		}
 	}
 
@@ -604,28 +641,27 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), ElementParent<TextSpanEleme
 			val remainingSpace = availableWidth - line.width
 			xOffset = flowStyle.padding.left + when (flowStyle.horizontalAlign) {
 				FlowHAlign.LEFT -> 0f
-				FlowHAlign.CENTER -> (remainingSpace * 0.5f).round()
+				FlowHAlign.CENTER -> (remainingSpace * 0.5f).floor()
 				FlowHAlign.RIGHT -> remainingSpace
 				FlowHAlign.JUSTIFY -> 0f
 			}
 
-			val isLastLine = _lines.last() == line
 			if (flowStyle.horizontalAlign == FlowHAlign.JUSTIFY &&
 					line.size > 1 &&
-					!isLastLine &&
+					_lines.last() != line &&
 					!_parts[line.endIndex - 1].clearsLine
 					) {
 				// Apply JUSTIFY spacing if this is not the last line, and there are more than one elements.
 				val lastIndex = _parts.indexOfLast2(line.endIndex - 1, line.startIndex) { !it.overhangs }
 				val numSpaces = _parts.count2(line.startIndex, lastIndex) { it.char == ' ' }
 				if (numSpaces > 0) {
-					val hGap = (remainingSpace / numSpaces)
+					val hGap = remainingSpace / numSpaces
 					var justifyOffset = 0f
 					for (i in line.startIndex..line.endIndex - 1) {
 						val part = _parts[i]
 						part.x = (part.x + justifyOffset).floor()
 						if (i < lastIndex && part.char == ' ') {
-							part.explicitWidth = part.xAdvance + hGap
+							part.explicitWidth = part.xAdvance + hGap.ceil()
 							justifyOffset += hGap
 						}
 					}
@@ -650,23 +686,14 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), ElementParent<TextSpanEleme
 		}
 	}
 
-
-	override fun setSelection(rangeStart: Int, selection: List<SelectionRange>) {
-		var index = rangeStart
-		iterateParts {
-			val selected = selection.indexOfFirst2 { it.contains(index++) } != -1
-			it.setSelected(selected)
-		}
-	}
-
 	private fun updateVertices() {
 		val padding = flowStyle.padding
 		val leftClip = padding.left
 		val topClip = padding.top
 		val rightClip = (explicitWidth ?: Float.MAX_VALUE) - padding.right
 		val bottomClip = (explicitHeight ?: Float.MAX_VALUE) - padding.bottom
-		iterateParts {
-			it.validateVertices(concatenatedTransform, leftClip, topClip, rightClip, bottomClip)
+		for (i in 0.._parts.lastIndex) {
+			_parts[i].validateVertices(concatenatedTransform, leftClip, topClip, rightClip, bottomClip)
 		}
 	}
 
@@ -681,17 +708,8 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), ElementParent<TextSpanEleme
 		val line = _lines[lineIndex]
 		return _parts.sortedInsertionIndex(x, {
 			x, part ->
-			x.compareTo(part.x + (part.explicitWidth ?: part.xAdvance) / 2f)
+			x.compareTo(part.x + (part.width) / 2f)
 		}, line.startIndex, line.endIndex)
-	}
-
-	override fun getBoundsAt(index: Int, out: Rectangle) {
-//		val char = chars[index - rangeStart]
-//		val glyph = char.glyph ?: return out.clear()
-//		out.x = char.x
-//		out.y = 0f
-//		out.width = glyph.advanceX.toFloat()
-//		out.height = glyph.lineHeight.toFloat()
 	}
 
 	override fun updateConcatenatedColorTransform() {
@@ -701,20 +719,12 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), ElementParent<TextSpanEleme
 		}
 	}
 
-	override fun buildText(stringBuilder: StringBuilder) {
-		iterateParts {
-			val char = it.char
-			if (char != null)
-				stringBuilder.append(char)
-		}
-	}
-
 	private val glState = inject(GlState)
 
 	override fun draw() {
 		glState.camera(camera)
-		iterateParts {
-			it.render(glState)
+		for (i in 0.._parts.lastIndex) {
+			_parts[i].render(glState)
 		}
 		super.draw()
 	}
@@ -733,16 +743,16 @@ private fun Owned.textFlow(init: ComponentInit<TextFlow>): TextFlow {
 /**
  * Represents a single character, typically within a [TextSpanElement].
  */
-class TfChar(
-		override var char: Char,
-		private val style: TfCharStyle
-) : SpanPart {
+class TfChar private constructor() : TextElement, Clearable {
+
+	override var char: Char = charPlaceholder
+	var style: TfCharStyle? = null
 
 	override var parent: TextSpanElement? = null
 
 	val glyph: Glyph?
 		get() {
-			return style.font?.getGlyphSafe(char)
+			return style?.font?.getGlyphSafe(char)
 		}
 
 	override var x: Float = 0f
@@ -759,7 +769,7 @@ class TfChar(
 
 	override var explicitWidth: Float? = null
 
-	override fun getKerning(next: SpanPart): Float {
+	override fun getKerning(next: TextElement): Float {
 		val d = glyph?.data ?: return 0f
 		val c = next.char ?: return 0f
 		return d.getKerning(c).toFloat()
@@ -793,6 +803,7 @@ class TfChar(
 		get() = char == ' '
 
 	override fun setSelected(value: Boolean) {
+		val style = style ?: return
 		if (value) {
 			fontColor = style.selectedTextColorTint
 			backgroundColor = style.selectedBackgroundColor
@@ -814,8 +825,7 @@ class TfChar(
 
 		val bgL = maxOf(leftClip, x)
 		val bgT = maxOf(topClip, y)
-		val w = explicitWidth ?: xAdvance
-		val bgR = minOf(rightClip, x + w)
+		val bgR = minOf(rightClip, x + width)
 		val bgB = minOf(bottomClip, y + lineHeight)
 
 		visible = bgL < rightClip && bgT < bottomClip && bgR > leftClip && bgB > topClip
@@ -918,6 +928,28 @@ class TfChar(
 		}
 
 		batch.pushQuadIndices()
+	}
+
+	override fun dispose() {
+		pool.free(this)
+	}
+
+	override fun clear() {
+		char = charPlaceholder
+		style = null
+		parent = null
+	}
+
+	companion object {
+		private const val charPlaceholder = 0.toChar()
+		private val pool = ClearableObjectPool { TfChar() }
+
+		fun obtain(char: Char, charStyle: TfCharStyle): TfChar {
+			val c = pool.obtain()
+			c.char = char
+			c.style = charStyle
+			return c
+		}
 	}
 }
 
