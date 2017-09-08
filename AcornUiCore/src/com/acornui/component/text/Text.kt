@@ -46,10 +46,10 @@ interface TextField : UiComponent, Labelable, SelectableComponent, Styleable {
 	 */
 	var text: String
 
-	/**
-	 *
-	 */
-	var contents: UiComponent
+//	/**
+//	 *
+//	 */
+//	var contents: TextFieldLeaf
 
 	@Deprecated("Will create text component builders.")
 	var htmlText: String?
@@ -68,12 +68,12 @@ interface TextField : UiComponent, Labelable, SelectableComponent, Styleable {
 	 * }
 	 */
 	fun replaceTextRange(startIndex: Int, endIndex: Int, newText: String) {
-		val text = text ?: ""
+		val text = text
 		this.text = text.substring(0, maxOf(0, startIndex)) + newText + text.substring(minOf(text.length, endIndex), text.length)
 	}
 
 	override var label: String
-		get() = text ?: ""
+		get() = text
 		set(value) {
 			text = value
 		}
@@ -135,7 +135,7 @@ class CharStyle : StyleBase() {
 
 	var italic by prop(false)
 
-	var isUnderlined by prop(false)
+	var underlined by prop(false)
 
 	var colorTint: ColorRo by prop(Color(1f, 1f, 1f, 1f))
 	var backgroundColor: ColorRo by prop(Color())
@@ -159,7 +159,7 @@ object CharStyleSerializer : To<CharStyle>, From<CharStyle> {
 		writer.styleProperty(this, "size")?.int(size)
 		writer.styleProperty(this, "bold")?.bool(bold)
 		writer.styleProperty(this, "italic")?.bool(italic)
-		writer.styleProperty(this, "isUnderlined")?.bool(isUnderlined)
+		writer.styleProperty(this, "underlined")?.bool(underlined)
 		writer.styleProperty(this, "colorTint")?.color(colorTint)
 		writer.styleProperty(this, "backgroundColor")?.color(backgroundColor)
 		writer.styleProperty(this, "selectedColorTint")?.color(selectedColorTint)
@@ -173,7 +173,7 @@ object CharStyleSerializer : To<CharStyle>, From<CharStyle> {
 		reader.contains("size") { c.size = it.int()!! }
 		reader.contains("bold") { c.bold = it.bool()!! }
 		reader.contains("italic") { c.italic = it.bool()!! }
-		reader.contains("isUnderlined") { c.isUnderlined = it.bool()!! }
+		reader.contains("underlined") { c.underlined = it.bool()!! }
 		reader.contains("colorTint") { c.colorTint = it.color()!! }
 		reader.contains("backgroundColor") { c.backgroundColor = it.color()!! }
 		reader.contains("selectedColorTint") { c.selectedColorTint = it.color()!! }

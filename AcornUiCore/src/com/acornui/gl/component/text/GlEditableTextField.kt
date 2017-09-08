@@ -60,11 +60,11 @@ open class GlEditableTextField(owner: Owned) : ContainerImpl(owner), EditableTex
 			textField.text = value
 		}
 
-	override var contents: UiComponent
-		get() = textField.contents
-		set(value) {
-			textField.contents = value
-		}
+//	override var contents: UiComponent
+//		get() = textField.contents
+//		set(value) {
+//			textField.contents = value
+//		}
 
 	override var htmlText: String?
 		get() = textField.htmlText

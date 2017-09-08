@@ -22,35 +22,35 @@ inline fun <reified T : UiComponent> ElementContainer.createOrReuseContents(fact
 	return existing
 }
 
-/**
- * An element parent is an interface that externally exposes the ability to add and remove elements.
- */
-interface ElementParent<T> {
+interface ElementParent<out T> {
 
 	val elements: List<T>
-
-	@Deprecated("Use elements.size", ReplaceWith("elements.size"))
-	val numElements: Int
-		get() = elements.size
-
-	/**
-	 * Syntax sugar for addElement.
-	 */
-	operator fun <P : T> P.unaryPlus(): P {
-		this@ElementParent.addElement(this@ElementParent.elements.size, this)
-		return this
-	}
-
-	operator fun <P : T> P.unaryMinus(): P {
-		this@ElementParent.removeElement(this)
-		return this
-	}
 
 	/**
 	 * Returns the child at the given index, or null if the index is out of bounds.
 	 */
 	@Deprecated("Use elements.getOrNull(index)", ReplaceWith("elements.getOrNull(index)"))
 	fun getElementAt(index: Int): T? = elements.getOrNull(index)
+
+}
+
+/**
+ * An element parent is an interface that externally exposes the ability to add and remove elements.
+ */
+interface MutableElementParent<T> : ElementParent<T> {
+
+	/**
+	 * Syntax sugar for addElement.
+	 */
+	operator fun <P : T> P.unaryPlus(): P {
+		this@MutableElementParent.addElement(this@MutableElementParent.elements.size, this)
+		return this
+	}
+
+	operator fun <P : T> P.unaryMinus(): P {
+		this@MutableElementParent.removeElement(this)
+		return this
+	}
 
 	fun <S : T> addElement(child: S): S = addElement(elements.size, child)
 	fun <S : T> addOptionalElement(child: S?): S? {
@@ -97,12 +97,6 @@ interface ElementParent<T> {
 	}
 }
 
-/**
- * An ElementContainer is a container that can be provided a list of components as part of its external API.
- * It is up to this element container how to treat added elements. It may add them as children, it may provide the
- * element to a child element container.
- */
-interface ElementContainer : Container, ElementParent<UiComponent>
 
 inline fun <T> ElementParent<T>.iterateElements(body: (T) -> Boolean, reversed: Boolean) {
 	if (reversed) {
@@ -122,7 +116,15 @@ inline fun <T> ElementParent<T>.iterateElements(body: (T) -> Boolean) {
 	}
 }
 
-inline fun <T> ElementParent<T>.iterateElementsReversed(body: (T) -> Boolean) {
+/**
+ * An ElementContainer is a container that can be provided a list of components as part of its external API.
+ * It is up to this element container how to treat added elements. It may add them as children, it may provide the
+ * element to a child element container.
+ */
+interface ElementContainer : Container, MutableElementParent<UiComponent>
+
+
+inline fun <T> MutableElementParent<T>.iterateElementsReversed(body: (T) -> Boolean) {
 	for (i in elements.lastIndex downTo 0) {
 		body(elements[i])
 	}

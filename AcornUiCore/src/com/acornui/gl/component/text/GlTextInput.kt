@@ -1,7 +1,7 @@
 package com.acornui.gl.component.text
 
-import com.acornui.collection.forEach2
 import com.acornui.component.*
+import com.acornui.component.layout.algorithm.FlowHAlign
 import com.acornui.component.layout.setSize
 import com.acornui.component.style.set
 import com.acornui.component.text.*
@@ -11,6 +11,7 @@ import com.acornui.core.focus.blurred
 import com.acornui.core.focus.focused
 import com.acornui.core.input.Ascii
 import com.acornui.core.input.char
+import com.acornui.core.input.interaction.KeyInteraction
 import com.acornui.core.input.keyDown
 import com.acornui.core.repeat2
 import com.acornui.core.selection.SelectionManager
@@ -110,6 +111,11 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 
 	private val selectionManager = inject(SelectionManager)
 
+	/**
+	 * If true, pressing TAB will create a \t instead of navigating focus.
+	 */
+	var allowTab: Boolean = false
+
 	init {
 		styleTags.add(TextInput)
 		watch(boxStyle) {
@@ -124,45 +130,73 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 			// todo: open mobile keyboard
 		}
 		blurred().add {
-			textCursor.visible = false
 			unselect()
 			if (isActive)
 				_changed.dispatch()
 		}
 		char().add {
-			it.handled = true
-			replaceSelection(it.char.toString())
-			_input.dispatch()
+			if (it.char != '\r') {
+				it.handled = true
+				replaceSelection(it.char.toString())
+				_input.dispatch()
+			}
 		}
 
-		keyDown().add {
-			if (it.keyCode == Ascii.BACKSPACE) {
-				it.handled = true
-				backspace()
-				_input.dispatch()
-			} else if (it.keyCode == Ascii.TAB) {
-				it.handled = true
+		keyDown().add(this::keyDownHandler)
+
+		selectionManager.selectionChanged.add(this::selectionChangedHandler)
+	}
+
+	private fun keyDownHandler(event: KeyInteraction) {
+		if (event.keyCode == Ascii.LEFT) {
+			val sel = firstSelection
+			if (sel != null) {
+				val next = maxOf(0, sel.startIndex - 1)
+				selectionManager.selection = listOf(SelectionRange(this, next, next))
+			}
+		} else if (event.keyCode == Ascii.RIGHT) {
+			val sel = firstSelection
+			if (sel != null) {
+				val next = minOf(tF.contents.elements.size, sel.endIndex + 1)
+				selectionManager.selection = listOf(SelectionRange(this, next, next))
+			}
+		} else if (event.keyCode == Ascii.UP) {
+			val sel = firstSelection
+			if (sel != null) {
+//						val leafRangeStart
+//						val index = minOf(tF.textElementsCount, sel.endIndex)
+//
+//
+//						//tF.leaves.indexOfLast2 { it }
+//						val next = minOf(tF.textElementsCount, sel.endIndex + 1)
+//						selectionManager.selection = listOf(SelectionRange(this, next, next))
+			}
+		} else if (event.keyCode == Ascii.BACKSPACE) {
+			event.handled = true
+			backspace()
+			_input.dispatch()
+		} else if (event.keyCode == Ascii.TAB) {
+			if (allowTab) {
+				event.preventDefault() // Prevent focus manager from tabbing.
+				event.handled = true
 				if (flowStyle.multiline) {
 					replaceSelection("\t") // TODO: Consider instead, inserting a tab at beginning of the line. Style prop?
 					_input.dispatch()
 				}
-			} else if (it.keyCode == Ascii.DELETE) {
-				it.handled = true
-				delete()
+			}
+		} else if (event.keyCode == Ascii.DELETE) {
+			event.handled = true
+			delete()
+			_input.dispatch()
+		} else if (event.keyCode == Ascii.ENTER || event.keyCode == Ascii.RETURN) {
+			event.handled = true
+			if (flowStyle.multiline) {
+				replaceSelection("\n")
 				_input.dispatch()
-			} else if (it.keyCode == Ascii.ENTER || it.keyCode == Ascii.RETURN) {
-				it.handled = true
-				if (flowStyle.multiline) {
-					replaceSelection("\n")
-					_input.dispatch()
-				} else {
-					_changed.dispatch()
-				}
+			} else {
+				_changed.dispatch()
 			}
 		}
-
-		selectionManager.selectionChanged.add(this::selectionChangedHandler)
-
 	}
 
 	private val firstSelection: SelectionRange?
@@ -231,47 +265,36 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 		tF.validate(ValidationFlags.LAYOUT)
 		val textCursorVisible: Boolean
 		val sel = firstSelection
-		if (sel != null) {
-			val leaves = tF.leaves
-			var rangeEnd = 0
-			leaves.forEach2 { rangeEnd += it.parts.size }
+		if (isFocused && sel != null) {
+			val rangeEnd = tF.contents.textElements.size
 
 			val start = clamp(sel.startIndex, 0, rangeEnd)
 			val end = clamp(sel.endIndex, 0, rangeEnd)
 			if (start == end) {
-				if (start < rangeEnd) {
-					var textElement: TextElement? = null
-					var c = 0
-					for (i in 0..leaves.lastIndex) {
-						val leaf = leaves[i]
-						val next = c + leaf.parts.size
-						if (start < next) {
-							textElement = leaf.parts[start - c]
-							break
-						}
-						c = next
-					}
-					textCursorVisible = true
-					textCursor.x = textElement!!.textFieldX + tF.x
-					textCursor.y = textElement.textFieldY + tF.y
-					textCursor.scaleY = textElement.lineHeight / textCursor.height
+				val textElement = tF.contents.textElements.getOrNull(start - 1)
+				if (textElement == null) {
+					// No content yet.
+					val pad = tF.flowStyle.padding
+					textCursor.x = when (tF.flowStyle.horizontalAlign) {
+						FlowHAlign.JUSTIFY, FlowHAlign.LEFT -> pad.left
+						FlowHAlign.CENTER -> pad.reduceWidth2(tF.width) / 2f + pad.left
+						FlowHAlign.RIGHT -> tF.width - pad.right
+					} + tF.x
+					textCursor.y = tF.flowStyle.padding.top + tF.y
+					val lineHeight = BitmapFontRegistry.getFont(charStyle)?.data?.lineHeight?.toFloat() ?: 0f
+					textCursor.scaleY = lineHeight / textCursor.height
 				} else {
-					val lastSpan = leaves.lastOrNull()?.elements?.lastOrNull()
-					if (lastSpan != null) {
-						textCursorVisible = true
-
-						textCursor.x = lastSpan.textFieldX + tF.x
-						textCursor.y = lastSpan.textFieldY + tF.y
-						textCursor.scaleY = (lastSpan.font?.data?.lineHeight?.toFloat() ?: 0f) / textCursor.height
+					// Place the cursor after the element before the current selection index.
+					if (textElement.clearsLine) {
+						textCursor.x = tF.flowStyle.padding.left + tF.x
+						textCursor.y = textElement.textFieldY + textElement.lineHeight + tF.y
 					} else {
-						textCursorVisible = false
+						textCursor.x = textElement.textFieldX + textElement.width + tF.x
+						textCursor.y = textElement.textFieldY + tF.y
 					}
-
-//					val spanPart = leaves.lastOrNull()?.parts?.lastOrNull()?.parent?.font
-//					textCursor.x = spanPart!!.textFieldX + tF.x
-//					textCursor.y = spanPart.textFieldY + tF.y
-//					textCursor.scaleY = spanPart.lineHeight / textCursor.height
+					textCursor.scaleY = textElement.lineHeight / textCursor.height
 				}
+				textCursorVisible = true
 			} else {
 				textCursorVisible = false
 			}
@@ -322,6 +345,7 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 open class GlTextArea(owner: Owned) : GlTextInput(owner), TextArea {
 
 	init {
+		allowTab = true
 		styleTags.add(TextArea)
 	}
 }

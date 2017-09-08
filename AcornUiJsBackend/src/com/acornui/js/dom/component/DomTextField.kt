@@ -19,7 +19,6 @@ package com.acornui.js.dom.component
 import com.acornui.collection.find2
 import com.acornui.component.*
 import com.acornui.component.layout.algorithm.FlowHAlign
-import com.acornui.component.layout.algorithm.FlowLayoutStyle
 import com.acornui.component.layout.setSize
 import com.acornui.component.text.*
 import com.acornui.core.di.Owned
@@ -76,10 +75,6 @@ open class DomTextField(
 			element.textContent = value
 			invalidate(ValidationFlags.LAYOUT)
 		}
-
-	override var contents: UiComponent
-		get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
-		set(value) {}
 
 	override var htmlText: String?
 		get() = element.innerHTML
@@ -337,7 +332,7 @@ fun CharStyle.applyCss(element: HTMLElement) {
 		fontSize = "${size}px"
 		fontWeight = if (bold) "bold" else "normal"
 		fontStyle = if (italic) "italic" else "normal"
-		textDecoration = if (isUnderlined) "underline" else "none"
+		textDecoration = if (underlined) "underline" else "none"
 		color = colorTint.toCssString()
 
 		val selectable = selectable

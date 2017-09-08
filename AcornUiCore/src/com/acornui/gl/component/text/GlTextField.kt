@@ -74,26 +74,18 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 
 	private val _textSpan = span()
 	private val _textContents = textFlow { +_textSpan }
-	protected var _contents: UiComponent = addChild(_textContents)
+	protected var _contents: TextFieldLeaf = addChild(_textContents)
 
 	/**
 	 * The TextField contents.
 	 */
-	override var contents: UiComponent
+	var contents: TextFieldLeaf
 		get() = _contents
 		set(value) {
 			if (_contents == value) return
 			removeChild(_contents)
 			_contents = value
 			addChild(value)
-		}
-
-	private val _leaves = ArrayList<TextFieldLeaf>()
-
-	val leaves: List<TextFieldLeaf>
-		get() {
-			validate(ValidationFlags.HIERARCHY_ASCENDING)
-			return _leaves
 		}
 
 	init {
@@ -112,16 +104,6 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 		selectionManager.selectionChanged.add(this::selectionChangedHandler)
 
 		drag.drag.add(this::dragHandler)
-
-	}
-
-	override fun updateHierarchyAscending() {
-		_leaves.clear()
-		_contents.childWalkLevelOrder<UiComponent> {
-			if (it is TextFieldLeaf)
-				_leaves.add(it)
-			TreeWalk.CONTINUE
-		}
 	}
 
 	private fun selectionChangedHandler(old: List<SelectionRange>, new: List<SelectionRange>) {
@@ -135,17 +117,10 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 	private fun getNewSelection(event: DragInteraction): List<SelectionRange>? {
 		val startElement = event.startElement ?: return null
 		val leaf = startElement.parentWalk { it !is TextFieldLeaf } as TextFieldLeaf? ?: return null
-		var rangeStart = 0
-		for (i in 0.._leaves.lastIndex) {
-			val iLeaf = _leaves[i]
-			if (iLeaf == leaf) break
-			rangeStart += iLeaf.parts.size
-		}
-
 		val p1 = event.startPositionLocal
 		val p2 = event.positionLocal
-		val p1A = rangeStart + leaf.getSelectionIndex(p1.x - leaf.x, p1.y - leaf.y)
-		val p2A = rangeStart + leaf.getSelectionIndex(p2.x - leaf.x, p2.y - leaf.y)
+		val p1A = leaf.getSelectionIndex(p1.x - leaf.x, p1.y - leaf.y)
+		val p2A = leaf.getSelectionIndex(p2.x - leaf.x, p2.y - leaf.y)
 		if (p2A > p1A) {
 			return listOf(SelectionRange(selectionTarget, p1A, p2A))
 		} else {
@@ -165,15 +140,11 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 
 	override var text: String
 		get() {
-			val leaves = leaves
 			val builder = StringBuilder()
-			for (i in 0..leaves.lastIndex) {
-				val leaf = leaves[i]
-				for (j in 0..leaf.parts.lastIndex) {
-					val char = leaf.parts[j].char
-					if (char != null)
-						builder.append(char)
-				}
+			for (i in 0.._contents.textElements.lastIndex) {
+				val char = _contents.textElements[i].char
+				if (char != null)
+					builder.append(char)
 			}
 			return builder.toString()
 		}
@@ -192,12 +163,7 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 	}
 
 	protected open fun updateSelection() {
-		var rangeStart = 0
-		for (i in 0.._leaves.lastIndex) {
-			val leaf = _leaves[i]
-			leaf.setSelection(rangeStart, selectionManager.selection.filter { it.target == selectionTarget })
-			rangeStart += leaf.parts.size
-		}
+		_contents.setSelection(0, selectionManager.selection.filter { it.target == selectionTarget })
 	}
 
 	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
@@ -234,7 +200,16 @@ class TfCharStyle {
 	val backgroundColor: Color = Color()
 }
 
-interface TextSpanElement : ElementParent<TextElement>, Styleable {
+interface TextSpanElementRo {
+
+	/**
+	 * A placeholder representing the position and size of an element for the end of this span.
+	 */
+	val placeholder: TextElementRo
+
+}
+
+interface TextSpanElement : MutableElementParent<TextElement>, Styleable {
 	var parent: UiComponent?
 	val font: BitmapFont?
 
@@ -246,7 +221,9 @@ interface TextSpanElement : ElementParent<TextElement>, Styleable {
 	operator fun String?.unaryPlus() {
 		if (this == null) return
 		for (i in 0..length - 1) {
-			addElement(char(this[i]))
+			val c = this[i]
+			if (c != '\r')
+				addElement(char(c))
 		}
 	}
 }
@@ -362,21 +339,17 @@ var TextSpanElement.text: String
 		+value
 	}
 
-/**
- * The smallest unit that can be inside of a TextField.
- * This will generally represent a single character, but may be more complex components.
- */
-interface TextElement : Disposable {
+interface TextElementRo {
 
 	/**
 	 * Set by the TextSpanElement when this is part is added.
 	 */
-	var parent: TextSpanElement?
+	val parent: TextSpanElement?
 
 	val char: Char?
 
-	var x: Float
-	var y: Float
+	val x: Float
+	val y: Float
 
 	/**
 	 * The amount of horizontal space to advance after this part.
@@ -397,7 +370,7 @@ interface TextElement : Disposable {
 	/**
 	 * If set, this part should be drawn to fit this width.
 	 */
-	var explicitWidth: Float?
+	val explicitWidth: Float?
 
 	/**
 	 * The explicit width, if it's set, or the xAdvance.
@@ -429,6 +402,26 @@ interface TextElement : Disposable {
 	 * If true, this part will not cause a wrap.
 	 */
 	val overhangs: Boolean
+}
+
+/**
+ * The smallest unit that can be inside of a TextField.
+ * This will generally represent a single character, but may be more complex components.
+ */
+interface TextElement : TextElementRo, Disposable {
+
+	/**
+	 * Set by the TextSpanElement when this is part is added.
+	 */
+	override var parent: TextSpanElement?
+
+	override var x: Float
+	override var y: Float
+
+	/**
+	 * If set, this part should be drawn to fit this width.
+	 */
+	override var explicitWidth: Float?
 
 	/**
 	 * If set to true, this part will be rendered using the selected styling.
@@ -453,21 +446,79 @@ fun span(init: ComponentInit<TextSpanElement> = {}): TextSpanElementImpl {
 	return s
 }
 
-interface TextFieldLeaf : UiComponent, ElementParent<TextSpanElement> {
+interface TextFieldLeaf : UiComponent, MutableElementParent<TextSpanElement> {
 
 	/**
-	 * The span parts this leaf contains.
+	 * The text elements this leaf contains.
 	 */
-	val parts: List<TextElement>
+	val textElements: List<TextElement>
+
+	/**
+	 * The list of current lines. This is valid after a layout.
+	 */
+	val lines: List<LineInfoRo>
 
 	/**
 	 * @param x The relative x coordinate
 	 * @param y The relative y coordinate
-	 * @return Returns the relative index of the object nearest [x,y]. The object index will be separated at the half-width of
-	 * the character. This range will be between [0, size]
+	 * @return Returns the relative index of the text element nearest [x,y]. The text element index will be separated at
+	 * the half-width of the element. This range will be between [0, size]
 	 */
 	fun getSelectionIndex(x: Float, y: Float): Int
 }
+
+/**
+ * Returns the line at the given text element index.
+ * @param index The text element index for which to find the line information. This index should be relative to
+ * this leaf.
+ */
+fun TextFieldLeaf.getLineAt(index: Int): LineInfoRo? {
+	val lines = lines
+	val lineIndex = lines.sortedInsertionIndex(index, { i, line -> i.compareTo(line.endIndex) })
+	return lines.getOrNull(lineIndex)
+}
+
+//fun GlTextField.getElementIndexInfo(index: Int, out: ElementIndexInfo) {
+//
+//}
+//
+//class ElementIndexInfo {
+//
+//	/**
+//	 * The index of the [TextElement] relative to the [GlTextField]
+//	 */
+//	var elementIndex: Int = -1
+//
+//	/**
+//	 * The index of the [TextFieldLeaf] within the [GlTextField].
+//	 */
+//	var leafIndex: Int = -1
+//
+//	/**
+//	 * The index of the [TextElement] relative to the [TextFieldLeaf].
+//	 */
+//	var leafLocal: Int = -1
+//
+//	/**
+//	 * The index of the [TextSpanElement] relative to the [TextFieldLeaf]
+//	 */
+//	var spanIndex: Int = -1
+//
+//	/**
+//	 * The index of the [TextElement] relative to the [TextSpanElement]
+//	 */
+//	var spanLocal: Int = -1
+//
+//	/**
+//	 * The index of the [LineInfoRo] relative to the [TextFieldLeaf]
+//	 */
+//	var lineIndex: Int = -1
+//
+//	/**
+//	 * The index of the [TextElement] relative to the [LineInfoRo]
+//	 */
+//	var lineLocal: Int = -1
+//}
 
 /**
  * Sets the text selection.
@@ -475,7 +526,7 @@ interface TextFieldLeaf : UiComponent, ElementParent<TextSpanElement> {
  * @param selection A list of ranges that are selected.
  */
 fun TextFieldLeaf.setSelection(rangeStart: Int, selection: List<SelectionRange>) {
-	val parts = this.parts
+	val parts = this.textElements
 	for (i in 0..parts.lastIndex) {
 		val selected = selection.indexOfFirst2 { it.contains(i + rangeStart) } != -1
 		parts[i].setSelected(selected)
@@ -502,12 +553,12 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
 	/**
 	 * The list of current lines. This is valid after a layout.
 	 */
-	val lines: List<LineInfoRo>
+	override val lines: List<LineInfoRo>
 		get() = _lines
 
 	private val _parts = ArrayList<TextElement>()
 
-	override val parts: List<TextElement>
+	override val textElements: List<TextElement>
 		get() {
 			validate(ValidationFlags.HIERARCHY_ASCENDING)
 			return _parts
@@ -563,18 +614,30 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
 		var spanPartIndex = 0
 		while (spanPartIndex < _parts.size) {
 			val part = _parts[spanPartIndex]
+			part.explicitWidth = null
 			part.x = x
 
-			val partW = part.xAdvance
+			if (part.clearsTabstop) {
+				val font = part.parent!!.font
+				if (font != null) {
+					val spaceSize = (font.data.glyphs[' ']?.advanceX?.toFloat() ?: 6f)
+					val tabSize = spaceSize * flowStyle.tabSize
+					val tabIndex = floor(x / tabSize) + 1
+					var w = tabIndex * tabSize - x
+					// I'm not sure what standard text flows do for this, but if the tab size is too small, skip to
+					// the next tabstop.
+					if (w < spaceSize * 0.9f) w += tabSize
+					part.explicitWidth = w
+				}
+			}
+
+			val partW = part.width
 
 			// If this is multiline text and we extend beyond the right edge,then push the current line and start a new one.
 			val extendsEdge = flowStyle.multiline && (!part.overhangs && availableWidth != null && x + partW > availableWidth)
 			val isLast = spanPartIndex == _parts.lastIndex
 			if (isLast || part.clearsLine || extendsEdge) {
-				if (isLast) {
-					spanPartIndex++
-					currentLine.endIndex = spanPartIndex
-				} else {
+				if (extendsEdge) {
 					// Find the last good breaking point.
 					var breakIndex = _parts.indexOfLast2(spanPartIndex, currentLine.startIndex) { it.isBreaking }
 					if (breakIndex == -1) breakIndex = spanPartIndex - 1
@@ -582,6 +645,9 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
 					currentLine.endIndex = if (endIndex == -1) spanPartIndex + 1
 					else endIndex
 					spanPartIndex = currentLine.endIndex
+				} else {
+					spanPartIndex++
+					currentLine.endIndex = spanPartIndex
 				}
 				_lines.add(currentLine)
 				currentLine = linesPool.obtain()
@@ -591,19 +657,6 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
 				val nextPart = _parts.getOrNull(spanPartIndex + 1)
 				val kerning = if (nextPart == null) 0f else part.getKerning(nextPart)
 				x += partW + kerning
-
-				if (part.clearsTabstop) {
-					val font = part.parent!!.font
-					if (font != null) {
-						val spaceSize = (font.data.glyphs[' ']?.advanceX?.toFloat() ?: 6f)
-						val tabSize = spaceSize * flowStyle.tabSize
-						val tabIndex = floor(x / tabSize) + 1
-						var w = tabIndex * tabSize - x
-						if (w < spaceSize) w += tabSize
-						part.explicitWidth = w
-						x += w
-					}
-				}
 				spanPartIndex++
 			}
 		}
@@ -708,7 +761,7 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
 		val line = _lines[lineIndex]
 		return _parts.sortedInsertionIndex(x, {
 			x, part ->
-			x.compareTo(part.x + (part.width) / 2f)
+			if (part.clearsLine) -1 else x.compareTo(part.x + part.width / 2f)
 		}, line.startIndex, line.endIndex)
 	}
 
@@ -780,7 +833,7 @@ class TfChar private constructor() : TextElement, Clearable {
 	private var u2 = 0f
 	private var v2 = 0f
 
-	private var visible = true
+	private var visible = false
 
 	/**
 	 * A cache of the vertex positions in world space.
@@ -935,9 +988,17 @@ class TfChar private constructor() : TextElement, Clearable {
 	}
 
 	override fun clear() {
+		explicitWidth = null
 		char = charPlaceholder
 		style = null
 		parent = null
+		x = 0f
+		y = 0f
+		u = 0f
+		v = 0f
+		u2 = 0f
+		v2 = 0f
+		visible = false
 	}
 
 	companion object {
@@ -953,3 +1014,26 @@ class TfChar private constructor() : TextElement, Clearable {
 	}
 }
 
+class LastTextElement(override val parent: TextSpanElement) : TextElementRo {
+
+	override val char: Char? = null
+	override var x = 0f
+	override var y = 0f
+
+	override val xAdvance = 0f
+
+	override val lineHeight: Float
+		get() = (parent.font?.data?.lineHeight?.toFloat() ?: 0f)
+
+	override val baseline: Float
+		get() = (parent.font?.data?.baseLine?.toFloat() ?: 0f)
+
+	override val explicitWidth = 0f
+
+	override fun getKerning(next: TextElement) = 0f
+
+	override val clearsLine = false
+	override val clearsTabstop = false
+	override val isBreaking = false
+	override val overhangs = false
+}
