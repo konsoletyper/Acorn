@@ -3,12 +3,12 @@ package com.acornui.core.input.interaction
 import com.acornui.collection.ClearableObjectPool
 import com.acornui.collection.Clearable
 import com.acornui.component.InteractiveElement
+import com.acornui.component.InteractiveElementRo
 import com.acornui.core.input.InteractionEventBase
 import com.acornui.core.input.InteractionType
 import com.acornui.math.MathUtils
 import com.acornui.math.Vector2
 import com.acornui.math.Vector2Ro
-
 
 class TouchInteraction : InteractionEventBase() {
 
@@ -35,7 +35,7 @@ class TouchInteraction : InteractionEventBase() {
 	 */
 	val touches = ArrayList<Touch>()
 
-	override fun localize(currentTarget: InteractiveElement) {
+	override fun localize(currentTarget: InteractiveElementRo) {
 		super.localize(currentTarget)
 		for (targetTouch in targetTouches) {
 			targetTouch.localize(currentTarget)
@@ -116,8 +116,8 @@ class Touch : Clearable {
 	var radiusY: Float = 0f
 	var rotationAngle: Float = 0f
 
-	var target: InteractiveElement? = null
-	var currentTarget: InteractiveElement? = null
+	var target: InteractiveElementRo? = null
+	var currentTarget: InteractiveElementRo? = null
 
 	private var _localPositionIsValid = false
 	private val _localPosition: Vector2 = Vector2()
@@ -146,7 +146,7 @@ class Touch : Clearable {
 	val localY: Float
 		get() = localPosition().y
 
-	fun localize(currentTarget: InteractiveElement) {
+	fun localize(currentTarget: InteractiveElementRo) {
 		this.currentTarget = currentTarget
 		_localPositionIsValid = false
 	}

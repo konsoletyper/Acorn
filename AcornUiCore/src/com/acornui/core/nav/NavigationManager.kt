@@ -1,20 +1,24 @@
 package com.acornui.core.nav
 
-import com.acornui.collection.equalsArray
-import com.acornui.component.*
-import com.acornui.core.Child
-import com.acornui.core.Disposable
-import com.acornui.core.Lifecycle
-import com.acornui.core.focus.focusFirst
-import com.acornui.core.input.interaction.click
-import com.acornui.factory.LazyInstance
-import com.acornui.signal.Signal
-import com.acornui.signal.Signal1
 import com.acornui.browser.decodeUriComponent2
 import com.acornui.browser.encodeUriComponent2
 import com.acornui.collection.Clearable
+import com.acornui.collection.equalsArray
+import com.acornui.component.Button
+import com.acornui.component.ElementContainer
+import com.acornui.component.UiComponent
+import com.acornui.component.showAssetLoadingBar
+import com.acornui.core.Child
+import com.acornui.core.Disposable
+import com.acornui.core.Lifecycle
+import com.acornui.core.LifecycleRo
 import com.acornui.core.di.*
+import com.acornui.core.focus.focusFirst
+import com.acornui.core.input.interaction.click
+import com.acornui.factory.LazyInstance
 import com.acornui.factory.disposeInstance
+import com.acornui.signal.Signal
+import com.acornui.signal.Signal1
 
 
 interface NavigationManager : Clearable, Disposable {
@@ -173,6 +177,7 @@ class NavEventImpl : NavEvent {
 
 interface NavBindable : Child, Scoped {}
 
+@Suppress("UNUSED_ANONYMOUS_PARAMETER")
 /**
  * A NavBinding watches the [NavigationManager] and invokes signals when the path section at the host's depth changes.
  */
@@ -193,20 +198,20 @@ class NavBinding(
 	private var params: Map<String, String> = emptyMap()
 
 	private val activatedHandler = {
-		c: Lifecycle ->
+		c: LifecycleRo ->
 		refreshDepth()
 		navManager.changed.add(navChangedHandler)
 		onNavChanged()
 	}
 
 	private val deactivatedHandler = {
-		c: Lifecycle ->
+		c: LifecycleRo ->
 		depth = -1
 		navManager.changed.remove(navChangedHandler)
 	}
 
 	private val disposedHandler = {
-		c: Disposable ->
+		c: LifecycleRo ->
 		dispose()
 	}
 

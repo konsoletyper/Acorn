@@ -134,7 +134,7 @@ class GlScrollRect(
 		out.set(_maskBounds)
 	}
 
-	override fun intersectsGlobalRay(globalRay: Ray, intersection: Vector3): Boolean {
+	override fun intersectsGlobalRay(globalRay: RayRo, intersection: Vector3): Boolean {
 		return maskClip.intersectsGlobalRay(globalRay, intersection)
 	}
 

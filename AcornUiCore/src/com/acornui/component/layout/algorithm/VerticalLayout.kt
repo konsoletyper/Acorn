@@ -28,7 +28,7 @@ import com.acornui.math.PadRo
 
 class VerticalLayout : LayoutAlgorithm<VerticalLayoutStyle, VerticalLayoutData> {
 
-	override fun calculateSizeConstraints(elements: List<LayoutElement>, props: VerticalLayoutStyle, out: SizeConstraints) {
+	override fun calculateSizeConstraints(elements: List<LayoutElementRo>, props: VerticalLayoutStyle, out: SizeConstraints) {
 		val padding = props.padding
 		val gap = props.gap
 

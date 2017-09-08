@@ -19,6 +19,8 @@ package com.acornui.core.focus
 import com.acornui.component.Container
 import com.acornui.component.layout.LayoutElement
 import com.acornui.component.UiComponent
+import com.acornui.component.UiComponentRo
+import com.acornui.component.layout.LayoutElementRo
 import com.acornui.core.Disposable
 import com.acornui.core.di.DKey
 import com.acornui.core.di.inject
@@ -131,7 +133,7 @@ enum class FocusChangeResult {
  *
  * A focus container does not need to be focusable, although it can be.
  */
-interface FocusContainer : LayoutElement {
+interface FocusContainer : LayoutElementRo {
 
 	/**
 	 * The focus order weight. A higher number means descendant focusable elements will be focused later in the order
@@ -144,7 +146,7 @@ interface FocusContainer : LayoutElement {
 /**
  * An interface for a component that may be focused.
  */
-interface Focusable : UiComponent {
+interface Focusable : UiComponentRo {
 
 	/**
 	 * True if this Focusable object may be focused.

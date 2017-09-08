@@ -22,6 +22,7 @@ import com.acornui.component.NativeContainer
 import com.acornui.component.NativeContainerDummy
 import com.acornui.core.assets.AssetManager
 import com.acornui.core.di.Injector
+import com.acornui.core.di.InjectorImpl
 import com.acornui.core.di.Owned
 import com.acornui.core.di.OwnedImpl
 import com.acornui.core.graphics.Camera
@@ -47,7 +48,7 @@ object MockInjector {
 	}
 
 	fun create(): Injector {
-		val injector = Injector()
+		val injector = InjectorImpl()
 		injector[TimeDriver] = Mockito.mock(TimeDriver::class.java)
 		injector[Window] = Mockito.mock(Window::class.java)
 		injector[MouseState] = Mockito.mock(MouseState::class.java)

@@ -19,6 +19,7 @@ package com.acornui.core.input.interaction
 import com.acornui.component.*
 import com.acornui.core.Disposable
 import com.acornui.core.Lifecycle
+import com.acornui.core.LifecycleRo
 import com.acornui.core.input.*
 import com.acornui.core.time.callLater
 import com.acornui.math.Vector2
@@ -80,9 +81,9 @@ class DragAttachment(
 	private val position = Vector2()
 	private val startPosition = Vector2()
 	private val startPositionLocal = Vector2()
-	private var startElement: InteractiveElement? = null
+	private var startElement: InteractiveElementRo? = null
 
-	private fun targetDeactivatedHandler(c: Lifecycle) {
+	private fun targetDeactivatedHandler(c: LifecycleRo) {
 		stop()
 	}
 
@@ -317,7 +318,7 @@ class DragAttachment(
 
 class DragInteraction : InteractionEventBase() {
 
-	var startElement: InteractiveElement? = null
+	var startElement: InteractiveElementRo? = null
 
 	/**
 	 * The starting position (in window coordinates) for the drag.

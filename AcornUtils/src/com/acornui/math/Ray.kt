@@ -51,7 +51,7 @@ interface RayRo {
 	 * http://math.stackexchange.com/questions/270767/find-intersection-of-two-3d-lines
 	 * @author nbilyk
 	 */
-	fun intersects(ray: Ray, out: Vector3? = null): Boolean
+	fun intersects(ray: RayRo, out: Vector3? = null): Boolean
 
 	/**
 	 * Intersects a [Ray] and a [Plane]. The intersection point is stored in [out] in the case an intersection is
@@ -60,7 +60,7 @@ interface RayRo {
 	 * @param out The vector the intersection point is written to (optional)
 	 * @return True if an intersection is present.
 	 */
-	fun intersects(plane: Plane, out: Vector3?): Boolean
+	fun intersects(plane: PlaneRo, out: Vector3?): Boolean
 
 	/**
 	 * Intersect a [Ray] and a triangle, returning the intersection point in intersection.
@@ -70,7 +70,7 @@ interface RayRo {
 	 * @param out The intersection point (optional)
 	 * @return True in case an intersection is present.
 	 */
-	fun intersects(v1: Vector3, v2: Vector3, v3: Vector3, out: Vector3? = null): Boolean
+	fun intersects(v1: Vector3Ro, v2: Vector3Ro, v3: Vector3Ro, out: Vector3? = null): Boolean
 }
 
 /**
@@ -139,7 +139,7 @@ data class Ray(
 	 * @param direction The direction
 	 * @return this ray for chaining
 	 */
-	fun set(origin: Vector3, direction: Vector3): Ray {
+	fun set(origin: Vector3Ro, direction: Vector3Ro): Ray {
 		this.origin.set(origin)
 		this.direction.set(direction)
 		update()
@@ -170,7 +170,7 @@ data class Ray(
 	 * @param ray The ray
 	 * @return This ray for chaining
 	 */
-	fun set(ray: Ray): Ray {
+	fun set(ray: RayRo): Ray {
 		this.origin.set(ray.origin)
 		this.direction.set(ray.direction)
 		return this
@@ -180,7 +180,7 @@ data class Ray(
 	 * http://math.stackexchange.com/questions/270767/find-intersection-of-two-3d-lines
 	 * @author nbilyk
 	 */
-	override fun intersects(ray: Ray, out: Vector3?): Boolean {
+	override fun intersects(ray: RayRo, out: Vector3?): Boolean {
 		if (this.origin == ray.origin) {
 			out?.set(origin)
 			return true
@@ -220,7 +220,7 @@ data class Ray(
 	 * @param out The vector the intersection point is written to (optional)
 	 * @return True if an intersection is present.
 	 */
-	override fun intersects(plane: Plane, out: Vector3?): Boolean {
+	override fun intersects(plane: PlaneRo, out: Vector3?): Boolean {
 		val denom = direction.dot(plane.normal)
 		if (denom != 0f) {
 			val t = -(origin.dot(plane.normal) + plane.d) / denom
@@ -242,7 +242,7 @@ data class Ray(
 	 * @param out The intersection point (optional)
 	 * @return True in case an intersection is present.
 	 */
-	override fun intersects(v1: Vector3, v2: Vector3, v3: Vector3, out: Vector3?): Boolean {
+	override fun intersects(v1: Vector3Ro, v2: Vector3Ro, v3: Vector3Ro, out: Vector3?): Boolean {
 		plane.set(v1, v2, v3)
 		if (!intersects(plane, v3_3)) return false
 

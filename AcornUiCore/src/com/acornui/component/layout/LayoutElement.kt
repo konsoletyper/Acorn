@@ -18,12 +18,7 @@ package com.acornui.component.layout
 
 import com.acornui.math.*
 
-/**
- * A LayoutElement is a Transformable component that can be used in layout algorithms.
- * It has features responsible for providing explicit dimensions, and returning measured dimensions.
- * @author nbilyk
- */
-interface LayoutElement : BasicLayoutElement, Transformable {
+interface LayoutElementRo : BasicLayoutElementRo, TransformableRo {
 
 	/**
 	 * Returns true if visible and the includeInLayout flag is true. If this is false, this layout element will not
@@ -42,7 +37,7 @@ interface LayoutElement : BasicLayoutElement, Transformable {
 	/**
 	 * Returns true if this primitive intersects with the provided ray (in world coordinates)
 	 */
-	fun intersectsGlobalRay(globalRay: Ray): Boolean {
+	fun intersectsGlobalRay(globalRay: RayRo): Boolean {
 		val v = Vector3.obtain()
 		val ret = intersectsGlobalRay(globalRay, v)
 		v.free()
@@ -52,14 +47,11 @@ interface LayoutElement : BasicLayoutElement, Transformable {
 	/**
 	 * Returns true if this primitive intersects with the provided ray (in world coordinates)
 	 * If there was an intersection, the intersection vector will be set to the intersection point.
-	 */
-	/**
-	 * Returns true if this layout element intersects with the provided global Ray.
 	 *
 	 * @param globalRay The ray (in world coordinates) to cast.
 	 * @return Returns true if the local ray intersects with the bounding box of this layout element.
 	 */
-	fun intersectsGlobalRay(globalRay: Ray, intersection: Vector3): Boolean {
+	fun intersectsGlobalRay(globalRay: RayRo, intersection: Vector3): Boolean {
 		val bounds = bounds
 		val topLeft = Vector3.obtain()
 		val topRight = Vector3.obtain()
@@ -113,6 +105,22 @@ interface LayoutElement : BasicLayoutElement, Transformable {
 	 * Returns the maximum measured height.
 	 */
 	val maxHeight: Float?
+}
+
+fun LayoutElementRo.clampWidth(value: Float?): Float? {
+	return sizeConstraints.width.clamp(value)
+}
+
+fun LayoutElementRo.clampHeight(value: Float?): Float? {
+	return sizeConstraints.height.clamp(value)
+}
+
+/**
+ * A LayoutElement is a Transformable component that can be used in layout algorithms.
+ * It has features responsible for providing explicit dimensions, and returning measured dimensions.
+ * @author nbilyk
+ */
+interface LayoutElement : LayoutElementRo, BasicLayoutElement, Transformable {
 
 	/**
 	 * Sets the explicit minimum width.
@@ -136,7 +144,7 @@ interface LayoutElement : BasicLayoutElement, Transformable {
 
 }
 
-interface BasicLayoutElement : Sizable, Positionable {
+interface BasicLayoutElementRo : SizableRo, PositionableRo {
 
 	val right: Float
 		get() = x + width
@@ -149,19 +157,20 @@ interface BasicLayoutElement : Sizable, Positionable {
 	 * Most layout containers have a special layout method that statically types the type of
 	 * layout data that a component should have.
 	 */
-	var layoutData: LayoutData?
+	val layoutData: LayoutData?
 }
 
-fun LayoutElement.clampWidth(value: Float?): Float? {
-	return sizeConstraints.width.clamp(value)
+interface BasicLayoutElement : BasicLayoutElementRo, Sizable, Positionable {
+
+	/**
+	 * The layout data to be used in layout algorithms.
+	 * Most layout containers have a special layout method that statically types the type of
+	 * layout data that a component should have.
+	 */
+	override var layoutData: LayoutData?
 }
 
-fun LayoutElement.clampHeight(value: Float?): Float? {
-	return sizeConstraints.height.clamp(value)
-}
-
-interface Sizable {
-
+interface SizableRo {
 	/**
 	 * Returns the measured width.
 	 * If layout is invalid, this will invoke a layout validation.
@@ -192,6 +201,9 @@ interface Sizable {
 	 * Typically one would use [height] in order to retrieve the explicit or measured height.
 	 */
 	val explicitHeight: Float?
+}
+
+interface Sizable : SizableRo {
 
 	/**
 	 * Does the same thing as setting [width] and [height] individually, but may be more efficient depending on

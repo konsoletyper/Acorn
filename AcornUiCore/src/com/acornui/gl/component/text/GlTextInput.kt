@@ -157,7 +157,8 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 		} else if (event.keyCode == Ascii.RIGHT) {
 			val sel = firstSelection
 			if (sel != null) {
-				val next = minOf(tF.contents.elements.size, sel.endIndex + 1)
+//				val next = minOf(tF.contents.elements.size, sel.endIndex + 1)
+				val next = sel.endIndex + 1
 				selectionManager.selection = listOf(SelectionRange(this, next, next))
 			}
 		} else if (event.keyCode == Ascii.UP) {
@@ -304,12 +305,12 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 		textCursor.visible = textCursorVisible
 	}
 
-	private val TextElement.textFieldX: Float
+	private val TextElementRo.textFieldX: Float
 		get() {
 			return x + (parent?.textFieldX ?: 0f)
 		}
 
-	private val TextElement.textFieldY: Float
+	private val TextElementRo.textFieldY: Float
 		get() {
 			return y + (parent?.textFieldY ?: 0f)
 		}
@@ -317,7 +318,7 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 	private val TextSpanElement.textFieldX: Float
 		get() {
 			var textFieldX = x
-			var p = parent
+			var p: UiComponentRo? = parent
 			while (p != null && p != tF) {
 				textFieldX += p.x
 				p = p.parent
@@ -328,7 +329,7 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 	private val TextSpanElement.textFieldY: Float
 		get() {
 			var textFieldY = y
-			var p = parent
+			var p: UiComponentRo? = parent
 			while (p != null && p != tF) {
 				textFieldY += p.y
 				p = p.parent

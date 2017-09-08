@@ -1,6 +1,7 @@
 package com.acornui.js.dom
 
 import com.acornui.component.InteractiveElement
+import com.acornui.component.InteractiveElementRo
 import com.acornui.component.Stage
 import com.acornui.component.UiComponent
 import com.acornui.core.input.InteractionEvent
@@ -15,7 +16,7 @@ import org.w3c.dom.events.EventTarget
 import kotlin.browser.window
 
 class NativeSignal<T : InteractionEvent>(
-		private val host: InteractiveElement,
+		private val host: InteractiveElementRo,
 		private val jsType: String,
 		private val isCapture: Boolean,
 		private val type: InteractionType<InteractionEvent>,

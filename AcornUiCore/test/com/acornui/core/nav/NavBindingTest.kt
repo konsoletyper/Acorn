@@ -5,6 +5,7 @@ import com.acornui.core.Parent
 import com.acornui.core.di.Injector
 import com.acornui.browser.decodeUriComponent2
 import com.acornui.browser.encodeUriComponent2
+import com.acornui.core.di.InjectorImpl
 import org.junit.Before
 import org.junit.Test
 import java.net.URLDecoder
@@ -24,7 +25,7 @@ class NavBindingTest {
 		}
 	}
 
-	private val mockInjector = Injector()
+	private val mockInjector = InjectorImpl()
 
 	private val navMan: NavigationManager
 		get() = mockInjector.inject(NavigationManager)

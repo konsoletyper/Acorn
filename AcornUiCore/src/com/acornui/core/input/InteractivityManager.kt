@@ -18,6 +18,7 @@ package com.acornui.core.input
 
 import com.acornui.collection.Clearable
 import com.acornui.component.InteractiveElement
+import com.acornui.component.InteractiveElementRo
 import com.acornui.component.UiComponent
 import com.acornui.core.Disposable
 import com.acornui.core.di.DKey
@@ -38,7 +39,7 @@ interface InteractivityManager : Disposable {
 	/**
 	 * Produces a new Signal for the specified interaction type.
 	 */
-	fun <T : InteractionEvent> getSignal(host: InteractiveElement, type: InteractionType<T>, isCapture: Boolean): StoppableSignal<T>
+	fun <T : InteractionEvent> getSignal(host: InteractiveElementRo, type: InteractionType<T>, isCapture: Boolean): StoppableSignal<T>
 
 	/**
 	 * Dispatches an interaction for the layout element at the given stage position.
@@ -62,11 +63,12 @@ interface InteractivityManager : Disposable {
 	 * If both [useCapture] and [useBubble] are false, only the target will have the event dispatched. (Using the
 	 * bubble-phase signal)
 	 */
-	fun dispatch(target: InteractiveElement, event: InteractionEvent, useCapture: Boolean = true, useBubble: Boolean = true)
+	fun dispatch(target: InteractiveElementRo, event: InteractionEvent, useCapture: Boolean = true, useBubble: Boolean = true)
 
 	companion object : DKey<InteractivityManager>
 }
 
+@Suppress("unused")
 data class InteractionType<out T : InteractionEvent>(val displayName: String) {
 
 	override fun toString(): String {
@@ -91,13 +93,13 @@ interface InteractionEvent : Clearable, Stoppable {
 		return propagation.immediatePropagationStopped()
 	}
 
-	var target: InteractiveElement?
-	var currentTarget: InteractiveElement?
+	var target: InteractiveElementRo?
+	var currentTarget: InteractiveElementRo?
 
 	/**
 	 * Changes the local properties of this interaction to be relative to the given target. (Such as touch x, y)
 	 */
-	fun localize(currentTarget: InteractiveElement)
+	fun localize(currentTarget: InteractiveElementRo)
 
 	fun defaultPrevented(): Boolean
 
@@ -115,10 +117,10 @@ abstract class InteractionEventBase : InteractionEvent {
 
 	override var handled: Boolean = false
 
-	override var target: InteractiveElement? = null
-	override var currentTarget: InteractiveElement? = null
+	override var target: InteractiveElementRo? = null
+	override var currentTarget: InteractiveElementRo? = null
 
-	override fun localize(currentTarget: InteractiveElement) {
+	override fun localize(currentTarget: InteractiveElementRo) {
 		this.currentTarget = currentTarget
 	}
 

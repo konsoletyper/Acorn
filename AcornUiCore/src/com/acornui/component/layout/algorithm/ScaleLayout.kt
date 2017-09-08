@@ -35,7 +35,7 @@ object ScaleLayout : LayoutAlgorithm<ScaleLayoutStyle, ScaleLayoutData> {
 
 	override fun createLayoutData() = ScaleLayoutData()
 
-	override fun calculateSizeConstraints(elements: List<LayoutElement>, props: ScaleLayoutStyle, out: SizeConstraints) {
+	override fun calculateSizeConstraints(elements: List<LayoutElementRo>, props: ScaleLayoutStyle, out: SizeConstraints) {
 	}
 
 	override fun layout(explicitWidth: Float?, explicitHeight: Float?, elements: List<LayoutElement>, props: ScaleLayoutStyle, out: Bounds) {

@@ -26,6 +26,8 @@ import kotlin.properties.ObservableProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
+// TODO: Refactor virtual layouts.
+
 /**
  * A Virtualized layout algorithm is a type of layout that is only given a single layout element to size and position
  * at a time.

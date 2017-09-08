@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package com.acornui.component
 
 import com.acornui.collection.CyclicList
@@ -123,7 +125,6 @@ inline fun <T> ElementParent<T>.iterateElements(body: (T) -> Boolean) {
  */
 interface ElementContainer : Container, MutableElementParent<UiComponent>
 
-
 inline fun <T> MutableElementParent<T>.iterateElementsReversed(body: (T) -> Boolean) {
 	for (i in elements.lastIndex downTo 0) {
 		body(elements[i])
@@ -171,7 +172,7 @@ inline fun <T> MutableElementParent<T>.iterateElementsReversed(body: (T) -> Bool
 open class ElementContainerImpl(
 		owner: Owned,
 		override val native: NativeContainer = owner.inject(NativeContainer.FACTORY_KEY)(owner)
-) : ContainerImpl(owner, native), ElementContainer, Iterable<UiComponent> {
+) : ContainerImpl(owner, native), ElementContainer {
 
 	//-------------------------------------------------------------------------------------------------
 	// Element methods.

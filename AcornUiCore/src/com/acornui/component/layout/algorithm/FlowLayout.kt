@@ -23,6 +23,7 @@ import com.acornui.collection.sortedInsertionIndex
 import com.acornui.component.ComponentInit
 import com.acornui.component.layout.LayoutContainerImpl
 import com.acornui.component.layout.LayoutElement
+import com.acornui.component.layout.LayoutElementRo
 import com.acornui.component.layout.SizeConstraints
 import com.acornui.component.style.StyleBase
 import com.acornui.component.style.StyleType
@@ -44,7 +45,7 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 	val lines: List<LineInfoRo>
 		get() = _lines
 
-	override fun calculateSizeConstraints(elements: List<LayoutElement>, props: FlowLayoutStyle, out: SizeConstraints) {
+	override fun calculateSizeConstraints(elements: List<LayoutElementRo>, props: FlowLayoutStyle, out: SizeConstraints) {
 		val padding = props.padding
 		var minWidth = 0f
 		for (i in 0..elements.lastIndex) {
@@ -168,11 +169,11 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 		return FlowLayoutData()
 	}
 
-	private fun LayoutElement.clearsLine(): Boolean {
+	private fun LayoutElementRo.clearsLine(): Boolean {
 		return (layoutData as FlowLayoutData?)?.clearsLine ?: false
 	}
 
-	private fun LayoutElement.startsNewLine(): Boolean {
+	private fun LayoutElementRo.startsNewLine(): Boolean {
 		return (layoutData as FlowLayoutData?)?.startsNewLine ?: false
 	}
 

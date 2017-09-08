@@ -17,6 +17,7 @@
 package com.acornui.core.input.interaction
 
 import com.acornui.component.InteractiveElement
+import com.acornui.component.InteractiveElementRo
 import com.acornui.core.input.InteractionEventBase
 import com.acornui.core.input.InteractionType
 import com.acornui.core.input.WhichButton
@@ -70,7 +71,7 @@ open class MouseInteraction : InteractionEventBase() {
 	 * On a mouse out interaction, the relatedTarget will be the new over target (or null if there isn't one)
 	 * On a mouse over interaction, the relatedTarget will be the previous over target (or null if there wasn't one)
 	 */
-	var relatedTarget: InteractiveElement? = null
+	var relatedTarget: InteractiveElementRo? = null
 
 	var button: WhichButton = WhichButton.UNKNOWN
 
@@ -103,7 +104,7 @@ open class MouseInteraction : InteractionEventBase() {
 		timestamp = event.timestamp
 	}
 
-	override fun localize(currentTarget: InteractiveElement) {
+	override fun localize(currentTarget: InteractiveElementRo) {
 		super.localize(currentTarget)
 		_localPositionIsValid = false
 	}

@@ -19,12 +19,7 @@ package com.acornui.component.layout
 import com.acornui.core.round
 import com.acornui.math.*
 
-/**
- * The API for reading and modifying a component's 3d transformation.
- * @author nbilyk
- */
-interface Transformable : Positionable {
-
+interface TransformableRo : PositionableRo {
 
 	/**
 	 * This component's transformation matrix.
@@ -42,38 +37,28 @@ interface Transformable : Positionable {
 	 * [rotationX], [rotationY], [rotation],
 	 * [originX], [originY], [originZ]
 	 */
-	var customTransform: Matrix4Ro?
+	val customTransform: Matrix4Ro?
 
-	var rotationX: Float
+	val rotationX: Float
 
-	var rotationY: Float
+	val rotationY: Float
 
 	/**
 	 * Rotation around the Z axis
 	 */
-	var rotation: Float
+	val rotation: Float
 
-	fun setRotation(x: Float = 0f, y: Float = 0f, z: Float = 0f)
+	val scaleX: Float
 
-	//---------------------------------------------------------------------------------------
-	// Transformation and translation methods
-	//---------------------------------------------------------------------------------------
+	val scaleY: Float
 
-	var scaleX: Float
+	val scaleZ: Float
 
-	var scaleY: Float
+	val originX: Float
 
-	var scaleZ: Float
+	val originY: Float
 
-	fun setScaling(x: Float = 1f, y: Float = 1f, z: Float = 1f)
-
-	var originX: Float
-
-	var originY: Float
-
-	var originZ: Float
-
-	fun setOrigin(x: Float, y: Float, z: Float = 0f)
+	val originZ: Float
 
 	/**
 	 * Converts a coordinate from local coordinate space to global coordinate space.
@@ -138,7 +123,7 @@ interface Transformable : Positionable {
 	/**
 	 * Converts a coordinate from this Transformable's coordinate space to the target coordinate space.
 	 */
-	fun convertCoord(coord: Vector3, targetCoordSpace: Transformable): Vector3 {
+	fun convertCoord(coord: Vector3, targetCoordSpace: TransformableRo): Vector3 {
 		return targetCoordSpace.globalToLocal(localToGlobal(coord))
 	}
 
@@ -160,13 +145,62 @@ interface Transformable : Positionable {
 
 }
 
-interface Positionable {
+/**
+ * The API for reading and modifying a component's 3d transformation.
+ * @author nbilyk
+ */
+interface Transformable : TransformableRo, Positionable {
 
-	var x: Float
-	var y: Float
-	var z: Float
+	override var customTransform: Matrix4Ro?
+
+	override var rotationX: Float
+
+	override var rotationY: Float
+
+	/**
+	 * Rotation around the Z axis
+	 */
+	override var rotation: Float
+
+	fun setRotation(x: Float = 0f, y: Float = 0f, z: Float = 0f)
+
+	//---------------------------------------------------------------------------------------
+	// Transformation and translation methods
+	//---------------------------------------------------------------------------------------
+
+	override var scaleX: Float
+
+	override var scaleY: Float
+
+	override var scaleZ: Float
+
+	fun setScaling(x: Float = 1f, y: Float = 1f, z: Float = 1f)
+
+	override var originX: Float
+
+	override var originY: Float
+
+	override var originZ: Float
+
+	fun setOrigin(x: Float, y: Float, z: Float = 0f)
+
+}
+
+interface PositionableRo {
+	val x: Float
+	val y: Float
+	val z: Float
 
 	val position: Vector3Ro
+}
+
+interface Positionable : PositionableRo {
+
+	override var x: Float
+	override var y: Float
+	override var z: Float
+
+	override val position: Vector3Ro
 
 	fun moveTo(value: Vector3Ro) {
 		moveTo(value.x, value.y, value.z)

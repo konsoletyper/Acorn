@@ -25,7 +25,7 @@ import com.acornui.core.focus.Focusable
 import com.acornui.gl.core.Gl20
 import com.acornui.gl.core.GlState
 import com.acornui.math.Bounds
-import com.acornui.math.Ray
+import com.acornui.math.RayRo
 import com.acornui.math.Vector3
 
 /**
@@ -33,7 +33,7 @@ import com.acornui.math.Vector3
  */
 open class GlStageImpl(owner: Owned) : Stage, ElementContainerImpl(owner), FocusContainer, Focusable {
 
-	override val style = bind(StageStyle())
+	override final val style = bind(StageStyle())
 
 	private val gl = inject(Gl20)
 	private val glState = inject(GlState)
@@ -83,7 +83,7 @@ open class GlStageImpl(owner: Owned) : Stage, ElementContainerImpl(owner), Focus
 		out.set(w, h)
 	}
 
-	override fun intersectsGlobalRay(globalRay: Ray, intersection: Vector3): Boolean {
+	override fun intersectsGlobalRay(globalRay: RayRo, intersection: Vector3): Boolean {
 		validate()
 		return true
 	}

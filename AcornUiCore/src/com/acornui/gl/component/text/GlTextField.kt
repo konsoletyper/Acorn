@@ -200,16 +200,13 @@ class TfCharStyle {
 	val backgroundColor: Color = Color()
 }
 
-interface TextSpanElementRo {
-
-	/**
-	 * A placeholder representing the position and size of an element for the end of this span.
-	 */
-	val placeholder: TextElementRo
-
-}
-
 interface TextSpanElement : MutableElementParent<TextElement>, Styleable {
+
+//	/**
+//	 * A placeholder representing the position and size of an element for the end of this span.
+//	 */
+//	val placeholder: TextElementRo
+
 	var parent: UiComponent?
 	val font: BitmapFont?
 
@@ -245,11 +242,11 @@ class TextSpanElementImpl : TextSpanElement {
 
 	override var parent: UiComponent? = null
 
-	override val styleParent: Styleable?
+	override val styleParent: StyleableRo?
 		get() = parent
 
 	override fun invalidateStyles() {
-		styleParent?.invalidateStyles()
+		parent?.invalidateStyles()
 	}
 
 	private val _elements = ArrayList<TextElement>()
@@ -297,7 +294,8 @@ class TextSpanElementImpl : TextSpanElement {
 		for (i in 0.._elements.lastIndex) {
 			val e = _elements[i]
 			e.parent = null
-			if (dispose) e.dispose()
+			if (dispose)
+				e.dispose()
 		}
 		_elements.clear()
 		parent?.invalidate(bubblingFlags)
@@ -381,7 +379,7 @@ interface TextElementRo {
 	/**
 	 * Returns the amount of horizontal space to offset this part from the next part.
 	 */
-	fun getKerning(next: TextElement): Float
+	fun getKerning(next: TextElementRo): Float
 
 	/**
 	 * If true, this element will cause the line to break after this element.
@@ -446,17 +444,12 @@ fun span(init: ComponentInit<TextSpanElement> = {}): TextSpanElementImpl {
 	return s
 }
 
-interface TextFieldLeaf : UiComponent, MutableElementParent<TextSpanElement> {
+interface TextFieldLeaf : UiComponent {
 
 	/**
 	 * The text elements this leaf contains.
 	 */
-	val textElements: List<TextElement>
-
-	/**
-	 * The list of current lines. This is valid after a layout.
-	 */
-	val lines: List<LineInfoRo>
+	val textElements: List<TextElementRo>
 
 	/**
 	 * @param x The relative x coordinate
@@ -465,78 +458,19 @@ interface TextFieldLeaf : UiComponent, MutableElementParent<TextSpanElement> {
 	 * the half-width of the element. This range will be between [0, size]
 	 */
 	fun getSelectionIndex(x: Float, y: Float): Int
-}
 
-/**
- * Returns the line at the given text element index.
- * @param index The text element index for which to find the line information. This index should be relative to
- * this leaf.
- */
-fun TextFieldLeaf.getLineAt(index: Int): LineInfoRo? {
-	val lines = lines
-	val lineIndex = lines.sortedInsertionIndex(index, { i, line -> i.compareTo(line.endIndex) })
-	return lines.getOrNull(lineIndex)
-}
-
-//fun GlTextField.getElementIndexInfo(index: Int, out: ElementIndexInfo) {
-//
-//}
-//
-//class ElementIndexInfo {
-//
-//	/**
-//	 * The index of the [TextElement] relative to the [GlTextField]
-//	 */
-//	var elementIndex: Int = -1
-//
-//	/**
-//	 * The index of the [TextFieldLeaf] within the [GlTextField].
-//	 */
-//	var leafIndex: Int = -1
-//
-//	/**
-//	 * The index of the [TextElement] relative to the [TextFieldLeaf].
-//	 */
-//	var leafLocal: Int = -1
-//
-//	/**
-//	 * The index of the [TextSpanElement] relative to the [TextFieldLeaf]
-//	 */
-//	var spanIndex: Int = -1
-//
-//	/**
-//	 * The index of the [TextElement] relative to the [TextSpanElement]
-//	 */
-//	var spanLocal: Int = -1
-//
-//	/**
-//	 * The index of the [LineInfoRo] relative to the [TextFieldLeaf]
-//	 */
-//	var lineIndex: Int = -1
-//
-//	/**
-//	 * The index of the [TextElement] relative to the [LineInfoRo]
-//	 */
-//	var lineLocal: Int = -1
-//}
-
-/**
- * Sets the text selection.
- * @param rangeStart The starting index of this leaf.
- * @param selection A list of ranges that are selected.
- */
-fun TextFieldLeaf.setSelection(rangeStart: Int, selection: List<SelectionRange>) {
-	val parts = this.textElements
-	for (i in 0..parts.lastIndex) {
-		val selected = selection.indexOfFirst2 { it.contains(i + rangeStart) } != -1
-		parts[i].setSelected(selected)
-	}
+	/**
+	 * Sets the text selection.
+	 * @param rangeStart The starting index of this leaf.
+	 * @param selection A list of ranges that are selected.
+	 */
+	fun setSelection(rangeStart: Int, selection: List<SelectionRange>)
 }
 
 /**
  * A TextFlow component is a container of styleable text spans, to be used inside of a TextField.
  */
-class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
+class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf, MutableElementParent<TextSpanElement> {
 
 	val flowStyle = bind(TextFlowStyle())
 
@@ -550,18 +484,12 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
 
 	private val _lines = ArrayList<LineInfo>()
 
-	/**
-	 * The list of current lines. This is valid after a layout.
-	 */
-	override val lines: List<LineInfoRo>
-		get() = _lines
+	private val _textElements = ArrayList<TextElement>()
 
-	private val _parts = ArrayList<TextElement>()
-
-	override val textElements: List<TextElement>
+	override val textElements: List<TextElementRo>
 		get() {
 			validate(ValidationFlags.HIERARCHY_ASCENDING)
-			return _parts
+			return _textElements
 		}
 
 	@Suppress("FINAL_UPPER_BOUND")
@@ -589,9 +517,9 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
 
 	override fun updateHierarchyAscending() {
 		super.updateHierarchyAscending()
-		_parts.clear()
+		_textElements.clear()
 		for (i in 0.._elements.lastIndex) {
-			_parts.addAll(_elements[i].elements)
+			_textElements.addAll(_elements[i].elements)
 		}
 	}
 
@@ -612,8 +540,8 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
 		var currentLine = linesPool.obtain()
 
 		var spanPartIndex = 0
-		while (spanPartIndex < _parts.size) {
-			val part = _parts[spanPartIndex]
+		while (spanPartIndex < _textElements.size) {
+			val part = _textElements[spanPartIndex]
 			part.explicitWidth = null
 			part.x = x
 
@@ -635,13 +563,13 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
 
 			// If this is multiline text and we extend beyond the right edge,then push the current line and start a new one.
 			val extendsEdge = flowStyle.multiline && (!part.overhangs && availableWidth != null && x + partW > availableWidth)
-			val isLast = spanPartIndex == _parts.lastIndex
+			val isLast = spanPartIndex == _textElements.lastIndex
 			if (isLast || part.clearsLine || extendsEdge) {
 				if (extendsEdge) {
 					// Find the last good breaking point.
-					var breakIndex = _parts.indexOfLast2(spanPartIndex, currentLine.startIndex) { it.isBreaking }
+					var breakIndex = _textElements.indexOfLast2(spanPartIndex, currentLine.startIndex) { it.isBreaking }
 					if (breakIndex == -1) breakIndex = spanPartIndex - 1
-					val endIndex = _parts.indexOfFirst2(breakIndex + 1, spanPartIndex) { !it.overhangs }
+					val endIndex = _textElements.indexOfFirst2(breakIndex + 1, spanPartIndex) { !it.overhangs }
 					currentLine.endIndex = if (endIndex == -1) spanPartIndex + 1
 					else endIndex
 					spanPartIndex = currentLine.endIndex
@@ -654,7 +582,7 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
 				currentLine.startIndex = spanPartIndex
 				x = 0f
 			} else {
-				val nextPart = _parts.getOrNull(spanPartIndex + 1)
+				val nextPart = _textElements.getOrNull(spanPartIndex + 1)
 				val kerning = if (nextPart == null) 0f else part.getKerning(nextPart)
 				x += partW + kerning
 				spanPartIndex++
@@ -670,7 +598,7 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
 
 			var belowBaseline = 0f
 			for (j in line.startIndex..line.endIndex - 1) {
-				val part = _parts[j]
+				val part = _textElements[j]
 				val b = part.lineHeight - part.baseline
 				if (b > belowBaseline) belowBaseline = b
 				if (part.baseline > line.baseline) line.baseline = part.baseline
@@ -702,16 +630,16 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
 			if (flowStyle.horizontalAlign == FlowHAlign.JUSTIFY &&
 					line.size > 1 &&
 					_lines.last() != line &&
-					!_parts[line.endIndex - 1].clearsLine
+					!_textElements[line.endIndex - 1].clearsLine
 					) {
 				// Apply JUSTIFY spacing if this is not the last line, and there are more than one elements.
-				val lastIndex = _parts.indexOfLast2(line.endIndex - 1, line.startIndex) { !it.overhangs }
-				val numSpaces = _parts.count2(line.startIndex, lastIndex) { it.char == ' ' }
+				val lastIndex = _textElements.indexOfLast2(line.endIndex - 1, line.startIndex) { !it.overhangs }
+				val numSpaces = _textElements.count2(line.startIndex, lastIndex) { it.char == ' ' }
 				if (numSpaces > 0) {
 					val hGap = remainingSpace / numSpaces
 					var justifyOffset = 0f
 					for (i in line.startIndex..line.endIndex - 1) {
-						val part = _parts[i]
+						val part = _textElements[i]
 						part.x = (part.x + justifyOffset).floor()
 						if (i < lastIndex && part.char == ' ') {
 							part.explicitWidth = part.xAdvance + hGap.ceil()
@@ -725,7 +653,7 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
 		}
 
 		for (i in line.startIndex..line.endIndex - 1) {
-			val part = _parts[i]
+			val part = _textElements[i]
 
 			val yOffset = when (flowStyle.verticalAlign) {
 				FlowVAlign.TOP -> 0f
@@ -745,24 +673,31 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
 		val topClip = padding.top
 		val rightClip = (explicitWidth ?: Float.MAX_VALUE) - padding.right
 		val bottomClip = (explicitHeight ?: Float.MAX_VALUE) - padding.bottom
-		for (i in 0.._parts.lastIndex) {
-			_parts[i].validateVertices(concatenatedTransform, leftClip, topClip, rightClip, bottomClip)
+		for (i in 0.._textElements.lastIndex) {
+			_textElements[i].validateVertices(concatenatedTransform, leftClip, topClip, rightClip, bottomClip)
 		}
 	}
 
 	override fun getSelectionIndex(x: Float, y: Float): Int {
-		if (lines.isEmpty()) return 0
-		if (y < lines.first().y) return 0
-		if (y >= lines.last().bottom) return _parts.size
+		if (_lines.isEmpty()) return 0
+		if (y < _lines.first().y) return 0
+		if (y >= _lines.last().bottom) return _textElements.size
 		val lineIndex = _lines.sortedInsertionIndex(y, {
 			y, line ->
 			y.compareTo(line.bottom)
 		})
 		val line = _lines[lineIndex]
-		return _parts.sortedInsertionIndex(x, {
+		return _textElements.sortedInsertionIndex(x, {
 			x, part ->
 			if (part.clearsLine) -1 else x.compareTo(part.x + part.width / 2f)
 		}, line.startIndex, line.endIndex)
+	}
+
+	override fun setSelection(rangeStart: Int, selection: List<SelectionRange>) {
+		for (i in 0.._textElements.lastIndex) {
+			val selected = selection.indexOfFirst2 { it.contains(i + rangeStart) } != -1
+			_textElements[i].setSelected(selected)
+		}
 	}
 
 	override fun updateConcatenatedColorTransform() {
@@ -776,8 +711,8 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf {
 
 	override fun draw() {
 		glState.camera(camera)
-		for (i in 0.._parts.lastIndex) {
-			_parts[i].render(glState)
+		for (i in 0.._textElements.lastIndex) {
+			_textElements[i].render(glState)
 		}
 		super.draw()
 	}
@@ -822,7 +757,7 @@ class TfChar private constructor() : TextElement, Clearable {
 
 	override var explicitWidth: Float? = null
 
-	override fun getKerning(next: TextElement): Float {
+	override fun getKerning(next: TextElementRo): Float {
 		val d = glyph?.data ?: return 0f
 		val c = next.char ?: return 0f
 		return d.getKerning(c).toFloat()
@@ -1030,7 +965,7 @@ class LastTextElement(override val parent: TextSpanElement) : TextElementRo {
 
 	override val explicitWidth = 0f
 
-	override fun getKerning(next: TextElement) = 0f
+	override fun getKerning(next: TextElementRo) = 0f
 
 	override val clearsLine = false
 	override val clearsTabstop = false

@@ -34,7 +34,7 @@ import com.acornui.math.PadRo
  */
 class StackLayout : LayoutAlgorithm<StackLayoutStyle, StackLayoutData> {
 
-	override fun calculateSizeConstraints(elements: List<LayoutElement>, props: StackLayoutStyle, out: SizeConstraints) {
+	override fun calculateSizeConstraints(elements: List<LayoutElementRo>, props: StackLayoutStyle, out: SizeConstraints) {
 		val padding = props.padding
 		for (i in 0..elements.lastIndex) {
 			out.bound(elements[i].sizeConstraints)

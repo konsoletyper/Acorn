@@ -42,7 +42,7 @@ open class BasicUiSkin(
 		val target: UiComponent
 ) : Scoped {
 
-	override final val injector: Injector = target.injector
+	override final val injector = target.injector
 
 	protected val theme = inject(Theme)
 
@@ -805,7 +805,7 @@ open class IconButtonSkinPart(
 	}
 
 	override var label: String
-		get() = textField.text ?: ""
+		get() = textField.text
 		set(value) {
 			textField.text = value
 		}

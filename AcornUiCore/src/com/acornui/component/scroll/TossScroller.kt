@@ -18,6 +18,7 @@ package com.acornui.component.scroll
 
 import com.acornui.collection.poll
 import com.acornui.component.InteractiveElement
+import com.acornui.component.InteractiveElementRo
 import com.acornui.component.UiComponent
 import com.acornui.component.createOrReuseAttachment
 import com.acornui.core.AppConfig
@@ -78,7 +79,7 @@ class TossScroller(
 	private val velocity = Vector2()
 
 	private val event = DragInteraction()
-	private var startElement: InteractiveElement? = null
+	private var startElement: InteractiveElementRo? = null
 	private val startPosition: Vector2 = Vector2()
 	private val position: Vector2 = Vector2()
 

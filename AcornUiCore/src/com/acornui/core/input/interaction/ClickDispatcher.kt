@@ -3,6 +3,7 @@ package com.acornui.core.input.interaction
 import com.acornui.collection.arrayListPool
 import com.acornui.component.Stage
 import com.acornui.component.UiComponent
+import com.acornui.component.UiComponentRo
 import com.acornui.core.Disposable
 import com.acornui.core.ancestry
 import com.acornui.core.di.Injector
@@ -28,10 +29,10 @@ open class ClickDispatcher(
 
 	var multiClickSpeed: Int = 400
 
-	private val downButtons: Array<ArrayList<UiComponent>?> = Array(6, { null }) // TODO: Kotlin bug: Enum.values.size not working.
+	private val downButtons: Array<ArrayList<UiComponentRo>?> = Array(6, { null }) // TODO: Kotlin bug: Enum.values.size not working.
 	private val clickEvent = ClickInteraction()
 
-	private var lastTarget: UiComponent? = null
+	private var lastTarget: UiComponentRo? = null
 	private var currentCount = 0
 	private var previousTimestamp = 0L
 
@@ -56,13 +57,13 @@ open class ClickDispatcher(
 		}
 	}
 
-	private fun setDownElement(downElement: UiComponent, ordinal: Int) {
+	private fun setDownElement(downElement: UiComponentRo, ordinal: Int) {
 		if (lastTarget != downElement) {
 			lastTarget = downElement
 			currentCount = 1
 		}
 		@Suppress("UNCHECKED_CAST")
-		val ancestry = arrayListPool.obtain() as ArrayList<UiComponent>
+		val ancestry = arrayListPool.obtain() as ArrayList<UiComponentRo>
 		downElement.ancestry(ancestry)
 		downButtons[ordinal] = ancestry
 	}

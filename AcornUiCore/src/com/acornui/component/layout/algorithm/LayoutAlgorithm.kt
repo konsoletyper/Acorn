@@ -18,6 +18,7 @@ package com.acornui.component.layout.algorithm
 
 import com.acornui.component.layout.LayoutData
 import com.acornui.component.layout.LayoutElement
+import com.acornui.component.layout.LayoutElementRo
 import com.acornui.component.layout.SizeConstraints
 import com.acornui.math.Bounds
 import com.acornui.signal.Signal0
@@ -38,7 +39,7 @@ interface LayoutAlgorithm<in S, out T : LayoutData> : LayoutDataProvider<T> {
 	 * @param out This will be set to the  size constraints for the provided elements. This will describe the minimum,
 	 * and maximum dimensions for the laid out elements.
 	 */
-	fun calculateSizeConstraints(elements: List<LayoutElement>, props: S, out: SizeConstraints)
+	fun calculateSizeConstraints(elements: List<LayoutElementRo>, props: S, out: SizeConstraints)
 
 	/**
 	 * Sizes and positions the given layout elements.

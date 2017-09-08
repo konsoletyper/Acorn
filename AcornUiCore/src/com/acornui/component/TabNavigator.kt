@@ -38,7 +38,7 @@ open class TabNavigator(owner: Owned) : ContainerImpl(owner), LayoutDataProvider
 	val style = bind(TabNavigatorStyle())
 
 	protected val contents = scrollArea()
-	protected val tabBarContainer: Container
+	protected val tabBarContainer: UiComponent
 	protected lateinit var tabBar: HorizontalLayoutContainer
 
 	private var background: UiComponent? = null

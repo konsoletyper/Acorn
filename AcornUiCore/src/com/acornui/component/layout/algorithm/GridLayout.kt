@@ -57,7 +57,7 @@ class GridLayout : LayoutAlgorithm<GridLayoutStyle, GridLayoutData> {
 
 	private val rowOccupancy = ArrayList<Int>()
 
-	override fun calculateSizeConstraints(elements: List<LayoutElement>, props: GridLayoutStyle, out: SizeConstraints) {
+	override fun calculateSizeConstraints(elements: List<LayoutElementRo>, props: GridLayoutStyle, out: SizeConstraints) {
 		var minWidth: Float = 0f
 		for (c in props.columns) {
 			if (c.minWidth != null) minWidth += c.minWidth!!

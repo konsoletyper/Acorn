@@ -17,6 +17,7 @@
 package com.acornui.core.input.interaction
 
 import com.acornui.component.UiComponent
+import com.acornui.component.UiComponentRo
 import com.acornui.component.createOrReuseAttachment
 import com.acornui.component.stage
 import com.acornui.component.style.StyleBase
@@ -29,7 +30,7 @@ import com.acornui.core.time.time
 import com.acornui.core.time.timer
 
 class DownRepeat(
-		private val target: UiComponent) : Disposable {
+		private val target: UiComponentRo) : Disposable {
 
 	private val mouseState = target.inject(MouseState)
 	private val stage = target.stage
@@ -94,11 +95,11 @@ class DownRepeat(
 /**
  * Returns true if the down repeat interaction is enabled on this [UiComponent].
  */
-fun UiComponent.downRepeatEnabled(): Boolean {
+fun UiComponentRo.downRepeatEnabled(): Boolean {
 	return getAttachment<DownRepeat>(DownRepeat) != null
 }
 
-fun UiComponent.enableDownRepeat(): DownRepeat {
+fun UiComponentRo.enableDownRepeat(): DownRepeat {
 	return createOrReuseAttachment(DownRepeat, { DownRepeat(this) })
 }
 
@@ -108,7 +109,7 @@ fun UiComponent.enableDownRepeat(): DownRepeat {
  * @param repeatInterval Once the repeat dispatching begins, subsequent events are dispatched at this interval (in
  * seconds).
  */
-fun UiComponent.enableDownRepeat(repeatDelay: Float, repeatInterval: Float): DownRepeat {
+fun UiComponentRo.enableDownRepeat(repeatDelay: Float, repeatInterval: Float): DownRepeat {
 	return createOrReuseAttachment(DownRepeat) {
 		val dR = DownRepeat(this)
 		dR.style.repeatDelay = repeatDelay
@@ -117,7 +118,7 @@ fun UiComponent.enableDownRepeat(repeatDelay: Float, repeatInterval: Float): Dow
 	}
 }
 
-fun UiComponent.disableDownRepeat() {
+fun UiComponentRo.disableDownRepeat() {
 	removeAttachment<DownRepeat>(DownRepeat)?.dispose()
 }
 

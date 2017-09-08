@@ -13,26 +13,41 @@ import com.acornui.core.Disposable
 import com.acornui.observe.Observable
 import com.acornui.observe.bind
 
-interface Styleable {
+interface StyleableRo {
 
 	/**
 	 * The current [StyleTag] objects added. This list must be unique.
 	 *
 	 * The curated tags list will be passed to the style entry filter
 	 */
-	val styleTags: MutableList<StyleTag>
+	val styleTags: List<StyleTag>
 
 	/**
 	 * A list of style rules that will be queried in determining calculated values for bound style objects.
 	 */
-	val styleRules: MutableList<StyleRule<*>>
+	val styleRules: List<StyleRule<*>>
 
 	fun <T : Style> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>)
 
 	/**
 	 * The next ancestor of this styleable component.
 	 */
-	val styleParent: Styleable?
+	val styleParent: StyleableRo?
+}
+
+interface Styleable : StyleableRo {
+
+	/**
+	 * The current [StyleTag] objects added. This list must be unique.
+	 *
+	 * The curated tags list will be passed to the style entry filter
+	 */
+	override val styleTags: MutableList<StyleTag>
+
+	/**
+	 * A list of style rules that will be queried in determining calculated values for bound style objects.
+	 */
+	override val styleRules: MutableList<StyleRule<*>>
 
 	fun invalidateStyles()
 }
@@ -191,7 +206,7 @@ inline fun StyleType<*>.walkInheritance(callback: (StyleType<*>) -> Unit) {
  * contains this tag.
  */
 interface StyleTag : StyleFilter {
-	override fun invoke(target: Styleable): Styleable? {
+	override fun invoke(target: StyleableRo): StyleableRo? {
 		if (target.styleTags.contains(this)) return target
 		return null
 	}
@@ -224,8 +239,8 @@ fun <T : Style> Styleable.setStyle(style: T, priority: Float, tag: StyleTag) {
 	addStyleRule(style, tag, priority)
 }
 
-inline fun Styleable.walkStyleableAncestry(callback: (Styleable) -> Unit) {
-	var p: Styleable? = this
+inline fun StyleableRo.walkStyleableAncestry(callback: (StyleableRo) -> Unit) {
+	var p: StyleableRo? = this
 	while (p != null) {
 		callback(p)
 		p = p.styleParent

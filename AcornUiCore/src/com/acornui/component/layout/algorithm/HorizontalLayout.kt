@@ -28,7 +28,7 @@ import com.acornui.math.PadRo
 
 class HorizontalLayout : LayoutAlgorithm<HorizontalLayoutStyle, HorizontalLayoutData> {
 
-	override fun calculateSizeConstraints(elements: List<LayoutElement>, props: HorizontalLayoutStyle, out: SizeConstraints) {
+	override fun calculateSizeConstraints(elements: List<LayoutElementRo>, props: HorizontalLayoutStyle, out: SizeConstraints) {
 		val padding = props.padding
 		val gap = props.gap
 

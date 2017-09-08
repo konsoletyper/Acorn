@@ -27,7 +27,7 @@ import com.acornui.collection.*
  */
 interface Child {
 
-	val parent: Parent<out Child>?
+	val parent: Parent<Child>?
 
 }
 
@@ -57,38 +57,14 @@ fun <T : Child> T.nextSibling(): T? {
  * This means that when using recursion throughout the tree, all nodes can be considered to be a [Child] of type B,
  * but it must be type checked against a [Parent] of type A before continuing the traversal.
  */
-interface Parent<T : Child> : Child {
-
-	/**
-	 * Returns the number of children this parent contains.
-	 */
-	@Deprecated("Use children.size", ReplaceWith("children.size"))
-	val numChildren: Int
-		get() = children.size
+interface Parent<out T : Child> : Child {
 
 	/**
 	 * Returns a read-only list of the children.
 	 */
 	val children: List<T>
 
-	/**
-	 * Returns true if this container contains the given child.
-	 */
-	@Deprecated("Use children.contains(child)", ReplaceWith("children.contains(child)"))
-	fun containsChild(child: T): Boolean {
-		return children.contains(child)
-	}
-
-	/**
-	 * Returns the child at the given index, or null if the index is out of bounds.
-	 */
-	@Deprecated("Use children.getOrNull(index)", ReplaceWith(("children.getOrNull(index)")))
-	fun getChildAt(index: Int): T? {
-		if (index < 0 || index >= children.size) return null
-		return children[index]
-	}
-
-	/**
+		/**
 	 * Iterates over the children.
 	 * It is up to the implementation how concurrent modification works.
 	 */
