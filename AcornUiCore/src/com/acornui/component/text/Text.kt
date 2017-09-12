@@ -49,10 +49,13 @@ interface TextField : UiComponent, Labelable, SelectableComponent, Styleable {
 //	/**
 //	 *
 //	 */
-//	var contents: TextFieldLeaf
+//	var contents: TextNode
 
 	@Deprecated("Will create text component builders.")
 	var htmlText: String?
+		get() = ""
+		set(value) {
+		}
 
 	/**
 	 * Replaces the given range with the provided text.

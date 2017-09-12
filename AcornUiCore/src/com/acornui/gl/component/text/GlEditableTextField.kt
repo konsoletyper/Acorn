@@ -66,12 +66,6 @@ open class GlEditableTextField(owner: Owned) : ContainerImpl(owner), EditableTex
 //			textField.contents = value
 //		}
 
-	override var htmlText: String?
-		get() = textField.htmlText
-		set(value) {
-			textField.htmlText = value
-		}
-
 	init {
 		styleTags.add(EditableTextField)
 	}

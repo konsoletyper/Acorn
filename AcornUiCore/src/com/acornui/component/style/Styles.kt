@@ -33,6 +33,8 @@ interface StyleableRo {
 	 * The next ancestor of this styleable component.
 	 */
 	val styleParent: StyleableRo?
+
+	fun invalidateStyles()
 }
 
 interface Styleable : StyleableRo {
@@ -49,7 +51,6 @@ interface Styleable : StyleableRo {
 	 */
 	override val styleRules: MutableList<StyleRule<*>>
 
-	fun invalidateStyles()
 }
 
 fun Styleable.addStyleRule(style: Style, filter: StyleFilter, priority: Float = 0f) {

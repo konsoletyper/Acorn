@@ -27,11 +27,12 @@ import com.acornui.component.style.*
 import com.acornui.component.text.CharStyle
 import com.acornui.component.text.TextField
 import com.acornui.component.text.TextFlowStyle
-import com.acornui.core.*
+import com.acornui.core.Disposable
 import com.acornui.core.cursor.RollOverCursor
 import com.acornui.core.cursor.StandardCursors
 import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
+import com.acornui.core.floor
 import com.acornui.core.graphics.BlendMode
 import com.acornui.core.input.interaction.DragInteraction
 import com.acornui.core.input.interaction.dragAttachment
@@ -74,12 +75,12 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 
 	private val _textSpan = span()
 	private val _textContents = textFlow { +_textSpan }
-	protected var _contents: TextFieldLeaf = addChild(_textContents)
+	protected var _contents: TextNodeComponent = addChild(_textContents)
 
 	/**
 	 * The TextField contents.
 	 */
-	var contents: TextFieldLeaf
+	var contents: TextNodeComponent
 		get() = _contents
 		set(value) {
 			if (_contents == value) return
@@ -115,12 +116,11 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 	}
 
 	private fun getNewSelection(event: DragInteraction): List<SelectionRange>? {
-		val startElement = event.startElement ?: return null
-		val leaf = startElement.parentWalk { it !is TextFieldLeaf } as TextFieldLeaf? ?: return null
+		val contents = _contents
 		val p1 = event.startPositionLocal
 		val p2 = event.positionLocal
-		val p1A = leaf.getSelectionIndex(p1.x - leaf.x, p1.y - leaf.y)
-		val p2A = leaf.getSelectionIndex(p2.x - leaf.x, p2.y - leaf.y)
+		val p1A = contents.getSelectionIndex(p1.x, p1.y)
+		val p2A = contents.getSelectionIndex(p2.x, p2.y)
 		if (p2A > p1A) {
 			return listOf(SelectionRange(selectionTarget, p1A, p2A))
 		} else {
@@ -141,21 +141,12 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 	override var text: String
 		get() {
 			val builder = StringBuilder()
-			for (i in 0.._contents.textElements.lastIndex) {
-				val char = _contents.textElements[i].char
-				if (char != null)
-					builder.append(char)
-			}
+			_contents.toString(builder)
 			return builder.toString()
 		}
 		set(value) {
 			_textSpan.text = value
 			contents = _textContents
-		}
-
-	override var htmlText: String?
-		get() = ""
-		set(value) {
 		}
 
 	private fun fontRegisteredHandler(registeredFont: BitmapFont) {
@@ -207,22 +198,11 @@ interface TextSpanElement : MutableElementParent<TextElement>, Styleable {
 //	 */
 //	val placeholder: TextElementRo
 
-	var parent: UiComponent?
+	var parent: TextNode?
 	val font: BitmapFont?
 
 	fun validateStyles()
 	fun setColorTint(concatenatedColorTint: ColorRo)
-
-	fun char(char: Char): TextElement
-
-	operator fun String?.unaryPlus() {
-		if (this == null) return
-		for (i in 0..length - 1) {
-			val c = this[i]
-			if (c != '\r')
-				addElement(char(c))
-		}
-	}
 }
 
 class TextSpanElementImpl : TextSpanElement {
@@ -240,7 +220,7 @@ class TextSpanElementImpl : TextSpanElement {
 		(styleRules as Iterable<StyleRule<T>>).filterTo(out, { it.style.type == type })
 	}
 
-	override var parent: UiComponent? = null
+	override var parent: TextNode? = null
 
 	override val styleParent: StyleableRo?
 		get() = parent
@@ -313,30 +293,44 @@ class TextSpanElementImpl : TextSpanElement {
 		tfCharStyle.backgroundColor.set(concatenatedColorTint).mul(charStyle.backgroundColor)
 	}
 
-	override fun char(char: Char): TextElement {
+	fun char(char: Char): TextElement {
 		return TfChar.obtain(char, tfCharStyle)
 	}
+
+	operator fun String?.unaryPlus() {
+		if (this == null) return
+		for (i in 0..length - 1) {
+			val c = this[i]
+			if (c != '\r')
+				addElement(char(c))
+		}
+	}
+
+	/**
+	 * A utility variable that when set, clears/disposes the current elements and replaces them with the new text.
+	 */
+	var text: String
+		get() {
+			val elements = elements
+			val builder = StringBuilder()
+			for (i in 0..elements.lastIndex) {
+				val char = elements[i].char
+				if (char != null)
+					builder.append(char)
+			}
+			return builder.toString()
+		}
+		set(value) {
+			clearElements(true)
+			+value
+		}
 }
 
-/**
- * A utility variable that when set, clears/disposes the current elements and replaces them with the new text.
- */
-var TextSpanElement.text: String
-	get() {
-		val elements = elements
-		val builder = StringBuilder()
-		for (i in 0..elements.lastIndex) {
-			val char = elements[i].char
-			if (char != null)
-				builder.append(char)
-		}
-		return builder.toString()
-	}
-	set(value) {
-		clearElements(true)
-		+value
-	}
 
+/**
+ * The smallest unit that can be inside of a TextField.
+ * This can be a single character, or a more complex object.
+ */
 interface TextElementRo {
 
 	/**
@@ -402,10 +396,6 @@ interface TextElementRo {
 	val overhangs: Boolean
 }
 
-/**
- * The smallest unit that can be inside of a TextField.
- * This will generally represent a single character, but may be more complex components.
- */
 interface TextElement : TextElementRo, Disposable {
 
 	/**
@@ -417,7 +407,7 @@ interface TextElement : TextElementRo, Disposable {
 	override var y: Float
 
 	/**
-	 * If set, this part should be drawn to fit this width.
+	 * If set, this element should be drawn to fit this width.
 	 */
 	override var explicitWidth: Float?
 
@@ -432,7 +422,7 @@ interface TextElement : TextElementRo, Disposable {
 	fun validateVertices(transform: Matrix4Ro, leftClip: Float, topClip: Float, rightClip: Float, bottomClip: Float)
 
 	/**
-	 * Draws this part.
+	 * Draws this element.
 	 */
 	fun render(glState: GlState)
 
@@ -444,12 +434,12 @@ fun span(init: ComponentInit<TextSpanElement> = {}): TextSpanElementImpl {
 	return s
 }
 
-interface TextFieldLeaf : UiComponent {
+interface TextNode : Validatable, StyleableRo {
 
 	/**
-	 * The text elements this leaf contains.
+	 * The number of [TextElement] objects within this node's hierarchy. (This will be a recursive total)
 	 */
-	val textElements: List<TextElementRo>
+	val size: Int
 
 	/**
 	 * @param x The relative x coordinate
@@ -465,12 +455,19 @@ interface TextFieldLeaf : UiComponent {
 	 * @param selection A list of ranges that are selected.
 	 */
 	fun setSelection(rangeStart: Int, selection: List<SelectionRange>)
+
+	/**
+	 * Writes this node's contents to a string builder.
+	 */
+	fun toString(builder: StringBuilder)
 }
+
+interface TextNodeComponent : TextNode, UiComponent
 
 /**
  * A TextFlow component is a container of styleable text spans, to be used inside of a TextField.
  */
-class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf, MutableElementParent<TextSpanElement> {
+class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, MutableElementParent<TextSpanElement> {
 
 	val flowStyle = bind(TextFlowStyle())
 
@@ -486,11 +483,14 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf, MutableEleme
 
 	private val _textElements = ArrayList<TextElement>()
 
-	override val textElements: List<TextElementRo>
-		get() {
-			validate(ValidationFlags.HIERARCHY_ASCENDING)
-			return _textElements
-		}
+//	override val textElements: List<TextElementRo>
+//		get() {
+//			validate(ValidationFlags.HIERARCHY_ASCENDING)
+//			return _textElements
+//		}
+
+	override val size: Int
+		get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
 
 	@Suppress("FINAL_UPPER_BOUND")
 	override fun <S : TextSpanElement> addElement(index: Int, element: S): S {
@@ -715,6 +715,14 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextFieldLeaf, MutableEleme
 			_textElements[i].render(glState)
 		}
 		super.draw()
+	}
+
+	override fun toString(builder: StringBuilder) {
+		for (i in 0.._textElements.lastIndex) {
+			val char = _textElements[i].char
+			if (char != null)
+				builder.append(char)
+		}
 	}
 
 	companion object {
