@@ -27,24 +27,26 @@ import com.acornui.collection.*
  */
 interface Child {
 
-	val parent: Parent<out Child>?
+	val parent: Parent<Child>?
 
-	fun previousSibling(): Child? {
-		val p = parent ?: return null
-		val c = p.children
-		val index = c.indexOf(this)
-		if (index == 0) return null
-		return c[index - 1]
-	}
+}
 
-	fun nextSibling(): Child? {
-		val p = parent ?: return null
-		val c = p.children
-		val index = c.indexOf(this)
-		if (index == c.lastIndex) return null
-		return c[index + 1]
-	}
+fun <T: Child> T.previousSibling(): T? {
+	@Suppress("UNCHECKED_CAST")
+	val p = parent as? Parent<T> ?: return null
+	val c = p.children
+	val index = c.indexOf(this)
+	if (index == 0) return null
+	return c[index - 1]
+}
 
+fun <T : Child> T.nextSibling(): T? {
+	@Suppress("UNCHECKED_CAST")
+	val p = parent as? Parent<T> ?: return null
+	val c = p.children
+	val index = c.indexOf(this)
+	if (index == c.lastIndex) return null
+	return c[index + 1]
 }
 
 /**
@@ -55,35 +57,14 @@ interface Child {
  * This means that when using recursion throughout the tree, all nodes can be considered to be a [Child] of type B,
  * but it must be type checked against a [Parent] of type A before continuing the traversal.
  */
-interface Parent<T : Child> : Child {
-
-	/**
-	 * Returns the number of children this parent contains.
-	 */
-	val numChildren: Int
-		get() = children.size
+interface Parent<out T : Child> : Child {
 
 	/**
 	 * Returns a read-only list of the children.
 	 */
 	val children: List<T>
 
-	/**
-	 * Returns true if this container contains the given child.
-	 */
-	fun containsChild(child: T): Boolean {
-		return children.contains(child)
-	}
-
-	/**
-	 * Returns the child at the given index, or null if the index is out of bounds.
-	 */
-	fun getChildAt(index: Int): T? {
-		if (index < 0 || index >= numChildren) return null
-		return children[index]
-	}
-
-	/**
+		/**
 	 * Iterates over the children.
 	 * It is up to the implementation how concurrent modification works.
 	 */
@@ -123,7 +104,7 @@ interface Parent<T : Child> : Child {
  */
 interface MutableParent<T : Child> : Parent<T> {
 
-	fun <S : T> addChild(child: S): S = addChild(numChildren, child)
+	fun <S : T> addChild(child: S): S = addChild(children.size, child)
 
 	/**
 	 * Adds the specified child to this container.
@@ -132,7 +113,7 @@ interface MutableParent<T : Child> : Parent<T> {
 	 */
 	fun <S : T> addChild(index: Int, child: S): S
 
-	fun addAllChildren(children: Iterable<T>) = addAllChildren(numChildren, children)
+	fun addAllChildren(children: Iterable<T>) = addAllChildren(this.children.size, children)
 
 	fun addAllChildren(index: Int, children: Iterable<T>) {
 		var i = index
@@ -141,7 +122,7 @@ interface MutableParent<T : Child> : Parent<T> {
 		}
 	}
 
-	fun addAllChildren(children: Array<T>) = addAllChildren(numChildren, children)
+	fun addAllChildren(children: Array<T>) = addAllChildren(this.children.size, children)
 
 	fun addAllChildren(index: Int, children: Array<T>) {
 		var i = index
@@ -194,7 +175,7 @@ interface MutableParent<T : Child> : Parent<T> {
 	fun clearChildren() {
 		val c = children
 		while (c.isNotEmpty()) {
-			removeChild(numChildren - 1)
+			removeChild(children.size - 1)
 		}
 	}
 }
@@ -204,7 +185,7 @@ interface MutableParent<T : Child> : Parent<T> {
  */
 open class ParentBase<T : ParentBase<T>> : MutableParent<T>, Child, Disposable {
 
-	override var parent: MutableParent<T>? = null
+	override var parent: Parent<T>? = null
 
 	protected open val _children: MutableList<T> = ArrayList()
 

@@ -4,8 +4,12 @@ import com.acornui.core.Disposable
 import com.acornui.di.DependencyGraph
 
 class Bootstrap(
-		override val injector: Injector = Injector()
+		parentInjector: Injector? = null
 ) : Scoped, Disposable {
+
+	private val _injector = InjectorImpl(parentInjector)
+	override val injector: Injector
+		get() = _injector
 
 	private val dependencyGraph = DependencyGraph<DKey<*>>()
 
@@ -15,7 +19,7 @@ class Bootstrap(
 	}
 
 	operator fun <T : Any> set(key: DKey<T>, value: T) {
-		injector[key] = value
+		_injector[key] = value
 		dependencyGraph[key] = value
 	}
 
@@ -43,12 +47,12 @@ class Bootstrap(
 
 	override fun dispose() {
 		dependencyGraph.dispose()
-		injector.dispose()
+		_injector.dispose()
 	}
 
 	fun lock() {
 		if (dependencyGraph.hasPending()) throw Exception("Cannot lock the injector when there are still pending callbacks.")
-		injector.lock()
+		_injector.lock()
 		dependencyGraph.clear()
 	}
 }
@@ -60,7 +64,7 @@ class Bootstrap(
  * This child scope will automatically be disposed when the element that created it is disposed.
  */
 fun Owned.scope(init: (injector: Bootstrap) -> Unit, onReady: Owned.() -> Unit): Bootstrap {
-	val bootstrap = Bootstrap(Injector(injector))
+	val bootstrap = Bootstrap(InjectorImpl(injector))
 	val owner = OwnedImpl(this, bootstrap.injector)
 	disposed.add {
 		bootstrap.dispose()

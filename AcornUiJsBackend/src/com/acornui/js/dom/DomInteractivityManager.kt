@@ -18,7 +18,7 @@ package com.acornui.js.dom
 
 import com.acornui._assert
 import com.acornui.collection.arrayListPool
-import com.acornui.component.InteractiveElement
+import com.acornui.component.InteractiveElementRo
 import com.acornui.component.UiComponent
 import com.acornui.core.ancestry
 import com.acornui.core.input.InteractionEvent
@@ -212,7 +212,7 @@ open class DomInteractivityManager : InteractivityManager {
 	}
 
 
-	override fun <T : InteractionEvent> getSignal(host: InteractiveElement, type: InteractionType<T>, isCapture: Boolean): StoppableSignalImpl<T> {
+	override fun <T : InteractionEvent> getSignal(host: InteractiveElementRo, type: InteractionType<T>, isCapture: Boolean): StoppableSignalImpl<T> {
 		return when (type) {
 			KeyInteraction.KEY_DOWN -> {
 				NativeSignal<T>(host, "keydown", isCapture, type, keyEvent, nativeKeyHandler)
@@ -364,8 +364,8 @@ open class DomInteractivityManager : InteractivityManager {
 	 * This will first dispatch a capture event from the stage down to the given target, and then
 	 * a bubbling event up to the stage.
 	 */
-	override fun dispatch(target: InteractiveElement, event: InteractionEvent, useCapture: Boolean, useBubble: Boolean) {
-		val rawAncestry = arrayListPool.obtain() as ArrayList<InteractiveElement>
+	override fun dispatch(target: InteractiveElementRo, event: InteractionEvent, useCapture: Boolean, useBubble: Boolean) {
+		val rawAncestry = arrayListPool.obtain() as ArrayList<InteractiveElementRo>
 		event.target = target
 		if (!useCapture && !useBubble) {
 			// Dispatch only for current target.
@@ -377,7 +377,7 @@ open class DomInteractivityManager : InteractivityManager {
 		arrayListPool.free(rawAncestry)
 	}
 
-	private fun dispatch(rawAncestry: List<InteractiveElement>, event: InteractionEvent, useCapture: Boolean, useBubble: Boolean) {
+	private fun dispatch(rawAncestry: List<InteractiveElementRo>, event: InteractionEvent, useCapture: Boolean, useBubble: Boolean) {
 		// Capture phase
 		if (useCapture) {
 			for (i in rawAncestry.lastIndex downTo 0) {
@@ -394,7 +394,7 @@ open class DomInteractivityManager : InteractivityManager {
 		}
 	}
 
-	private fun dispatchForCurrentTarget(currentTarget: InteractiveElement, event: InteractionEvent, isCapture: Boolean) {
+	private fun dispatchForCurrentTarget(currentTarget: InteractiveElementRo, event: InteractionEvent, isCapture: Boolean) {
 		val signal = currentTarget.getInteractionSignal(event.type, isCapture) as StoppableSignalImpl?
 		if (signal != null && signal.isNotEmpty()) {
 			event.localize(currentTarget)

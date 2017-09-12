@@ -26,15 +26,17 @@ import com.acornui.core.di.inject
 import com.acornui.graphics.Color
 import com.acornui.math.Bounds
 import com.acornui.math.Matrix4
-import com.acornui.math.Ray
+import com.acornui.math.RayRo
 
 import kotlin.properties.Delegates
 import kotlin.properties.ReadWriteProperty
 
+interface ContainerRo: UiComponentRo, Parent<UiComponentRo>
+
 /**
- * An interface for a component that contains multiple children.
+ * An interface for a ui component that has child components.
  */
-interface Container : UiComponent, Parent<UiComponent>
+interface Container : UiComponent, ContainerRo
 
 
 /**
@@ -43,19 +45,19 @@ interface Container : UiComponent, Parent<UiComponent>
 open class ContainerImpl(
 		owner: Owned,
 		override val native: NativeContainer = owner.inject(NativeContainer.FACTORY_KEY)(owner)
-) : UiComponentImpl(owner, native), Container, Iterable<UiComponent> {
+) : UiComponentImpl(owner, native), Container {
 
 	protected val _children = ArrayList<UiComponent>()
-	override val children: List<UiComponent>
+	override val children: List<UiComponentRo>
 		get() = _children
 
 
 	protected fun <T : UiComponent> addChild(child: T): T {
-		return addChild(numChildren, child)
+		return addChild(_children.size, child)
 	}
 
 	protected fun <T : UiComponent> addOptionalChild(child: T?): T? {
-		return addOptionalChild(numChildren, child)
+		return addOptionalChild(_children.size, child)
 	}
 
 	protected fun <T : UiComponent> addOptionalChild(index: Int, child: T?): T? {
@@ -91,8 +93,8 @@ open class ContainerImpl(
 	/**
 	 * Adds a child after the provided element.
 	 */
-	fun addChildAfter(child: UiComponent, after: UiComponent): Int {
-		val index = children.indexOf(after)
+	protected fun addChildAfter(child: UiComponent, after: UiComponent): Int {
+		val index = _children.indexOf(after)
 		if (index == -1) return -1
 		addChild(index + 1, child)
 		return index + 1
@@ -101,8 +103,8 @@ open class ContainerImpl(
 	/**
 	 * Adds a child after the provided element.
 	 */
-	fun addChildBefore(child: UiComponent, before: UiComponent): Int {
-		val index = children.indexOf(before)
+	protected fun addChildBefore(child: UiComponent, before: UiComponent): Int {
+		val index = _children.indexOf(before)
 		if (index == -1) return -1
 		addChild(index, child)
 		return index
@@ -110,7 +112,7 @@ open class ContainerImpl(
 
 	protected fun removeChild(child: UiComponent?): Boolean {
 		if (child == null) return false
-		val index = children.indexOf(child)
+		val index = _children.indexOf(child)
 		if (index == -1) return false
 		removeChild(index)
 		return true
@@ -139,9 +141,9 @@ open class ContainerImpl(
 	}
 
 	protected fun clearChildren(dispose: Boolean = true) {
-		val c = children
+		val c = _children
 		while (c.isNotEmpty()) {
-			val child = removeChild(numChildren - 1)
+			val child = removeChild(_children.size - 1)
 			if (dispose) child.dispose()
 		}
 	}
@@ -150,11 +152,11 @@ open class ContainerImpl(
 
 	override fun onActivated() {
 		super.onActivated()
-		iterateChildren {
-			if (!it.isActive) {
-				it.activate()
+		for (i in 0.._children.lastIndex) {
+			val child = _children[i]
+			if (!child.isActive) {
+				child.activate()
 			}
-			true
 		}
 	}
 
@@ -175,9 +177,8 @@ open class ContainerImpl(
 		if (flagsToCascade > 0) {
 			// This component has flags that have been invalidated that must cascade down to the children.
 			_isInvalidatingChildren = true
-			iterateChildren {
-				it.invalidate(flagsToCascade)
-				true
+			for (i in 0.._children.lastIndex) {
+				_children[i].invalidate(flagsToCascade)
 			}
 			_isInvalidatingChildren = false
 		}
@@ -186,25 +187,23 @@ open class ContainerImpl(
 	override fun update() {
 		super.update()
 
-		iterateChildren {
-			it.update()
-			true
+		for (i in 0.._children.lastIndex) {
+			_children[i].update()
 		}
 	}
 
 	override fun draw() {
-		iterateChildren {
-			it.render()
-			true
+		for (i in 0.._children.lastIndex) {
+			_children[i].render()
 		}
 	}
 
 	override fun onDeactivated() {
-		iterateChildren {
-			if (it.isActive) {
-				it.deactivate()
+		for (i in 0.._children.lastIndex) {
+			val child = _children[i]
+			if (child.isActive) {
+				child.deactivate()
 			}
-			true
 		}
 	}
 
@@ -235,25 +234,17 @@ open class ContainerImpl(
 			ValidationFlags.SIZE_CONSTRAINTS
 
 	//-----------------------------------------------------
-	// Iterable<IUiComponent>
-	//-----------------------------------------------------
-
-	override fun iterator(): Iterator<UiComponent> {
-		return children.iterator()
-	}
-
-	//-----------------------------------------------------
 	// Interactivity utility methods
 	//-----------------------------------------------------
 
-	override fun getChildrenUnderRay(globalRay: Ray, out: ArrayList<UiComponent>, onlyInteractive: Boolean, returnAll: Boolean) {
+	override fun getChildrenUnderRay(globalRay: RayRo, out: ArrayList<UiComponentRo>, onlyInteractive: Boolean, returnAll: Boolean) {
 		if (!visible || (onlyInteractive && inheritedInteractivityMode == InteractivityMode.NONE)) return
 		if (!intersectsGlobalRay(globalRay)) {
 			return
 		}
 		if ((returnAll || out.isEmpty())) {
 			iterateChildrenReversed {
-				child: UiComponent ->
+				child: UiComponentRo ->
 				child.getChildrenUnderRay(globalRay, out, onlyInteractive, returnAll)
 				// Continue iterating if we haven't found an intersecting child yet, or if returnAll is true.
 				returnAll || out.isEmpty()

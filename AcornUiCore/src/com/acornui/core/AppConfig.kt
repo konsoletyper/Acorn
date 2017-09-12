@@ -72,12 +72,12 @@ data class WindowConfig(
 		var title: String = "",
 
 		/**
-		 * The initial width of the window (For JS backends, set the width style on the root instead).
+		 * The initial width of the window (For JS backends, set the width style on the root div instead).
 		 */
 		var initialWidth: Float = 800f,
 
 		/**
-		 * The initial height of the window (For JS backends, set the width style on the root instead).
+		 * The initial height of the window (For JS backends, set the width style on the root div instead).
 		 */
 		var initialHeight: Float = 600f
 
@@ -154,10 +154,10 @@ object UserInfo {
 	}
 }
 
-enum class Browser {
-	NONE,
-	IE,
-	FX,
-	CH,
-	SF
-}
+//enum class Browser {
+//	NONE,
+//	IE,
+//	FX,
+//	CH,
+//	SF
+//}

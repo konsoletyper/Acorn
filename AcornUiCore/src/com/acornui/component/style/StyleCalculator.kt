@@ -8,7 +8,7 @@ import com.acornui.collection.forEachReversed2
  * A style calculator is responsible for setting the calculated values
  */
 interface StyleCalculator {
-	fun calculate(style: MutableStyle, target: Styleable)
+	fun calculate(style: MutableStyle, target: StyleableRo)
 }
 
 object CascadingStyleCalculator : StyleCalculator {
@@ -22,10 +22,10 @@ object CascadingStyleCalculator : StyleCalculator {
 		-o1.priority.compareTo(o2.priority) // Higher priority values come first.
 	}
 
-	override fun calculate(style: MutableStyle, target: Styleable) {
+	override fun calculate(style: MutableStyle, target: StyleableRo) {
 		calculated.clear()
 
-		// Collect all style entry objects for the bound style type and tags.
+		// Collect all style rule objects for the bound style type and tags.
 		// These entries will be sorted first by priority, and then by ancestry level.
 		entries.clear()
 		target.walkStyleableAncestry {

@@ -22,30 +22,35 @@ import com.acornui.signal.Signal1
  *
  * @author nbilyk
  */
-interface Lifecycle : Disposable {
+interface LifecycleRo {
 
 	/**
 	 * Dispatched then this object has been activated.
-	 * @see activate
 	 */
-	val activated: Signal<(Lifecycle) -> Unit>
+	val activated: Signal<(LifecycleRo) -> Unit>
 
 	/**
 	 * Dispatched then this object has been deactivated.
-	 * @see deactivate
 	 */
-	val deactivated: Signal<(Lifecycle) -> Unit>
+	val deactivated: Signal<(LifecycleRo) -> Unit>
 
 	/**
 	 * Dispatched then this object has been disposed.
-	 * @see dispose
 	 */
-	val disposed: Signal<(Disposable) -> Unit>
+	val disposed: Signal<(LifecycleRo) -> Unit>
 
 	/**
 	 * Returns true if this object is currently active.
 	 */
 	val isActive: Boolean
+
+	/**
+	 * Returns true if this object has been disposed.
+	 */
+	val isDisposed: Boolean
+}
+
+interface Lifecycle : LifecycleRo, Disposable {
 
 	/**
 	 * Invoke when this object is to become active.
@@ -56,18 +61,19 @@ interface Lifecycle : Disposable {
 	 * Invoke when this object is no longer active.
 	 */
 	fun deactivate()
-
-	/**
-	 * Returns true if this object has been disposed.
-	 */
-	val isDisposed: Boolean
 }
 
 abstract class LifecycleBase : Lifecycle {
 
-	override val activated = Signal1<Lifecycle>()
-	override val deactivated = Signal1<Lifecycle>()
-	override val disposed = Signal1<Lifecycle>()
+	protected val _activated = Signal1<Lifecycle>()
+	override val activated: Signal<(Lifecycle) -> Unit>
+		get() = _activated
+	protected val _deactivated = Signal1<Lifecycle>()
+	override val deactivated: Signal<(Lifecycle) -> Unit>
+		get() = _deactivated
+	protected val _disposed = Signal1<Lifecycle>()
+	override val disposed: Signal<(Lifecycle)->Unit>
+		get() = _disposed
 
 	protected var _isDisposed: Boolean = false
 	protected var _isDisposing: Boolean = false
@@ -81,12 +87,12 @@ abstract class LifecycleBase : Lifecycle {
 
 	final override fun activate() {
 		if (_isDisposed)
-		throw IllegalStateException("Disposed")
+			throw IllegalStateException("Disposed")
 		if (_isActive)
 			throw IllegalStateException("Already active")
 		_isActive = true
 		onActivated()
-		activated.dispatch(this)
+		_activated.dispatch(this)
 	}
 
 	protected open fun onActivated() {}
@@ -96,7 +102,7 @@ abstract class LifecycleBase : Lifecycle {
 		if (!_isActive) throw IllegalStateException("Not active")
 		_isActive = false
 		onDeactivated()
-		deactivated.dispatch(this)
+		_deactivated.dispatch(this)
 	}
 
 	protected open fun onDeactivated() {
@@ -110,11 +116,11 @@ abstract class LifecycleBase : Lifecycle {
 		if (isActive) {
 			deactivate()
 		}
-		disposed.dispatch(this)
+		_disposed.dispatch(this)
 		_isDisposed = true
-		disposed.dispose()
-		activated.dispose()
-		deactivated.dispose()
+		_disposed.dispose()
+		_activated.dispose()
+		_deactivated.dispose()
 		_isDisposing = false
 	}
 }
@@ -142,7 +148,7 @@ interface DrivableChild : Drivable, Child {
 	}
 }
 
-abstract class DrivableChildBase() : LifecycleBase(), DrivableChild {
+abstract class DrivableChildBase : LifecycleBase(), DrivableChild {
 
 	override var parent: MutableParent<DrivableChild>? = null
 

@@ -17,7 +17,6 @@
 package com.acornui.js.dom.component
 
 import com.acornui.component.NativeComponent
-import com.acornui.component.layout.algorithm.FlowDisplay
 import com.acornui.core.UserInfo
 import com.acornui.graphics.Color
 import com.acornui.js.time.setTimeout
@@ -48,8 +47,6 @@ open class DomComponent(
 
 	private val _bounds = Bounds()
 
-	private var _display: FlowDisplay = FlowDisplay.BLOCK
-
 	init {
 		element.draggable = false
 		element.className = "acornComponent"
@@ -65,21 +62,9 @@ open class DomComponent(
 			refreshDisplayStyle()
 		}
 
-	var display: FlowDisplay
-		get() = _display
-		set(value) {
-			if (_display == value) return
-			_display = value
-			refreshDisplayStyle()
-		}
-
 	protected open fun refreshDisplayStyle() {
 		if (_visible) {
-			element.style.display = when (_display) {
-				FlowDisplay.INLINE -> "inline"
-				FlowDisplay.BLOCK -> "block"
-				FlowDisplay.INLINE_BLOCK -> "inline-block"
-			}
+			element.style.display = "inline-block"
 		} else {
 			// We use display for visibility so that it no longer affects layout or scrolling.
 			element.style.display = "none"

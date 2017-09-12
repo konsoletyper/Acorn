@@ -18,9 +18,7 @@ package com.acornui.js.dom.component
 
 import com.acornui.collection.find2
 import com.acornui.component.*
-import com.acornui.component.layout.algorithm.FlowDisplay
 import com.acornui.component.layout.algorithm.FlowHAlign
-import com.acornui.component.layout.algorithm.FlowLayoutStyle
 import com.acornui.component.layout.setSize
 import com.acornui.component.text.*
 import com.acornui.core.di.Owned
@@ -41,11 +39,11 @@ import kotlin.browser.document
 open class DomTextField(
 		owner: Owned,
 		protected val element: HTMLElement = document.createElement("div") as HTMLDivElement,
-		protected val domContainer: DomContainer = DomContainer(element)
+		domContainer: DomContainer = DomContainer(element)
 ) : ContainerImpl(owner, domContainer), TextField {
 
 	override final val charStyle = bind(CharStyle())
-	override final val flowStyle = bind(FlowLayoutStyle())
+	override final val flowStyle = bind(TextFlowStyle())
 
 	// TODO: DomTextSelection
 
@@ -68,9 +66,9 @@ open class DomTextField(
 		invalidate(ValidationFlags.LAYOUT)
 	}
 
-	override var text: String?
+	override var text: String
 		get() {
-			return element.textContent
+			return element.textContent ?: ""
 		}
 		set(value) {
 			if (element.textContent == value) return
@@ -86,7 +84,7 @@ open class DomTextField(
 		}
 
 	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
-		if (!flowStyle.multiline || explicitWidth == null && (domContainer.display == FlowDisplay.BLOCK || domContainer.display == FlowDisplay.INLINE_BLOCK)) {
+		if (!flowStyle.multiline || explicitWidth == null) {
 			element.style.whiteSpace = "nowrap"
 		} else {
 			element.style.whiteSpace = "normal"
@@ -103,7 +101,7 @@ open class DomTextInput(
 ) : ContainerImpl(owner, DomContainer(inputElement)), TextInput {
 
 	override final val charStyle = bind(CharStyle())
-	override final val flowStyle = bind(FlowLayoutStyle())
+	override final val flowStyle = bind(TextFlowStyle())
 	override final val boxStyle = bind(BoxStyle())
 	override final val textInputStyle = bind(TextInputStyle())
 
@@ -244,7 +242,7 @@ open class DomTextArea(
 ) : ContainerImpl(owner, DomContainer(areaElement)), TextArea {
 
 	override final val charStyle = bind(CharStyle())
-	override final val flowStyle = bind(FlowLayoutStyle())
+	override final val flowStyle = bind(TextFlowStyle())
 	override final val boxStyle = bind(BoxStyle())
 	override final val textInputStyle = bind(TextInputStyle())
 
@@ -316,7 +314,7 @@ open class DomTextArea(
 
 }
 
-fun FlowLayoutStyle.applyCss(element: HTMLElement) {
+fun TextFlowStyle.applyCss(element: HTMLElement) {
 //	element.style.verticalAlign = when (verticalAlign) {
 //
 //	}
@@ -334,7 +332,7 @@ fun CharStyle.applyCss(element: HTMLElement) {
 		fontSize = "${size}px"
 		fontWeight = if (bold) "bold" else "normal"
 		fontStyle = if (italic) "italic" else "normal"
-		textDecoration = if (isUnderlined) "underline" else "none"
+		textDecoration = if (underlined) "underline" else "none"
 		color = colorTint.toCssString()
 
 		val selectable = selectable

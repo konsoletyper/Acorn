@@ -20,7 +20,8 @@ import com.acornui.component.BoxStyle
 import com.acornui.component.ComponentInit
 import com.acornui.component.Labelable
 import com.acornui.component.UiComponent
-import com.acornui.component.layout.algorithm.FlowLayoutStyle
+import com.acornui.component.layout.algorithm.FlowHAlign
+import com.acornui.component.layout.algorithm.FlowVAlign
 import com.acornui.component.style.*
 import com.acornui.core.di.DKey
 import com.acornui.core.di.DependencyKeyImpl
@@ -30,19 +31,31 @@ import com.acornui.core.selection.SelectableComponent
 import com.acornui.graphics.Color
 import com.acornui.graphics.ColorRo
 import com.acornui.graphics.color
+import com.acornui.math.Pad
+import com.acornui.math.PadRo
 import com.acornui.serialization.*
 import com.acornui.signal.Signal
-import com.acornui.signal.Signal0
 
 interface TextField : UiComponent, Labelable, SelectableComponent, Styleable {
 
 	val charStyle: CharStyle
-	val flowStyle: FlowLayoutStyle
+	val flowStyle: TextFlowStyle
 
-	var text: String?
+	/**
+	 *
+	 */
+	var text: String
+
+//	/**
+//	 *
+//	 */
+//	var contents: TextNode
 
 	@Deprecated("Will create text component builders.")
 	var htmlText: String?
+		get() = ""
+		set(value) {
+		}
 
 	/**
 	 * Replaces the given range with the provided text.
@@ -58,12 +71,12 @@ interface TextField : UiComponent, Labelable, SelectableComponent, Styleable {
 	 * }
 	 */
 	fun replaceTextRange(startIndex: Int, endIndex: Int, newText: String) {
-		val text = text ?: ""
+		val text = text
 		this.text = text.substring(0, maxOf(0, startIndex)) + newText + text.substring(minOf(text.length, endIndex), text.length)
 	}
 
 	override var label: String
-		get() = text ?: ""
+		get() = text
 		set(value) {
 			text = value
 		}
@@ -125,7 +138,7 @@ class CharStyle : StyleBase() {
 
 	var italic by prop(false)
 
-	var isUnderlined by prop(false)
+	var underlined by prop(false)
 
 	var colorTint: ColorRo by prop(Color(1f, 1f, 1f, 1f))
 	var backgroundColor: ColorRo by prop(Color())
@@ -149,7 +162,7 @@ object CharStyleSerializer : To<CharStyle>, From<CharStyle> {
 		writer.styleProperty(this, "size")?.int(size)
 		writer.styleProperty(this, "bold")?.bool(bold)
 		writer.styleProperty(this, "italic")?.bool(italic)
-		writer.styleProperty(this, "isUnderlined")?.bool(isUnderlined)
+		writer.styleProperty(this, "underlined")?.bool(underlined)
 		writer.styleProperty(this, "colorTint")?.color(colorTint)
 		writer.styleProperty(this, "backgroundColor")?.color(backgroundColor)
 		writer.styleProperty(this, "selectedColorTint")?.color(selectedColorTint)
@@ -163,7 +176,7 @@ object CharStyleSerializer : To<CharStyle>, From<CharStyle> {
 		reader.contains("size") { c.size = it.int()!! }
 		reader.contains("bold") { c.bold = it.bool()!! }
 		reader.contains("italic") { c.italic = it.bool()!! }
-		reader.contains("isUnderlined") { c.isUnderlined = it.bool()!! }
+		reader.contains("underlined") { c.underlined = it.bool()!! }
 		reader.contains("colorTint") { c.colorTint = it.color()!! }
 		reader.contains("backgroundColor") { c.backgroundColor = it.color()!! }
 		reader.contains("selectedColorTint") { c.selectedColorTint = it.color()!! }
@@ -179,10 +192,36 @@ fun charStyle(init: CharStyle.() -> Unit = {}): CharStyle {
 	return c
 }
 
+class TextFlowStyle : StyleBase() {
+
+	override val type = Companion
+
+	/**
+	 * The vertical gap between lines.
+	 */
+	var verticalGap by prop(0f)
+
+	/**
+	 * The Padding object with left, bottom, top, and right padding.
+	 */
+	var padding: PadRo by prop(Pad())
+
+	/**
+	 * The number of space char widths a tab should occupy.
+	 */
+	var tabSize: Int by prop(4)
+
+	var horizontalAlign by prop(FlowHAlign.LEFT)
+	var verticalAlign by prop(FlowVAlign.BASELINE)
+	var multiline by prop(true)
+
+	companion object : StyleType<TextFlowStyle>
+}
+
 interface TextInput : Focusable, SelectableComponent, Styleable {
 
 	val charStyle: CharStyle
-	val flowStyle: FlowLayoutStyle
+	val flowStyle: TextFlowStyle
 	val boxStyle: BoxStyle
 	val textInputStyle: TextInputStyle
 
@@ -206,6 +245,7 @@ interface TextInput : Focusable, SelectableComponent, Styleable {
 	/**
 	 * A regular expression pattern to define what is NOT allowed in this text input.
 	 * E.g. "[a-z]" will prevent lowercase letters from being entered.
+	 * Setting this will mutate the current [text] property.
 	 *
 	 * Note: In the future, this will be changed to restrict: Regex, currently KT-17851 prevents this.
 	 * Note: The global flag will be used.
@@ -247,11 +287,11 @@ var TextInput.selectable: Boolean
 interface TextArea : SelectableComponent, Focusable {
 
 	val charStyle: CharStyle
-	val flowStyle: FlowLayoutStyle
+	val flowStyle: TextFlowStyle
 	val boxStyle: BoxStyle
 	val textInputStyle: TextInputStyle
 
-	val changed: Signal0
+	val changed: Signal<() -> Unit>
 
 	var editable: Boolean
 

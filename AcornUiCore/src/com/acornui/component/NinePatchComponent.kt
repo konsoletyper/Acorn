@@ -57,7 +57,7 @@ class NinePatchComponent(owner: Owned) : ContainerImpl(owner) {
 
 	init {
 		for (i in regions) {
-			addChild(numChildren, i)
+			addChild(children.size, i)
 		}
 	}
 

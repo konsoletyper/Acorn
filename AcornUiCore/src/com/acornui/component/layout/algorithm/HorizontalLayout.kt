@@ -26,9 +26,9 @@ import com.acornui.math.MathUtils
 import com.acornui.math.Pad
 import com.acornui.math.PadRo
 
-class HorizontalLayout : LayoutAlgorithm<HorizontalLayoutStyle, HorizontalLayoutData>, BasicLayoutAlgorithm<HorizontalLayoutStyle, HorizontalLayoutData> {
+class HorizontalLayout : LayoutAlgorithm<HorizontalLayoutStyle, HorizontalLayoutData> {
 
-	override fun calculateSizeConstraints(elements: List<LayoutElement>, props: HorizontalLayoutStyle, out: SizeConstraints) {
+	override fun calculateSizeConstraints(elements: List<LayoutElementRo>, props: HorizontalLayoutStyle, out: SizeConstraints) {
 		val padding = props.padding
 		val gap = props.gap
 
@@ -48,9 +48,7 @@ class HorizontalLayout : LayoutAlgorithm<HorizontalLayoutStyle, HorizontalLayout
 		out.width.min = minWidth
 	}
 
-	override fun layout(explicitWidth: Float?, explicitHeight: Float?, elements: List<LayoutElement>, props: HorizontalLayoutStyle, out: Bounds) = basicLayout(explicitWidth, explicitHeight, elements, props, out)
-
-	override fun basicLayout(explicitWidth: Float?, explicitHeight: Float?, elements: List<BasicLayoutElement>, props: HorizontalLayoutStyle, out: Bounds) {
+	override fun layout(explicitWidth: Float?, explicitHeight: Float?, elements: List<LayoutElement>, props: HorizontalLayoutStyle, out: Bounds) {
 		val padding = props.padding
 		val gap = props.gap
 

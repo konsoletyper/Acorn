@@ -17,21 +17,18 @@
 package com.acornui.component.layout.algorithm
 
 import com.acornui.component.ComponentInit
-import com.acornui.component.layout.BasicLayoutElement
-import com.acornui.component.layout.LayoutContainerImpl
-import com.acornui.component.layout.LayoutElement
-import com.acornui.component.layout.SizeConstraints
+import com.acornui.component.layout.*
 import com.acornui.component.style.NoopStyle
 import com.acornui.core.di.Owned
 import com.acornui.math.Bounds
 
-class CanvasLayout : LayoutAlgorithm<Any, CanvasLayoutData>, BasicLayoutAlgorithm<Any, CanvasLayoutData> {
+class CanvasLayout : LayoutAlgorithm<Any, CanvasLayoutData> {
 
 	//-----------------------------------
 	// Getters / setters
 	//-----------------------------------
 
-	override fun calculateSizeConstraints(elements: List<LayoutElement>, props: Any, out: SizeConstraints) {
+	override fun calculateSizeConstraints(elements: List<LayoutElementRo>, props: Any, out: SizeConstraints) {
 		var minWidth: Float = 0f
 		var minHeight: Float = 0f
 		for (i in 0..elements.lastIndex) {
@@ -45,9 +42,7 @@ class CanvasLayout : LayoutAlgorithm<Any, CanvasLayoutData>, BasicLayoutAlgorith
 		out.height.min = minHeight
 	}
 
-	override fun layout(explicitWidth: Float?, explicitHeight: Float?, elements: List<LayoutElement>, props: Any, out: Bounds) = basicLayout(explicitWidth, explicitHeight, elements, props, out)
-
-	override fun basicLayout(explicitWidth: Float?, explicitHeight: Float?, elements: List<BasicLayoutElement>, props: Any, out: Bounds) {
+	override fun layout(explicitWidth: Float?, explicitHeight: Float?, elements: List<LayoutElement>, props: Any, out: Bounds) {
 		val w = explicitWidth ?: 0f
 		val h = explicitHeight ?: 0f
 

@@ -17,6 +17,7 @@
 package com.acornui.component
 
 import com.acornui.component.layout.LayoutElement
+import com.acornui.component.layout.LayoutElementRo
 import com.acornui.core.Child
 import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
@@ -26,12 +27,7 @@ import com.acornui.core.input.InteractivityManager
 import com.acornui.math.Vector2
 import com.acornui.signal.StoppableSignal
 
-/**
- * InteractiveElement provides a way to add and use signals for interaction events.
- * To use interaction signals, use their respective extension function.
- * See commonInteractions.kt
- */
-interface InteractiveElement : LayoutElement, CameraElement, AttachmentHolder, Child, Owned {
+interface InteractiveElementRo : LayoutElementRo, CameraElementRo, AttachmentHolder, Child, Owned {
 
 	val native: NativeComponent
 
@@ -50,7 +46,7 @@ interface InteractiveElement : LayoutElement, CameraElement, AttachmentHolder, C
 	/**
 	 * Determines how this element will block or accept interaction events.
 	 */
-	var interactivityMode: InteractivityMode
+	val interactivityMode: InteractivityMode
 
 	fun <T: InteractionEvent> handlesInteraction(type: InteractionType<T>): Boolean {
 		return handlesInteraction(type, true) || handlesInteraction(type, false)
@@ -68,10 +64,6 @@ interface InteractiveElement : LayoutElement, CameraElement, AttachmentHolder, C
 
 	fun <T: InteractionEvent> getInteractionSignal(type: InteractionType<T>, isCapture: Boolean = false): StoppableSignal<T>?
 
-	fun <T: InteractionEvent> addInteractionSignal(type: InteractionType<T>, signal: StoppableSignal<T>, isCapture: Boolean = false)
-
-	fun <T: InteractionEvent> removeInteractionSignal(type: InteractionType<T>, isCapture: Boolean)
-
 	/**
 	 * Sets the [out] vector to the local mouse coordinates.
 	 * @return Returns the [out] vector.
@@ -83,6 +75,22 @@ interface InteractiveElement : LayoutElement, CameraElement, AttachmentHolder, C
 	 */
 	fun mouseIsOver(): Boolean
 
+	fun <T: InteractionEvent> addInteractionSignal(type: InteractionType<T>, signal: StoppableSignal<T>, isCapture: Boolean = false)
+
+	fun <T: InteractionEvent> removeInteractionSignal(type: InteractionType<T>, isCapture: Boolean)
+}
+
+/**
+ * InteractiveElement provides a way to add and use signals for interaction events.
+ * To use interaction signals, use their respective extension function.
+ * See commonInteractions.kt
+ */
+interface InteractiveElement : InteractiveElementRo, LayoutElement, CameraElement {
+
+	/**
+	 * Determines how this element will block or accept interaction events.
+	 */
+	override var interactivityMode: InteractivityMode
 
 }
 
@@ -109,7 +117,7 @@ enum class InteractivityMode {
  * Creates or reuses a stoppable signal for the specified interaction type.
  * This should be used in the same style you see in CommonInteractions.kt
  */
-fun <T : InteractionEvent> InteractiveElement.createOrReuse(type: InteractionType<T>, isCapture: Boolean): StoppableSignal<T> {
+fun <T : InteractionEvent> InteractiveElementRo.createOrReuse(type: InteractionType<T>, isCapture: Boolean): StoppableSignal<T> {
 	val existing = getInteractionSignal(type, isCapture)
 	if (existing != null) {
 		return existing

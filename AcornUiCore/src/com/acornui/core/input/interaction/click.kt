@@ -16,7 +16,7 @@
 
 package com.acornui.core.input.interaction
 
-import com.acornui.component.InteractiveElement
+import com.acornui.component.InteractiveElementRo
 import com.acornui.component.createOrReuse
 import com.acornui.core.di.inject
 import com.acornui.core.input.InteractionType
@@ -53,29 +53,29 @@ open class ClickInteraction : MouseInteraction() {
 /**
  * A click interaction is where there is a touch down event, then a touch up event on that same target.
  */
-fun InteractiveElement.click(isCapture: Boolean = false): StoppableSignal<ClickInteraction> {
+fun InteractiveElementRo.click(isCapture: Boolean = false): StoppableSignal<ClickInteraction> {
 	return createOrReuse(ClickInteraction.LEFT_CLICK, isCapture)
 }
 
-fun InteractiveElement.rightClick(isCapture: Boolean = false): StoppableSignal<ClickInteraction> {
+fun InteractiveElementRo.rightClick(isCapture: Boolean = false): StoppableSignal<ClickInteraction> {
 	return createOrReuse(ClickInteraction.RIGHT_CLICK, isCapture)
 }
 
-fun InteractiveElement.middleClick(isCapture: Boolean = false): StoppableSignal<ClickInteraction> {
+fun InteractiveElementRo.middleClick(isCapture: Boolean = false): StoppableSignal<ClickInteraction> {
 	return createOrReuse(ClickInteraction.MIDDLE_CLICK, isCapture)
 }
 
-fun InteractiveElement.backClick(isCapture: Boolean = false): StoppableSignal<ClickInteraction> {
+fun InteractiveElementRo.backClick(isCapture: Boolean = false): StoppableSignal<ClickInteraction> {
 	return createOrReuse(ClickInteraction.BACK_CLICK, isCapture)
 }
 
-fun InteractiveElement.forwardClick(isCapture: Boolean = false): StoppableSignal<ClickInteraction> {
+fun InteractiveElementRo.forwardClick(isCapture: Boolean = false): StoppableSignal<ClickInteraction> {
 	return createOrReuse(ClickInteraction.FORWARD_CLICK, isCapture)
 }
 
 private val fakeClickEvent = ClickInteraction()
 
-fun InteractiveElement.dispatchClick() {
+fun InteractiveElementRo.dispatchClick() {
 	fakeClickEvent.clear()
 	fakeClickEvent.type = ClickInteraction.LEFT_CLICK
 	fakeClickEvent.target = this

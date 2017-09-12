@@ -16,7 +16,6 @@
 
 package com.acornui.core.di
 
-import com.acornui.collection.containsAllKeys
 import com.acornui.core.Disposable
 
 
@@ -32,14 +31,36 @@ fun <T : Any> Scoped.injectOptional(key: DKey<T>, factory: () -> T): T = injecto
 fun <T : Any> Scoped.injectOptional(key: DKey<T>): T? = injector.injectOptional(key)
 fun <T : Any> Scoped.inject(key: DKey<T>): T = injector.inject(key)
 
-class Injector(private val parent: Injector? = null) : Disposable {
+interface Injector {
+
+	val isLocked: Boolean
+
+	/**
+	 * Returns true if this injector contains a dependency with the given key.
+	 */
+	fun containsKey(key: DKey<*>): Boolean
+
+	fun <T : Any> injectOptional(key: DKey<T>): T?
+
+	fun <T : Any> injectOptional(key: DKey<T>, factory: () -> T): T {
+		@Suppress("UNCHECKED_CAST")
+		return injectOptional(key) ?: return factory()
+	}
+
+	fun <T : Any> inject(key: DKey<T>): T {
+		@Suppress("UNCHECKED_CAST")
+		return injectOptional(key) ?: throw Exception("Dependency not found for key: $key")
+	}
+}
+
+class InjectorImpl(private val parent: Injector? = null) : Injector, Disposable {
 
 	private val dependencies = HashMap<DKey<*>, Any>()
 	private val dependenciesOrdered = ArrayList<Any>()
 
 	private var _isLocked: Boolean = false
 
-	val isLocked: Boolean
+	override val isLocked: Boolean
 		get() = _isLocked
 
 	/**
@@ -49,17 +70,12 @@ class Injector(private val parent: Injector? = null) : Disposable {
 		_isLocked = true
 	}
 
-	fun containsAllKeys(keys: Array<DKey<*>>): Boolean = dependencies.containsAllKeys(keys)
-
-	/**
-	 * Returns true if this injector contains a dependency with the given key.
-	 */
-	fun containsKey(key: DKey<*>): Boolean {
+	override fun containsKey(key: DKey<*>): Boolean {
 		return dependencies.containsKey(key)
 	}
 
 	@Suppress("UNCHECKED_CAST")
-	fun <T : Any> injectOptional(key: DKey<T>): T? {
+	override fun <T : Any> injectOptional(key: DKey<T>): T? {
 		if (key.isPrivate && isLocked)
 			throw Exception("This dependency key is for bootstrap use only.")
 		var d = dependencies[key] as T?
@@ -74,16 +90,6 @@ class Injector(private val parent: Injector? = null) : Disposable {
 			}
 		}
 		return d
-	}
-
-	fun <T : Any> injectOptional(key: DKey<T>, factory: () -> T): T {
-		@Suppress("UNCHECKED_CAST")
-		return injectOptional(key) ?: return factory()
-	}
-
-	fun <T : Any> inject(key: DKey<T>): T {
-		@Suppress("UNCHECKED_CAST")
-		return injectOptional(key) ?: throw Exception("Dependency not found for key: $key")
 	}
 
 	operator fun <T : Any> set(key: DKey<T>, value: T) {

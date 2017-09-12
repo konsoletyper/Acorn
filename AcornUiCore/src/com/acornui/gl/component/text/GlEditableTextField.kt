@@ -25,6 +25,7 @@ import com.acornui.component.scroll.ScrollModelImpl
 import com.acornui.component.text.CharStyle
 import com.acornui.component.text.EditableTextField
 import com.acornui.component.text.TextCommander
+import com.acornui.component.text.TextFlowStyle
 import com.acornui.core.di.Owned
 import com.acornui.graphics.Color
 import com.acornui.math.Bounds
@@ -50,18 +51,20 @@ open class GlEditableTextField(owner: Owned) : ContainerImpl(owner), EditableTex
 
 	override val charStyle: CharStyle
 		get() = textField.charStyle
-	override val flowStyle: FlowLayoutStyle
+	override val flowStyle: TextFlowStyle
 		get() = textField.flowStyle
-	override var text: String?
+
+	override var text: String
 		get() = textField.text
 		set(value) {
 			textField.text = value
 		}
-	override var htmlText: String?
-		get() = textField.htmlText
-		set(value) {
-			textField.htmlText = value
-		}
+
+//	override var contents: UiComponent
+//		get() = textField.contents
+//		set(value) {
+//			textField.contents = value
+//		}
 
 	init {
 		styleTags.add(EditableTextField)

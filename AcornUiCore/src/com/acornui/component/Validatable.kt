@@ -28,7 +28,7 @@ import kotlin.properties.ReadWriteProperty
  *
  * @author nbilyk
  */
-interface Validatable : Disposable {
+interface Validatable {
 
 	/**
 	 * Dispatched when this component has been invalidated.

@@ -48,7 +48,6 @@ open class LayoutContainerImpl<S : MutableStyle, out U : LayoutData>(
 
 	protected val elementsToLayout = ArrayList<LayoutElement>()
 
-
 	override final val style: S = bind(style)
 	override final fun createLayoutData(): U = layoutAlgorithm.createLayoutData()
 

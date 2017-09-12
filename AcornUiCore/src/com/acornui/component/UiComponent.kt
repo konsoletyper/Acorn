@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
+@file:Suppress("LeakingThis", "UNUSED_PARAMETER")
+
 package com.acornui.component
 
 import com.acornui.assertionsEnabled
-import com.acornui.collection.*
+import com.acornui.collection.arrayListPool
 import com.acornui.component.layout.LayoutData
 import com.acornui.component.layout.SizeConstraints
 import com.acornui.component.layout.SizeConstraintsRo
@@ -38,10 +40,6 @@ import com.acornui.math.*
 import com.acornui.signal.Signal
 import com.acornui.signal.Signal2
 import com.acornui.signal.StoppableSignal
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
-import kotlin.collections.firstOrNull
-import kotlin.collections.isNotEmpty
 import kotlin.collections.set
 
 @DslMarker
@@ -50,47 +48,11 @@ annotation class ComponentDslMarker
 
 typealias ComponentInit<T> = (@ComponentDslMarker T).() -> Unit
 
-interface UiComponent : Lifecycle, ColorTransformable, InteractiveElement, Validatable, Styleable {
+interface UiComponentRo : LifecycleRo, ColorTransformableRo, InteractiveElementRo, Validatable, StyleableRo {
 
-	override val owner: Owned
+	override val disposed: Signal<(UiComponentRo) -> Unit>
 
-	/**
-	 * The parent on the display graph.
-	 * This should only be set by the container.
-	 */
-	override var parent: Container?
-
-	override val invalidated: Signal<(UiComponent, Int) -> Unit>
-
-	/**
-	 * Returns true if this component will be rendered. This will be true under the following conditions:
-	 * This component is on the stage.
-	 * This component and all of its ancestors are visible.
-	 * This component does not have an alpha of 0f.
-	 */
-	fun isRendered(): Boolean {
-		if (!isActive) return false
-		if (concatenatedColorTint.a <= 0f) return false
-		var p: UiComponent? = this
-		while (p != null) {
-			if (!p.visible) return false
-			p = p.parent
-		}
-		return true
-	}
-
-	/**
-	 * If false, this component will not be rendered, interact with user input, included in layouts, or included in
-	 * focus order.
-	 */
-	var visible: Boolean
-
-	/**
-	 * Set this to false to make this layout element not included in layout algorithms.
-	 */
-	var includeInLayout: Boolean
-
-	fun onAncestorVisibleChanged(uiComponent: UiComponent, value: Boolean)
+	override val parent: ContainerRo?
 
 	/**
 	 * Given a global position, casts a ray in the direction of the camera, returning the deepest enabled interactive
@@ -98,7 +60,7 @@ interface UiComponent : Lifecycle, ColorTransformable, InteractiveElement, Valid
 	 * If there are multiple objects at this position, only the top-most object is returned. (by child index, not z
 	 * value)
 	 */
-	fun getChildUnderPoint(canvasX: Float, canvasY: Float, onlyInteractive: Boolean): UiComponent? {
+	fun getChildUnderPoint(canvasX: Float, canvasY: Float, onlyInteractive: Boolean): UiComponentRo? {
 		val ray = Ray.obtain()
 		camera.getPickRay(canvasX, canvasY, ray)
 		val element = getChildUnderRay(ray, onlyInteractive)
@@ -106,8 +68,8 @@ interface UiComponent : Lifecycle, ColorTransformable, InteractiveElement, Valid
 		return element
 	}
 
-	@Suppress("UNCHECKED_CAST") fun getChildUnderRay(globalRay: Ray, onlyInteractive: Boolean): UiComponent? {
-		val tmpList = arrayListPool.obtain() as ArrayList<UiComponent>
+	@Suppress("UNCHECKED_CAST") fun getChildUnderRay(globalRay: RayRo, onlyInteractive: Boolean): UiComponentRo? {
+		val tmpList = arrayListPool.obtain() as ArrayList<UiComponentRo>
 		getChildrenUnderRay(globalRay, tmpList, onlyInteractive = onlyInteractive, returnAll = false)
 		val first = tmpList.firstOrNull()
 		arrayListPool.free(tmpList)
@@ -122,7 +84,7 @@ interface UiComponent : Lifecycle, ColorTransformable, InteractiveElement, Valid
 	 * @param canvasY The y coordinate relative to the canvas.
 	 * @param out The array list to populate with elements.
 	 */
-	fun getChildrenUnderPoint(canvasX: Float, canvasY: Float, out: ArrayList<UiComponent>, onlyInteractive: Boolean): ArrayList<UiComponent> {
+	fun getChildrenUnderPoint(canvasX: Float, canvasY: Float, out: ArrayList<UiComponentRo>, onlyInteractive: Boolean): ArrayList<UiComponentRo> {
 		val ray = Ray.obtain()
 		camera.getPickRay(canvasX, canvasY, ray)
 		getChildrenUnderRay(ray, out, onlyInteractive)
@@ -138,7 +100,56 @@ interface UiComponent : Lifecycle, ColorTransformable, InteractiveElement, Valid
 	 *
 	 * This method will not return elements where [UiComponent.visible] is false.
 	 */
-	fun getChildrenUnderRay(globalRay: Ray, out: ArrayList<UiComponent>, onlyInteractive: Boolean, returnAll: Boolean = true)
+	fun getChildrenUnderRay(globalRay: RayRo, out: ArrayList<UiComponentRo>, onlyInteractive: Boolean, returnAll: Boolean = true)
+
+	/**
+	 * If false, this component will not be rendered, interact with user input, included in layouts, or included in
+	 * focus order.
+	 */
+	val visible: Boolean
+
+	/**
+	 * Set this to false to make this layout element not included in layout algorithms.
+	 */
+	val includeInLayout: Boolean
+
+	/**
+	 * Returns true if this component will be rendered. This will be true under the following conditions:
+	 * This component is on the stage.
+	 * This component and all of its ancestors are visible.
+	 * This component does not have an alpha of 0f.
+	 */
+	fun isRendered(): Boolean {
+		if (!isActive) return false
+		if (concatenatedColorTint.a <= 0f) return false
+		var p: UiComponentRo? = this
+		while (p != null) {
+			if (!p.visible) return false
+			p = p.parent
+		}
+		return true
+	}
+}
+
+interface UiComponent : UiComponentRo, Lifecycle, ColorTransformable, InteractiveElement, Styleable {
+
+	override val disposed: Signal<(UiComponent) -> Unit>
+
+	override val owner: Owned
+
+	/**
+	 * The parent on the display graph.
+	 * This should only be set by the container.
+	 */
+	override var parent: ContainerRo?
+
+	override val invalidated: Signal<(UiComponent, Int) -> Unit>
+
+	override var visible: Boolean
+
+	override var includeInLayout: Boolean
+
+	fun onAncestorVisibleChanged(uiComponent: UiComponent, value: Boolean)
 
 	/**
 	 * Updates this component, validating it and its children.
@@ -163,12 +174,16 @@ open class UiComponentImpl(
 		override val native: NativeComponent = owner.inject(NativeComponent.FACTORY_KEY)(owner)
 ) : LifecycleBase(), UiComponent {
 
-	override final val injector: Injector = owner.injector
+	override val disposed: Signal<(UiComponent) -> Unit>
+		@Suppress("UNCHECKED_CAST") // The disposed signal dispatches (this)
+		get() = super.disposed as Signal<(UiComponent) -> Unit>
+
+	override final val injector = owner.injector
 
 	/**
 	 * If true, the native component will be auto-sized to the measured bounds from updateLayout.
 	 */
-	protected var nativeAutoSize: Boolean = true
+	protected var nativeAutoSize = true
 
 	protected val window = inject(Window)
 	protected val mouse = inject(MouseState)
@@ -245,32 +260,30 @@ open class UiComponentImpl(
 	protected var _visible: Boolean = true
 
 	// Child properties
-	override var parent: Container? = null
-
-	private val ownerDisposed = {
-		_: Disposable ->
-		dispose()
-	}
+	override var parent: ContainerRo? = null
 
 	init {
-		owner.disposed.add(ownerDisposed)
-		@Suppress("LeakingThis")
+		owner.disposed.add(this::ownerDisposedHandler)
 		val r = this
 		validation = validationTree {
 			ValidationFlags.apply {
 				addNode(STYLES, r::updateStyles)
 				addNode(PROPERTIES, STYLES, r::updateProperties)
-				addNode(SIZE_CONSTRAINTS, PROPERTIES, r::validateSizeConstraints)
-				addNode(LAYOUT, PROPERTIES or SIZE_CONSTRAINTS, r::validateLayout)
+				addNode(HIERARCHY_ASCENDING, PROPERTIES, r::updateHierarchyAscending)
+				addNode(HIERARCHY_DESCENDING, PROPERTIES, r::updateHierarchyDescending)
+				addNode(SIZE_CONSTRAINTS, HIERARCHY_DESCENDING or HIERARCHY_ASCENDING or PROPERTIES, r::validateSizeConstraints)
+				addNode(LAYOUT, SIZE_CONSTRAINTS, r::validateLayout)
 				addNode(TRANSFORM, r::updateTransform)
-				addNode(CONCATENATED_TRANSFORM, TRANSFORM, r::updateConcatenatedTransform)
+				addNode(CONCATENATED_TRANSFORM, HIERARCHY_DESCENDING or TRANSFORM, r::updateConcatenatedTransform)
 				addNode(COLOR_TRANSFORM, r::updateColorTransform)
 				addNode(CONCATENATED_COLOR_TRANSFORM, COLOR_TRANSFORM, r::updateConcatenatedColorTransform)
 				addNode(INTERACTIVITY_MODE, r::updateInheritedInteractivityMode)
-				addNode(HIERARCHY_ASCENDING, PROPERTIES, r::updateHierarchyAscending)
-				addNode(HIERARCHY_DESCENDING, PROPERTIES, r::updateHierarchyDescending)
 			}
 		}
+	}
+
+	private fun ownerDisposedHandler(owner: Owned) {
+		dispose()
 	}
 
 	//-----------------------------------------------
@@ -286,7 +299,7 @@ open class UiComponentImpl(
 			_visible = value
 			native.visible = value
 			if (value) {
-				childWalkLevelOrder {
+				childWalkLevelOrder<UiComponent> {
 					// This is only necessary because browsers cannot measure elements with `display: none`.
 					// Otherwise we would just invalidate this component's HIERARCHY_ASCENDING.
 					it.onAncestorVisibleChanged(this, value)
@@ -370,7 +383,6 @@ open class UiComponentImpl(
 			_includeInLayout = value
 			invalidate(ValidationFlags.HIERARCHY_ASCENDING)
 		}
-
 
 	private fun layoutDataChangedHandler() {
 		invalidate(ValidationFlags.LAYOUT)
@@ -634,7 +646,7 @@ open class UiComponentImpl(
 	//-----------------------------------------------
 
 
-	override fun getChildrenUnderRay(globalRay: Ray, out: ArrayList<UiComponent>, onlyInteractive: Boolean, returnAll: Boolean) {
+	override fun getChildrenUnderRay(globalRay: RayRo, out: ArrayList<UiComponentRo>, onlyInteractive: Boolean, returnAll: Boolean) {
 		if (!_visible || (onlyInteractive && !interactivityEnabled)) return
 		if (intersectsGlobalRay(globalRay)) {
 			out.add(this)
@@ -645,7 +657,7 @@ open class UiComponentImpl(
 	// Styleable
 	//-----------------------------------------------
 
-	override val styleParent: Styleable? by lazy {
+	override val styleParent: StyleableRo? by lazy {
 		var p: Owned? = owner
 		var s: Styleable? = null
 		while (p != null) {
@@ -677,10 +689,15 @@ open class UiComponentImpl(
 		styles.bind(style, calculator)
 		return style
 	}
+
 	protected fun <T : MutableStyle> watch(style: T, priority: Float = 0f, callback: (T) -> Unit) = styles.watch(style, priority, callback)
 	protected fun unwatch(style: MutableStyle) = styles.unwatch(style)
 
 	protected fun unbind(style: Style) = styles.unbind(style)
+
+	override fun invalidateStyles() {
+		invalidate(ValidationFlags.STYLES)
+	}
 
 	protected open fun updateStyles() {
 		_styles?.validateStyles()
@@ -1039,7 +1056,7 @@ open class UiComponentImpl(
 
 	override fun dispose() {
 		super.dispose()
-		owner.disposed.remove(ownerDisposed)
+		owner.disposed.remove(this::ownerDisposedHandler)
 		if (assertionsEnabled) {
 			parentWalk {
 				if (!owner.owns(it)) {

@@ -8,7 +8,6 @@ import com.acornui.gl.component.Sprite
 import com.acornui.gl.core.GlState
 import com.acornui.graphics.Color
 import com.acornui.graphics.ColorRo
-import com.acornui.math.Matrix4
 import com.acornui.math.Matrix4Ro
 
 class ParticleEmitterRenderer(

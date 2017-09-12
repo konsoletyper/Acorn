@@ -24,6 +24,7 @@ import com.acornui.core.assets.AssetManager
 import com.acornui.core.assets.AssetManagerImpl
 import com.acornui.core.assets.AssetTypes
 import com.acornui.core.di.Injector
+import com.acornui.core.di.InjectorImpl
 import com.acornui.core.di.Scoped
 import com.acornui.core.io.JSON_KEY
 import com.acornui.core.io.file.Files
@@ -56,16 +57,18 @@ open class JvmHeadlessApplication(
 		onReady: Scoped.() -> Unit = {}
 ) : Scoped {
 
-	override val injector = Injector()
+	protected val _injector = InjectorImpl()
+	override val injector: Injector
+		get() = _injector
 
 	init {
 		initializeBootstrap()
-		injector.lock()
+		_injector.lock()
 		onReady()
 	}
 
 	protected open fun initializeBootstrap() {
-		injector[AppConfig] = config
+		_injector[AppConfig] = config
 		initializeDebug()
 		initializeSystem()
 		initializeLogging()
@@ -100,7 +103,7 @@ open class JvmHeadlessApplication(
 	 * Initializes number constants and methods
 	 */
 	protected open fun initializeNumber() {
-		injector[NumberFormatter.FACTORY_KEY] = { NumberFormatterImpl(it) }
+		_injector[NumberFormatter.FACTORY_KEY] = { NumberFormatterImpl(it) }
 	}
 
 	protected open fun initializeString() {
@@ -116,24 +119,24 @@ open class JvmHeadlessApplication(
 
 	protected open fun initializeTime() {
 		time = TimeProviderImpl()
-		injector[DateTimeFormatter.FACTORY_KEY] = { DateTimeFormatterImpl(it) }
+		_injector[DateTimeFormatter.FACTORY_KEY] = { DateTimeFormatterImpl(it) }
 	}
 
 	protected open fun initializeJson() {
-		injector[JSON_KEY] = JsonSerializer
+		_injector[JSON_KEY] = JsonSerializer
 	}
 
 	protected open fun initializeFiles() {
 		val manifest = ManifestUtil.createManifest(File(assetsPath), File(assetsRoot))
-		injector[Files] = FilesImpl(manifest)
+		_injector[Files] = FilesImpl(manifest)
 	}
 
 	protected open fun initializeAssetManager() {
-		val assetManager = AssetManagerImpl("", injector.inject(Files))
+		val assetManager = AssetManagerImpl("", _injector.inject(Files))
 		val isAsync = false
 		val timeDriver = null
 		assetManager.setLoaderFactory(AssetTypes.TEXT, { JvmTextLoader(Charsets.UTF_8, isAsync, timeDriver) })
 		assetManager.setLoaderFactory(AssetTypes.RGB_DATA, { JvmRgbDataLoader(isAsync, timeDriver) })
-		injector[AssetManager] = assetManager
+		_injector[AssetManager] = assetManager
 	}
 }

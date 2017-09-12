@@ -31,10 +31,7 @@ import com.acornui.core.graphics.Texture
 import com.acornui.core.io.BufferFactory
 import com.acornui.gl.core.*
 import com.acornui.io.NativeBuffer
-import com.acornui.math.Bounds
-import com.acornui.math.Box
-import com.acornui.math.Ray
-import com.acornui.math.Vector3
+import com.acornui.math.*
 import com.acornui.signal.Signal
 import com.acornui.signal.Signal0
 
@@ -95,7 +92,7 @@ open class StaticMeshComponent(
 	/**
 	 * Overrides intersectsGlobalRay to check against each drawn triangle.
 	 */
-	override fun intersectsGlobalRay(globalRay: Ray, intersection: Vector3): Boolean {
+	override fun intersectsGlobalRay(globalRay: RayRo, intersection: Vector3): Boolean {
 		if (mesh == null) return false
 		validate(GLOBAL_BOUNDING_BOX)
 

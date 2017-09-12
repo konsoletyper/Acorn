@@ -140,7 +140,7 @@ data class Plane(
 	 * @param point2
 	 * @param point3
 	 */
-	fun set(point1: Vector3, point2: Vector3, point3: Vector3) {
+	fun set(point1: Vector3Ro, point2: Vector3Ro, point3: Vector3Ro) {
 		normal.set(point1).sub(point2).crs(point2.x - point3.x, point2.y - point3.y, point2.z - point3.z).nor()
 		d = -point1.dot(normal)
 	}
@@ -164,7 +164,7 @@ data class Plane(
 	 * @param point the point on the plane
 	 * @param normal the normal of the plane
 	 */
-	fun set(point: Vector3, normal: Vector3) {
+	fun set(point: Vector3Ro, normal: Vector3) {
 		this.normal.set(normal)
 		d = -point.dot(normal)
 	}
@@ -179,7 +179,7 @@ data class Plane(
 	 *
 	 * @param plane the plane
 	 */
-	fun set(plane: Plane) {
+	fun set(plane: PlaneRo) {
 		this.normal.set(plane.normal)
 		this.d = plane.d
 	}

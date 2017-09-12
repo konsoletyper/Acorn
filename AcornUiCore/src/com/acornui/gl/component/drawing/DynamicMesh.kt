@@ -32,10 +32,7 @@ import com.acornui.core.graphics.BlendMode
 import com.acornui.gl.core.Gl20
 import com.acornui.gl.core.GlState
 import com.acornui.gl.core.Vertex
-import com.acornui.math.Bounds
-import com.acornui.math.Box
-import com.acornui.math.Ray
-import com.acornui.math.Vector3
+import com.acornui.math.*
 
 
 /**
@@ -149,7 +146,7 @@ open class DynamicMeshComponent(
 	/**
 	 * Overrides intersectsGlobalRay to check against each drawn triangle.
 	 */
-	override fun intersectsGlobalRay(globalRay: Ray, intersection: Vector3): Boolean {
+	override fun intersectsGlobalRay(globalRay: RayRo, intersection: Vector3): Boolean {
 		validate(VERTEX_TRANSFORM or GLOBAL_BOUNDING_BOX)
 
 		if (!globalBoundingBox.intersects(globalRay, intersection)) {

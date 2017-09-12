@@ -17,15 +17,13 @@
 package com.acornui.component
 
 import com.acornui.component.layout.Transformable
+import com.acornui.component.layout.TransformableRo
 import com.acornui.core.graphics.Camera
 import com.acornui.math.Ray
 import com.acornui.math.Vector2
 import com.acornui.math.Vector3
 
-/**
- * A transformable element that is viewed via a Camera.
- */
-interface CameraElement : Transformable {
+interface CameraElementRo : TransformableRo {
 
 	/**
 	 * Converts a 2d coordinate relative to the window into local coordinate space.
@@ -50,10 +48,16 @@ interface CameraElement : Transformable {
 	}
 
 	/**
-	 * Returns the camera to be used for this component. This will either be the [cameraOverride] or the inherited
+	 * Returns the camera to be used for this component.
 	 * camera.
 	 */
 	val camera: Camera
+}
+
+/**
+ * A transformable element that is viewed via a Camera.
+ */
+interface CameraElement : CameraElementRo, Transformable {
 
 	/**
 	 * Overrides the camera to be used for this component (and its children).

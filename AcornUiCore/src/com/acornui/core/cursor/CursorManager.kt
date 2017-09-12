@@ -16,7 +16,6 @@
 
 package com.acornui.core.cursor
 
-import com.acornui.collection.ObjectPool
 import com.acornui.collection.ClearableObjectPool
 import com.acornui.collection.Clearable
 import com.acornui.collection.sortedInsertionIndex
@@ -36,13 +35,12 @@ interface CursorManager {
 
 	fun removeCursor(cursorReference: CursorReference)
 
-	companion object : DKey<CursorManager> {}
+	companion object : DKey<CursorManager>
 }
 
-interface Cursor : Lifecycle {
-}
+interface Cursor : Lifecycle
 
-class CursorReference() : Clearable, Comparable<CursorReference> {
+class CursorReference : Clearable, Comparable<CursorReference> {
 	var cursor: Cursor? = null
 	var priority: Float = 0f
 

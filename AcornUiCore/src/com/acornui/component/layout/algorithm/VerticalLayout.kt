@@ -26,9 +26,9 @@ import com.acornui.math.MathUtils
 import com.acornui.math.Pad
 import com.acornui.math.PadRo
 
-class VerticalLayout : LayoutAlgorithm<VerticalLayoutStyle, VerticalLayoutData>, BasicLayoutAlgorithm<VerticalLayoutStyle, VerticalLayoutData> {
+class VerticalLayout : LayoutAlgorithm<VerticalLayoutStyle, VerticalLayoutData> {
 
-	override fun calculateSizeConstraints(elements: List<LayoutElement>, props: VerticalLayoutStyle, out: SizeConstraints) {
+	override fun calculateSizeConstraints(elements: List<LayoutElementRo>, props: VerticalLayoutStyle, out: SizeConstraints) {
 		val padding = props.padding
 		val gap = props.gap
 
@@ -48,9 +48,7 @@ class VerticalLayout : LayoutAlgorithm<VerticalLayoutStyle, VerticalLayoutData>,
 		out.height.min = minHeight
 	}
 
-	override fun layout(explicitWidth: Float?, explicitHeight: Float?, elements: List<LayoutElement>, props: VerticalLayoutStyle, out: Bounds) = basicLayout(explicitWidth, explicitHeight, elements, props, out)
-
-	override fun basicLayout(explicitWidth: Float?, explicitHeight: Float?, elements: List<BasicLayoutElement>, props: VerticalLayoutStyle, out: Bounds) {
+	override fun layout(explicitWidth: Float?, explicitHeight: Float?, elements: List<LayoutElement>, props: VerticalLayoutStyle, out: Bounds) {
 		val padding = props.padding
 		val gap = props.gap
 

@@ -245,7 +245,7 @@ fun <E> ObservableList<E>.bindUniqueAssertion() {
 
 fun <E> ObservableList<E>.assertUnique() {
 	for (i in 0..lastIndex) {
-		if (indexOfFirst2(i + 1, { it == this[i] }) != -1) {
+		if (indexOfFirst2(i + 1, lastIndex, { it == this[i] }) != -1) {
 			throw Exception("The element ${this[i]} is not unique within this list.")
 		}
 	}

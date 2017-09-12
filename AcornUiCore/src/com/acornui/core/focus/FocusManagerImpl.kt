@@ -23,7 +23,9 @@ import com.acornui.component.UiComponent
 import com.acornui.component.Validatable
 import com.acornui.component.ValidationFlags
 import com.acornui.component.layout.LayoutElement
+import com.acornui.component.layout.LayoutElementRo
 import com.acornui.core.Lifecycle
+import com.acornui.core.LifecycleRo
 import com.acornui.core.di.owns
 import com.acornui.core.input.Ascii
 import com.acornui.core.input.interaction.KeyInteraction
@@ -119,7 +121,7 @@ open class FocusManagerImpl : FocusManager {
 		return _focused
 	}
 
-	private val focusedDeactivatedHandler: (Lifecycle) -> Unit = {
+	private val focusedDeactivatedHandler: (LifecycleRo) -> Unit = {
 		focused(null)
 	}
 
@@ -236,7 +238,7 @@ open class FocusManagerImpl : FocusManager {
 	/**
 	 * Does a depth-first traversal over the display graph.
 	 */
-	private fun buildFocusTree(parent: FocusNode, layoutElement: LayoutElement) {
+	private fun buildFocusTree(parent: FocusNode, layoutElement: LayoutElementRo) {
 		val newParent: FocusNode
 		if (layoutElement is FocusContainer) {
 			val newNode = FocusNode.obtain()

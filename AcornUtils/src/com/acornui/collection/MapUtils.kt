@@ -1,7 +1,5 @@
 package com.acornui.collection
 
-
-
 fun <K, V> Map<K, V>.containsAllKeys(keys: Array<K>): Boolean {
 	for (i in 0..keys.lastIndex) {
 		if (!containsKey(keys[i])) {

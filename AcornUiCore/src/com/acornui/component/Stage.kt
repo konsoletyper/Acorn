@@ -19,8 +19,6 @@ package com.acornui.component
 import com.acornui.component.style.StyleBase
 import com.acornui.component.style.StyleTag
 import com.acornui.component.style.StyleType
-import com.acornui.component.style.Styleable
-import com.acornui.core.Parent
 import com.acornui.core.di.DKey
 import com.acornui.core.di.Scoped
 import com.acornui.core.di.inject
@@ -29,7 +27,9 @@ import com.acornui.core.focus.Focusable
 import com.acornui.graphics.Color
 import com.acornui.graphics.ColorRo
 
-interface Stage : ElementContainer, Focusable, FocusContainer, Parent<UiComponent> {
+interface StageRo : ContainerRo, Focusable
+
+interface Stage : ElementContainer, StageRo, FocusContainer {
 
 	val style: StageStyle
 

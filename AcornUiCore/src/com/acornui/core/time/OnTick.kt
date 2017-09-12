@@ -3,22 +3,22 @@ package com.acornui.core.time
 import com.acornui.component.UiComponent
 import com.acornui.core.Disposable
 import com.acornui.core.DrivableChildBase
-import com.acornui.core.Lifecycle
+import com.acornui.core.LifecycleRo
 import com.acornui.core.di.inject
 
 private class OnTick(private val component: UiComponent, private val callback: (stepTime: Float)->Unit) : DrivableChildBase() {
 
 	private val timeDriver = component.inject(TimeDriver)
 
-	private val componentActivatedHandler: (Lifecycle) -> Unit = {
+	private val componentActivatedHandler: (LifecycleRo) -> Unit = {
 		timeDriver.addChild(this)
 	}
 
-	private val componentDeactivatedHandler: (Lifecycle) -> Unit = {
+	private val componentDeactivatedHandler: (LifecycleRo) -> Unit = {
 		timeDriver.removeChild(this)
 	}
 
-	private val componentDisposedHandler: (Disposable) -> Unit = {
+	private val componentDisposedHandler: (LifecycleRo) -> Unit = {
 		dispose()
 	}
 

@@ -1,7 +1,7 @@
 package com.acornui.core.focus
 
-import com.acornui.component.Stage
 import com.acornui.component.UiComponent
+import com.acornui.component.UiComponentRo
 import com.acornui.component.stage
 import com.acornui.core.Disposable
 import com.acornui.core.di.Injector
@@ -23,7 +23,7 @@ class FakeFocusMouse(
 
 	private val fakeMouseEvent = MouseInteraction()
 	private var downKey: Int? = null
-	private var downElement: UiComponent? = null
+	private var downElement: UiComponentRo? = null
 
 	private val keyDownHandler = {
 		event: KeyInteraction ->

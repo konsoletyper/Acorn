@@ -20,7 +20,7 @@ class FlowLayoutTest {
 				spacer("five", 100f, 50f)
 		)
 		val bounds = Bounds()
-		flowLayout.basicLayout(250f, null, elements, FlowLayoutStyle(), bounds)
+		flowLayout.layout(250f, null, elements, FlowLayoutStyle(), bounds)
 
 		assertEquals(3, flowLayout.lines.size)
 		assertEquals(0, flowLayout.lines[0].startIndex)
@@ -50,25 +50,25 @@ class FlowLayoutTest {
 		val style = FlowLayoutStyle()
 		style.horizontalGap = 10f
 		style.verticalGap = 20f
-		flowLayout.basicLayout(250f, null, elements, style, bounds)
+		flowLayout.layout(250f, null, elements, style, bounds)
 
 		// [40,10], [90,50], [30,50], [60, 30]      Line: width: 200, height: 50, y: 0
 		// [90,20], [70, 70], [20, 30], [30, 10]    Line: width: 240, height: 70, y: 70
 		// [80,50] 									Line: width: 80,  height: 50, y: 160
 
-		assertEquals(0, flowLayout.getNearestElementIndex(0f, 0f, elements, style))
-		assertEquals(0, flowLayout.getNearestElementIndex(-1f, 0f, elements, style))
-		assertEquals(0, flowLayout.getNearestElementIndex(100f, -1f, elements, style))
-		assertEquals(1, flowLayout.getNearestElementIndex(40f, 0f, elements, style))
-		assertEquals(2, flowLayout.getNearestElementIndex(179f, 0f, elements, style))
+		assertEquals(0, flowLayout.getElementInsertionIndex(0f, 0f, elements, style))
+		assertEquals(0, flowLayout.getElementInsertionIndex(-1f, 0f, elements, style))
+		assertEquals(0, flowLayout.getElementInsertionIndex(100f, -1f, elements, style))
+		assertEquals(1, flowLayout.getElementInsertionIndex(40f, 0f, elements, style))
+		assertEquals(2, flowLayout.getElementInsertionIndex(179f, 0f, elements, style))
 
-		assertEquals(4, flowLayout.getNearestElementIndex(-1f, 70f, elements, style))
+		assertEquals(4, flowLayout.getElementInsertionIndex(-1f, 70f, elements, style))
 
 
-		assertEquals(8, flowLayout.getNearestElementIndex(-1f, 160f, elements, style))
-		assertEquals(elements.lastIndex, flowLayout.getNearestElementIndex(79f, 209f, elements, style))
-		assertEquals(elements.lastIndex, flowLayout.getNearestElementIndex(0f, 210f, elements, style))
-		assertEquals(elements.lastIndex, flowLayout.getNearestElementIndex(80f, 209f, elements, style))
+		assertEquals(8, flowLayout.getElementInsertionIndex(-1f, 160f, elements, style))
+		assertEquals(elements.lastIndex, flowLayout.getElementInsertionIndex(79f, 209f, elements, style))
+		assertEquals(elements.lastIndex, flowLayout.getElementInsertionIndex(0f, 210f, elements, style))
+		assertEquals(elements.lastIndex, flowLayout.getElementInsertionIndex(80f, 209f, elements, style))
 	}
 
 	fun spacer(name: String, width: Float, height: Float): LayoutElement {

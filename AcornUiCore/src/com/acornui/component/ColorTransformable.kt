@@ -16,38 +16,14 @@
 
 package com.acornui.component
 
-import com.acornui.graphics.Color
 import com.acornui.graphics.ColorRo
 
-/**
- * A trait for objects that can have a color transformation applied.
- * The final pixel color value for the default shader is [colorTint * pixel]
- *
- * Note: Dom applications do not support color transformation.
- *
- * @author nbilyk
- */
-interface ColorTransformable {
+interface ColorTransformableRo {
 
 	/**
 	 * The color tint of this component.
 	 */
-	var colorTint: ColorRo
-
-	fun colorTint(r: Float, g: Float, b: Float, a: Float)
-
-	/**
-	 * A utility method for setting and retrieving the alpha tint.
-	 */
-	var alpha: Float
-		get() {
-			return colorTint.a
-		}
-		set(value) {
-			val t = colorTint
-			if (t.a == value) return
-			colorTint(t.r, t.g, t.b, value)
-		}
+	val colorTint: ColorRo
 
 	/**
 	 * The color multiplier of this component and all ancestor color tints multiplied together.
@@ -57,5 +33,38 @@ interface ColorTransformable {
 	 */
 	val concatenatedColorTint: ColorRo
 
+	val alpha: Float
+		get() = colorTint.a
+}
+
+/**
+ * A trait for objects that can have a color transformation applied.
+ * The final pixel color value for the default shader is [colorTint * pixel]
+ *
+ * Note: Dom applications do not support color transformation.
+ *
+ * @author nbilyk
+ */
+interface ColorTransformable : ColorTransformableRo {
+
+	/**
+	 * The color tint of this component.
+	 */
+	override var colorTint: ColorRo
+
+	fun colorTint(r: Float, g: Float, b: Float, a: Float)
+
+	/**
+	 * A utility method for setting and retrieving the alpha tint.
+	 */
+	override var alpha: Float
+		get() {
+			return colorTint.a
+		}
+		set(value) {
+			val t = colorTint
+			if (t.a == value) return
+			colorTint(t.r, t.g, t.b, value)
+		}
 
 }

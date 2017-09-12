@@ -164,18 +164,11 @@ open class DomWindowImpl(
 			root.style.backgroundColor = "#${value.toRgbString()}"
 		}
 
-	/**
-	 * If true, every tick will do a full render. If false, only render requests will cause a render.
-	 */
-	private var _continuousRendering: Boolean = false
+	override var continuousRendering: Boolean = false
 	private var _renderRequested: Boolean = true
 
-	override fun continuousRendering(value: Boolean) {
-		_continuousRendering = value
-	}
-
 	override fun shouldRender(clearRenderRequest: Boolean): Boolean {
-		val bool = _continuousRendering || _renderRequested
+		val bool = continuousRendering || _renderRequested
 		if (clearRenderRequest && _renderRequested) _renderRequested = false
 		return bool
 	}

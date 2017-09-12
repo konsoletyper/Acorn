@@ -14,7 +14,7 @@ interface Owned : Scoped {
 	/**
 	 * Dispatched then this object has been disposed.
 	 */
-	val disposed: Signal<(Disposable) -> Unit>
+	val disposed: Signal<(Owned) -> Unit>
 
 	/**
 	 * The creator of this instance.
@@ -36,7 +36,7 @@ fun Owned.owns(other: Owned): Boolean {
  * When this object is disposed, the target will also be disposed.
  */
 fun <T : Disposable> Owned.own(target: T): T {
-	val disposer: (Disposable) -> Unit = { target.dispose() }
+	val disposer: (Owned) -> Unit = { target.dispose() }
 	disposed.add(disposer)
 	if (target is Lifecycle) {
 		target.disposed.add {
@@ -53,7 +53,8 @@ fun <T : Disposable> Owned.own(target: T): T {
  * @see scope
  */
 class OwnedImpl(override val owner: Owned?, override val injector: Injector) : Owned, Disposable {
-	override val disposed = Signal1<Disposable>()
+
+	override val disposed = Signal1<Owned>()
 
 	override fun dispose() {
 		disposed.dispatch(this)

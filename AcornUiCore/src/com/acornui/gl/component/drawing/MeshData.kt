@@ -178,7 +178,7 @@ class MeshData : MutableParent<MeshData>, Clearable {
 	 * Syntax sugar for addChild.
 	 */
 	operator fun <P : MeshData> P.unaryPlus(): P {
-		this@MeshData.addChild(this@MeshData.numChildren, this)
+		this@MeshData.addChild(this@MeshData.children.size, this)
 		return this
 	}
 

@@ -161,7 +161,7 @@ private class TestNode(val id: String) : ConcurrentParent<TestNode>() {
 	 * Syntax sugar for addChild.
 	 */
 	operator fun TestNode.unaryPlus(): TestNode {
-		this@TestNode.addChild(this@TestNode.numChildren, this)
+		this@TestNode.addChild(this@TestNode.children.size, this)
 		return this
 	}
 

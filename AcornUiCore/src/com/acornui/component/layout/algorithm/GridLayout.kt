@@ -35,7 +35,7 @@ import kotlin.properties.ObservableProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
-class GridLayout : LayoutAlgorithm<GridLayoutStyle, GridLayoutData>, BasicLayoutAlgorithm<GridLayoutStyle, GridLayoutData> {
+class GridLayout : LayoutAlgorithm<GridLayoutStyle, GridLayoutData> {
 
 	private val _measuredColWidths = ArrayList<Float>()
 
@@ -57,7 +57,7 @@ class GridLayout : LayoutAlgorithm<GridLayoutStyle, GridLayoutData>, BasicLayout
 
 	private val rowOccupancy = ArrayList<Int>()
 
-	override fun calculateSizeConstraints(elements: List<LayoutElement>, props: GridLayoutStyle, out: SizeConstraints) {
+	override fun calculateSizeConstraints(elements: List<LayoutElementRo>, props: GridLayoutStyle, out: SizeConstraints) {
 		var minWidth: Float = 0f
 		for (c in props.columns) {
 			if (c.minWidth != null) minWidth += c.minWidth!!
@@ -101,9 +101,7 @@ class GridLayout : LayoutAlgorithm<GridLayoutStyle, GridLayoutData>, BasicLayout
 		}
 	}
 
-	override fun layout(explicitWidth: Float?, explicitHeight: Float?, elements: List<LayoutElement>, props: GridLayoutStyle, out: Bounds) = basicLayout(explicitWidth, explicitHeight, elements, props, out)
-
-	override fun basicLayout(explicitWidth: Float?, explicitHeight: Float?, elements: List<BasicLayoutElement>, props: GridLayoutStyle, out: Bounds) {
+	override fun layout(explicitWidth: Float?, explicitHeight: Float?, elements: List<LayoutElement>, props: GridLayoutStyle, out: Bounds) {
 		val childAvailableWidth: Float? = props.padding.reduceWidth(explicitWidth)
 
 		_measuredColWidths.clear()
