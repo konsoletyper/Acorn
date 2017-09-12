@@ -49,7 +49,7 @@ interface TextField : UiComponent, Labelable, SelectableComponent, Styleable {
 //	/**
 //	 *
 //	 */
-//	var contents: TextNode
+//	var contents: TextNodeRo
 
 	@Deprecated("Will create text component builders.")
 	var htmlText: String?

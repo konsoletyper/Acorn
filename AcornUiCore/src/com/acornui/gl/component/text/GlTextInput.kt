@@ -56,12 +56,6 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 		}
 	})
 
-	/**
-	 * Returns the text displayed, accounting for text restrictions or password masking.
-	 */
-	val displayedText: String
-		get() = tF.text ?: ""
-
 	private var _text: String = ""
 	override var text: String
 		get() = _text

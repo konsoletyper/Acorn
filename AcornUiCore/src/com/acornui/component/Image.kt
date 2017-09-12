@@ -62,13 +62,13 @@ fun Owned.image(atlasPath: String, region: String, init: ComponentInit<Image> = 
 /**
  * Creates a texture component and uses it as the contents
  */
-fun ElementContainerImpl.contentsImage(value: String) {
+fun ElementContainer.contentsImage(value: String) {
 	createOrReuseContents({ textureC() }).path = value
 }
 
 /**
  * Creates a texture component and uses it as the contents
  */
-fun ElementContainerImpl.contentsTexture(value: Texture?) {
+fun ElementContainer.contentsTexture(value: Texture?) {
 	createOrReuseContents({ textureC() }).texture = value
 }

@@ -78,14 +78,20 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 	/**
 	 * The TextField contents.
 	 */
-	var contents: TextNodeComponent
+	val contents: TextNodeRo
 		get() = _contents
-		set(value) {
-			if (_contents == value) return
-			removeChild(_contents)
-			_contents = value
-			addChild(value)
-		}
+
+	/**
+	 * Sets the contents of this textfield.
+	 * This will remove the existing contents, but does not dispose.
+	 */
+	fun <T : TextNodeComponent> contents(value: T): T {
+		if (_contents == value) return value
+		removeChild(_contents)
+		_contents = value
+		addChild(value)
+		return value
+	}
 
 	init {
 		addStyleRule(flowStyle)
@@ -151,7 +157,7 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 		}
 		set(value) {
 			_textSpan.text = value
-			contents = _textContents
+			contents(_textContents)
 		}
 
 	private fun fontRegisteredHandler(registeredFont: BitmapFont) {
@@ -202,7 +208,7 @@ class TfCharStyle {
 
 interface TextSpanElementRo<out T : TextElementRo> : ElementParent<T>, StyleableRo {
 
-	val parent: TextNode?
+	val parent: TextNodeRo?
 
 	/**
 	 * The height of the text line.
@@ -226,7 +232,7 @@ interface TextSpanElementRo<out T : TextElementRo> : ElementParent<T>, Styleable
 
 interface TextSpanElement : TextSpanElementRo<TextElement> {
 
-	override var parent: TextNode?
+	override var parent: TextNodeRo?
 	fun setColorTint(concatenatedColorTint: ColorRo)
 }
 
@@ -245,7 +251,7 @@ class TextSpanElementImpl : TextSpanElement, MutableElementParent<TextElement>, 
 		(styleRules as Iterable<StyleRule<T>>).filterTo(out, { it.style.type == type })
 	}
 
-	override var parent: TextNode? = null
+	override var parent: TextNodeRo? = null
 
 	override val styleParent: StyleableRo?
 		get() = parent
@@ -461,7 +467,7 @@ fun span(init: ComponentInit<TextSpanElement> = {}): TextSpanElementImpl {
 	return s
 }
 
-interface TextNode : Validatable, StyleableRo {
+interface TextNodeRo : Validatable, StyleableRo {
 
 	/**
 	 * The number of [TextElement] objects within this node's hierarchy. (This will be a recursive total)
@@ -477,16 +483,20 @@ interface TextNode : Validatable, StyleableRo {
 	fun getSelectionIndex(x: Float, y: Float): Int
 
 	/**
+	 * Writes this node's contents to a string builder.
+	 */
+	fun toString(builder: StringBuilder)
+}
+
+interface TextNode : TextNodeRo {
+
+	/**
 	 * Sets the text selection.
 	 * @param rangeStart The starting index of this leaf.
 	 * @param selection A list of ranges that are selected.
 	 */
 	fun setSelection(rangeStart: Int, selection: List<SelectionRange>)
 
-	/**
-	 * Writes this node's contents to a string builder.
-	 */
-	fun toString(builder: StringBuilder)
 }
 
 interface TextNodeComponent : TextNode, UiComponent
@@ -510,11 +520,11 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, MutableE
 
 	private val _textElements = ArrayList<TextElement>()
 
-//	override val textElements: List<TextElementRo>
-//		get() {
-//			validate(ValidationFlags.HIERARCHY_ASCENDING)
-//			return _textElements
-//		}
+	val textElements: List<TextElementRo>
+		get() {
+			validate(ValidationFlags.HIERARCHY_ASCENDING)
+			return _textElements
+		}
 
 	override val size: Int
 		get() {
@@ -566,9 +576,8 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, MutableE
 
 		_lines.freeTo(linesPool)
 
-		if (_elements.isEmpty()) return
 		// To keep tab sizes consistent across the whole text field, we only use the first span's space size.
-		val spaceSize = _elements.first().spaceSize
+		val spaceSize = _elements.firstOrNull()?.spaceSize ?: 6f
 		val tabSize = spaceSize * flowStyle.tabSize
 
 		// Calculate lines

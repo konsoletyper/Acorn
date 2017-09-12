@@ -152,9 +152,9 @@
 //	fun replaceData(offset: Int, count: Int, data: String)
 //}
 //
-//interface TextNode : CharacterData {
+//interface TextNodeRo : CharacterData {
 //	open val wholeText: String
-//	fun splitText(offset: Int): TextNode
+//	fun splitText(offset: Int): TextNodeRo
 //}
 //
 //interface HtmlElement : Element {

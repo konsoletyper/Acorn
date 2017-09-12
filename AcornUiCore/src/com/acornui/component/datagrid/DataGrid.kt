@@ -356,9 +356,9 @@ class DataGrid<E>(
 
 			rowBackgroundsCache.disposeAndClear()
 
-			columnResizeHandles.iterateElements {
-				(it as Spacer).spacerWidth = style.resizeHandleWidth
-				true
+			for (i in 0..columnResizeHandles.elements.lastIndex) {
+				val resizeHandle = columnResizeHandles.elements[i] as Spacer
+				resizeHandle.spacerWidth = style.resizeHandleWidth
 			}
 
 			invalidateColumnWidths()

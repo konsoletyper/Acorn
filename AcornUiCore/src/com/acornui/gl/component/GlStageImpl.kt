@@ -75,10 +75,9 @@ open class GlStageImpl(owner: Owned) : Stage, ElementContainerImpl(owner), Focus
 	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
 		val w = window.width
 		val h = window.height
-		iterateElements {
-			// Children of the stage all are explicitly sized to the dimensions of the stage.
-			it.setSize(w, h)
-			true
+		for (i in 0.._elements.lastIndex) {
+			// Elements of the stage all are explicitly sized to the dimensions of the stage.
+			_elements[i].setSize(w, h)
 		}
 		out.set(w, h)
 	}

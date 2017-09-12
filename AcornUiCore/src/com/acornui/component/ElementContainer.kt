@@ -2,19 +2,21 @@
 
 package com.acornui.component
 
-import com.acornui.collection.CyclicList
-import com.acornui.collection.cyclicListPool
+import com.acornui._assert
 import com.acornui.core.Disposable
-import com.acornui.core.TreeWalk
 import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
 import com.acornui.math.Bounds
 
+/**
+ * Given a factory method that produces a new element [T], if this element container already
+ * contains an
+ */
 inline fun <reified T : UiComponent> ElementContainer.createOrReuseContents(factory: Owned.() -> T): T {
+	_assert(elements.size <= 1, "createOrReuseContents should not be used on element containers with more than one child.")
 	val existing: T
 	val contents = elements.getOrNull(0)
 	if (contents !is T) {
-		removeElement(contents)
 		contents?.dispose()
 		existing = factory()
 		addElement(existing)
@@ -93,72 +95,14 @@ interface MutableElementParent<T> : ElementParent<T> {
 	}
 }
 
-
-inline fun <T> ElementParent<T>.iterateElements(body: (T) -> Boolean, reversed: Boolean) {
-	if (reversed) {
-		for (i in elements.lastIndex downTo 0) {
-			body(elements[i])
-		}
-	} else {
-		for (i in 0..elements.lastIndex) {
-			body(elements[i])
-		}
-	}
-}
-
-inline fun <T> ElementParent<T>.iterateElements(body: (T) -> Boolean) {
-	for (i in 0..elements.lastIndex) {
-		body(elements[i])
-	}
-}
+interface ElementContainerRo<out T> : ContainerRo, ElementParent<T>
 
 /**
  * An ElementContainer is a container that can be provided a list of components as part of its external API.
  * It is up to this element container how to treat added elements. It may add them as children, it may provide the
  * element to a child element container.
  */
-interface ElementContainer : Container, MutableElementParent<UiComponent>
-
-inline fun <T> MutableElementParent<T>.iterateElementsReversed(body: (T) -> Boolean) {
-	for (i in elements.lastIndex downTo 0) {
-		body(elements[i])
-	}
-}
-
-@Suppress("UNCHECKED_CAST") inline fun ElementContainer.elementWalkPreOrder(callback: (UiComponent) -> TreeWalk) {
-	elementWalkPreOrder(callback, false)
-}
-
-@Suppress("UNCHECKED_CAST") inline fun ElementContainer.elementWalkPreOrderReversed(callback: (UiComponent) -> TreeWalk) {
-	elementWalkPreOrder(callback, true)
-}
-/**
- * A pre-order child walk.
- *
- * @param callback The callback to invoke on each child.
- */
-@Suppress("UNCHECKED_CAST") inline fun ElementContainer.elementWalkPreOrder(callback: (UiComponent) -> TreeWalk, reversed: Boolean) {
-	val openList = cyclicListPool.obtain() as CyclicList<UiComponent>
-	openList.add(this)
-	loop@ while (openList.isNotEmpty()) {
-		val next = openList.pop()
-		val treeWalk = callback(next)
-		when (treeWalk) {
-			TreeWalk.HALT -> break@loop
-			TreeWalk.SKIP -> continue@loop
-			TreeWalk.ISOLATE -> {
-				openList.clear()
-			}
-			else -> {
-			}
-		}
-		(next as? ElementContainer)?.iterateElements({
-			openList.add(it)
-			true
-		}, !reversed)
-	}
-	cyclicListPool.free(openList)
-}
+interface ElementContainer : ElementContainerRo<UiComponent>, MutableElementParent<UiComponent>, UiComponent
 
 /**
  * @author nbilyk
@@ -166,7 +110,7 @@ inline fun <T> MutableElementParent<T>.iterateElementsReversed(body: (T) -> Bool
 open class ElementContainerImpl(
 		owner: Owned,
 		override val native: NativeContainer = owner.inject(NativeContainer.FACTORY_KEY)(owner)
-) : ContainerImpl(owner, native), ElementContainer {
+) : ContainerImpl(owner, native), ElementContainer, Container {
 
 	//-------------------------------------------------------------------------------------------------
 	// Element methods.
@@ -243,7 +187,8 @@ open class ElementContainerImpl(
 	 */
 	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
 		if (explicitWidth != null && explicitHeight != null) return // Use explicit dimensions.
-		iterateElements {
+		for (i in 0.._elements.lastIndex) {
+			val it = _elements[i]
 			if (it.shouldLayout) {
 				if (explicitWidth == null) {
 					if (it.right > out.width)
@@ -254,7 +199,6 @@ open class ElementContainerImpl(
 						out.height = it.bottom
 				}
 			}
-			true
 		}
 	}
 

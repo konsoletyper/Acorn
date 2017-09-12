@@ -140,9 +140,8 @@ class GlScrollRect(
 
 	override fun draw() {
 		StencilUtil.mask(glState.batch, gl, { maskClip.render() }) {
-			iterateElements {
-				it.render()
-				true
+			for (i in 0.._elements.lastIndex) {
+				_elements[i].render()
 			}
 		}
 	}
