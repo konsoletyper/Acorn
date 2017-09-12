@@ -28,12 +28,6 @@ interface ElementParent<out T> {
 
 	val elements: List<T>
 
-	/**
-	 * Returns the child at the given index, or null if the index is out of bounds.
-	 */
-	@Deprecated("Use elements.getOrNull(index)", ReplaceWith("elements.getOrNull(index)"))
-	fun getElementAt(index: Int): T? = elements.getOrNull(index)
-
 }
 
 /**

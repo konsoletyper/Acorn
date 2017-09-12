@@ -47,7 +47,7 @@ object AngelCodeParser : Decorator<String, BitmapFontData> {
 		nextLine(parser)
 		parser.consumeString("common")
 		val lineHeight = parseIntProp(parser, "lineHeight")
-		val baseLine = parseIntProp(parser, "base")
+		val baseline = parseIntProp(parser, "base")
 		val pageW = parseIntProp(parser, "scaleW")
 		val pageH = parseIntProp(parser, "scaleH")
 		val totalPages = parseIntProp(parser, "pages")
@@ -118,7 +118,7 @@ object AngelCodeParser : Decorator<String, BitmapFontData> {
 				pages = pages.toList(),
 				glyphs = glyphs,
 				lineHeight = lineHeight,
-				baseLine = baseLine,
+				baseline = baseline,
 				pageW = pageW,
 				pageH = pageH
 		)

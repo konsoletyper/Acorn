@@ -34,8 +34,8 @@ import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
 import com.acornui.core.floor
 import com.acornui.core.graphics.BlendMode
+import com.acornui.core.input.interaction.DragAttachment
 import com.acornui.core.input.interaction.DragInteraction
-import com.acornui.core.input.interaction.dragAttachment
 import com.acornui.core.selection.Selectable
 import com.acornui.core.selection.SelectionManager
 import com.acornui.core.selection.SelectionRange
@@ -66,8 +66,6 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 
 	protected var _selectionCursor: RollOverCursor? = null
 
-	private val drag = dragAttachment(0f)
-
 	/**
 	 * The Selectable target to use for the selection range.
 	 */
@@ -97,14 +95,20 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 
 		watch(charStyle) {
 			refreshCursor()
-			drag.enabled = it.selectable
+			if (it.selectable) {
+				createOrReuseAttachment(TEXT_DRAG_ATTACHMENT, {
+					val d = DragAttachment(this, 0f)
+					d.drag.add(this::dragHandler)
+					d
+				})
+			} else {
+				removeAttachment<DragAttachment>(TEXT_DRAG_ATTACHMENT)?.dispose()
+			}
 		}
 
 		validation.addNode(TextValidationFlags.SELECTION, ValidationFlags.HIERARCHY_ASCENDING, this::updateSelection)
 
 		selectionManager.selectionChanged.add(this::selectionChangedHandler)
-
-		drag.drag.add(this::dragHandler)
 	}
 
 	private fun selectionChangedHandler(old: List<SelectionRange>, new: List<SelectionRange>) {
@@ -112,6 +116,7 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 	}
 
 	private fun dragHandler(event: DragInteraction) {
+		if (!charStyle.selectable) return
 		selectionManager.selection = getNewSelection(event) ?: emptyList()
 	}
 
@@ -176,6 +181,10 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 		_selectionCursor = null
 		selectionManager.selectionChanged.remove(this::selectionChangedHandler)
 	}
+
+	companion object {
+		private val TEXT_DRAG_ATTACHMENT = object {}
+	}
 }
 
 object TextValidationFlags {
@@ -191,21 +200,37 @@ class TfCharStyle {
 	val backgroundColor: Color = Color()
 }
 
-interface TextSpanElement : MutableElementParent<TextElement>, Styleable {
+interface TextSpanElementRo<out T : TextElementRo> : ElementParent<T>, StyleableRo {
 
-//	/**
-//	 * A placeholder representing the position and size of an element for the end of this span.
-//	 */
-//	val placeholder: TextElementRo
+	val parent: TextNode?
 
-	var parent: TextNode?
-	val font: BitmapFont?
+	/**
+	 * The height of the text line.
+	 */
+	val lineHeight: Float
+
+	/**
+	 * If the [TextFlowStyle] vertical alignment is BASELINE, this property will be used to vertically align the
+	 * elements.
+	 */
+	val baseline: Float
+
+	/**
+	 * The size of a space.
+	 */
+	val spaceSize: Float
 
 	fun validateStyles()
+
+}
+
+interface TextSpanElement : TextSpanElementRo<TextElement> {
+
+	override var parent: TextNode?
 	fun setColorTint(concatenatedColorTint: ColorRo)
 }
 
-class TextSpanElementImpl : TextSpanElement {
+class TextSpanElementImpl : TextSpanElement, MutableElementParent<TextElement>, Styleable {
 
 	private val _styleTags = ActiveList<StyleTag>()
 	override val styleTags: MutableList<StyleTag>
@@ -244,8 +269,21 @@ class TextSpanElementImpl : TextSpanElement {
 		_styleRules.bind(this::invalidateStyles)
 	}
 
-	override val font: BitmapFont?
+	private val font: BitmapFont?
 		get() = tfCharStyle.font
+
+	override val lineHeight: Float
+		get() = (font?.data?.lineHeight?.toFloat() ?: 0f)
+
+	override val baseline: Float
+		get() = (font?.data?.baseline?.toFloat() ?: 0f)
+
+	override val spaceSize: Float
+		get() {
+			val font = font ?: return 6f
+			return (font.data.glyphs[' ']?.advanceX?.toFloat() ?: 6f)
+
+		}
 
 	operator fun Char?.unaryPlus() {
 		if (this == null) return
@@ -336,7 +374,7 @@ interface TextElementRo {
 	/**
 	 * Set by the TextSpanElement when this is part is added.
 	 */
-	val parent: TextSpanElement?
+	val parent: TextSpanElementRo<TextElementRo>?
 
 	val char: Char?
 
@@ -347,17 +385,6 @@ interface TextElementRo {
 	 * The amount of horizontal space to advance after this part.
 	 */
 	val xAdvance: Float
-
-	/**
-	 * The height of the text line.
-	 */
-	val lineHeight: Float
-
-	/**
-	 * If the [TextFlowStyle] vertical alignment is BASELINE, this property will be used to vertically align the
-	 * elements.
-	 */
-	val baseline: Float
 
 	/**
 	 * If set, this part should be drawn to fit this width.
@@ -401,7 +428,7 @@ interface TextElement : TextElementRo, Disposable {
 	/**
 	 * Set by the TextSpanElement when this is part is added.
 	 */
-	override var parent: TextSpanElement?
+	override var parent: TextSpanElementRo<TextElementRo>?
 
 	override var x: Float
 	override var y: Float
@@ -490,7 +517,10 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, MutableE
 //		}
 
 	override val size: Int
-		get() = TODO("not implemented") //To change initializer of created properties use File | Settings | File Templates.
+		get() {
+			validate(ValidationFlags.HIERARCHY_ASCENDING)
+			return _textElements.size
+		}
 
 	@Suppress("FINAL_UPPER_BOUND")
 	override fun <S : TextSpanElement> addElement(index: Int, element: S): S {
@@ -535,6 +565,12 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, MutableE
 		val availableWidth: Float? = padding.reduceWidth(explicitWidth)
 
 		_lines.freeTo(linesPool)
+
+		if (_elements.isEmpty()) return
+		// To keep tab sizes consistent across the whole text field, we only use the first span's space size.
+		val spaceSize = _elements.first().spaceSize
+		val tabSize = spaceSize * flowStyle.tabSize
+
 		// Calculate lines
 		var x = 0f
 		var currentLine = linesPool.obtain()
@@ -546,17 +582,12 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, MutableE
 			part.x = x
 
 			if (part.clearsTabstop) {
-				val font = part.parent!!.font
-				if (font != null) {
-					val spaceSize = (font.data.glyphs[' ']?.advanceX?.toFloat() ?: 6f)
-					val tabSize = spaceSize * flowStyle.tabSize
-					val tabIndex = floor(x / tabSize) + 1
-					var w = tabIndex * tabSize - x
-					// I'm not sure what standard text flows do for this, but if the tab size is too small, skip to
-					// the next tabstop.
-					if (w < spaceSize * 0.9f) w += tabSize
-					part.explicitWidth = w
-				}
+				val tabIndex = floor(x / tabSize) + 1
+				var w = tabIndex * tabSize - x
+				// I'm not sure what standard text flows do for this, but if the tab size is too small, skip to
+				// the next tabstop.
+				if (w < spaceSize * 0.9f) w += tabSize
+				part.explicitWidth = w
 			}
 
 			val partW = part.width
@@ -667,6 +698,12 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, MutableE
 		}
 	}
 
+	private val TextElementRo.lineHeight: Float
+		get() = (parent?.lineHeight ?: 0f)
+
+	private val TextElementRo.baseline: Float
+		get() = (parent?.baseline ?: 0f)
+
 	private fun updateVertices() {
 		val padding = flowStyle.padding
 		val leftClip = padding.left
@@ -741,10 +778,10 @@ private fun Owned.textFlow(init: ComponentInit<TextFlow>): TextFlow {
  */
 class TfChar private constructor() : TextElement, Clearable {
 
-	override var char: Char = charPlaceholder
+	override var char: Char = CHAR_PLACEHOLDER
 	var style: TfCharStyle? = null
 
-	override var parent: TextSpanElement? = null
+	override var parent: TextSpanElementRo<TextElementRo>? = null
 
 	val glyph: Glyph?
 		get() {
@@ -756,12 +793,6 @@ class TfChar private constructor() : TextElement, Clearable {
 
 	override val xAdvance: Float
 		get() = (glyph?.advanceX?.toFloat() ?: 0f)
-
-	override val lineHeight: Float
-		get() = (parent?.font?.data?.lineHeight?.toFloat() ?: 0f)
-
-	override val baseline: Float
-		get() = (parent?.font?.data?.baseLine?.toFloat() ?: 0f)
 
 	override var explicitWidth: Float? = null
 
@@ -822,6 +853,7 @@ class TfChar private constructor() : TextElement, Clearable {
 		val bgL = maxOf(leftClip, x)
 		val bgT = maxOf(topClip, y)
 		val bgR = minOf(rightClip, x + width)
+		val lineHeight = parent?.lineHeight ?: 0f
 		val bgB = minOf(bottomClip, y + lineHeight)
 
 		visible = bgL < rightClip && bgT < bottomClip && bgR > leftClip && bgB > topClip
@@ -932,7 +964,7 @@ class TfChar private constructor() : TextElement, Clearable {
 
 	override fun clear() {
 		explicitWidth = null
-		char = charPlaceholder
+		char = CHAR_PLACEHOLDER
 		style = null
 		parent = null
 		x = 0f
@@ -945,7 +977,7 @@ class TfChar private constructor() : TextElement, Clearable {
 	}
 
 	companion object {
-		private const val charPlaceholder = 0.toChar()
+		private const val CHAR_PLACEHOLDER = (-1).toChar()
 		private val pool = ClearableObjectPool { TfChar() }
 
 		fun obtain(char: Char, charStyle: TfCharStyle): TfChar {
@@ -964,12 +996,6 @@ class LastTextElement(override val parent: TextSpanElement) : TextElementRo {
 	override var y = 0f
 
 	override val xAdvance = 0f
-
-	override val lineHeight: Float
-		get() = (parent.font?.data?.lineHeight?.toFloat() ?: 0f)
-
-	override val baseline: Float
-		get() = (parent.font?.data?.baseLine?.toFloat() ?: 0f)
 
 	override val explicitWidth = 0f
 

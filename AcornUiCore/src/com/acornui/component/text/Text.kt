@@ -148,7 +148,7 @@ class CharStyle : StyleBase() {
 
 	/**
 	 * The text is selectable by the user. This does not affect whether or not the text can be selected
-	 * programmatically.
+	 * programmatically, nor does setting this to false de-select the text if it's already selected.
 	 */
 	var selectable by prop(true)
 

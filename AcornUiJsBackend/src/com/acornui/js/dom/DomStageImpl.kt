@@ -26,6 +26,7 @@ import com.acornui.core.focus.Focusable
 import com.acornui.js.dom.component.DomContainer
 import com.acornui.math.Bounds
 import com.acornui.math.Ray
+import com.acornui.math.RayRo
 import com.acornui.math.Vector3
 import org.w3c.dom.HTMLElement
 
@@ -88,7 +89,7 @@ open class DomStageImpl(owner: Owned, root: HTMLElement) : Stage, ElementContain
 	 * The Stage should always intersect, this is so that it isn't extra effort to handle events such as
 	 * dragging off the stage.
 	 */
-	override fun intersectsGlobalRay(globalRay: Ray, intersection: Vector3): Boolean {
+	override fun intersectsGlobalRay(globalRay: RayRo, intersection: Vector3): Boolean {
 		validate() // TODO: Why am I doing a validate here?
 		return true
 	}

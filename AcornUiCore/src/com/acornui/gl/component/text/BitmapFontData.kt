@@ -45,7 +45,7 @@ data class BitmapFontData(
 		/**
 		 * The baseline is the line upon which most letters "sit" and below which descenders extend.
 		 */
-		val baseLine: Int,
+		val baseline: Int,
 
 		/**
 		 * The width of the texture pages.

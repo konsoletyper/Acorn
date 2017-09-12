@@ -315,7 +315,7 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 //			return y + (parent?.textFieldY ?: 0f)
 //		}
 //
-//	private val TextSpanElement.textFieldX: Float
+//	private val TextSpanElementRo<TextElementRo>.textFieldX: Float
 //		get() {
 //			var textFieldX = x
 //			var p: UiComponentRo? = parent
@@ -326,7 +326,7 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 //			return textFieldX
 //		}
 //
-//	private val TextSpanElement.textFieldY: Float
+//	private val TextSpanElementRo<TextElementRo>.textFieldY: Float
 //		get() {
 //			var textFieldY = y
 //			var p: UiComponentRo? = parent

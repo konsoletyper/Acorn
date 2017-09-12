@@ -34,7 +34,6 @@ interface ColorTransformableRo {
 	val concatenatedColorTint: ColorRo
 
 	val alpha: Float
-		get() = colorTint.a
 }
 
 /**

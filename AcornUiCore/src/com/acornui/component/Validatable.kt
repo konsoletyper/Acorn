@@ -24,7 +24,7 @@ import kotlin.properties.Delegates
 import kotlin.properties.ReadWriteProperty
 
 /**
- * A component that can be invalidated
+ * A component that has an invalidate/validate cycle.
  *
  * @author nbilyk
  */
