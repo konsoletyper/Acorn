@@ -727,19 +727,20 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, MutableE
 	override fun getSelectionIndex(x: Float, y: Float): Int {
 		if (_lines.isEmpty()) return 0
 		if (y < _lines.first().y) return 0
-		if (y >= _lines.last().bottom) return _textElements.size
+		if (y >= _lines.last().bottom) return textElements.size
 		val lineIndex = _lines.sortedInsertionIndex(y, {
 			y, line ->
 			y.compareTo(line.bottom)
 		})
 		val line = _lines[lineIndex]
-		return _textElements.sortedInsertionIndex(x, {
+		return textElements.sortedInsertionIndex(x, {
 			x, part ->
 			if (part.clearsLine) -1 else x.compareTo(part.x + part.width / 2f)
 		}, line.startIndex, line.endIndex)
 	}
 
 	override fun setSelection(rangeStart: Int, selection: List<SelectionRange>) {
+		validate(ValidationFlags.HIERARCHY_ASCENDING)
 		for (i in 0.._textElements.lastIndex) {
 			val selected = selection.indexOfFirst2 { it.contains(i + rangeStart) } != -1
 			_textElements[i].setSelected(selected)
@@ -764,8 +765,9 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, MutableE
 	}
 
 	override fun toString(builder: StringBuilder) {
-		for (i in 0.._textElements.lastIndex) {
-			val char = _textElements[i].char
+		val textElements = textElements
+		for (i in 0..textElements.lastIndex) {
+			val char = textElements[i].char
 			if (char != null)
 				builder.append(char)
 		}
@@ -986,7 +988,7 @@ class TfChar private constructor() : TextElement, Clearable {
 	}
 
 	companion object {
-		private const val CHAR_PLACEHOLDER = (-1).toChar()
+		private const val CHAR_PLACEHOLDER = 'a'
 		private val pool = ClearableObjectPool { TfChar() }
 
 		fun obtain(char: Char, charStyle: TfCharStyle): TfChar {

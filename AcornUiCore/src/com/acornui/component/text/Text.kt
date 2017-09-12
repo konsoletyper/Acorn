@@ -330,6 +330,9 @@ class TextInputStyle : StyleBase() {
 	companion object : StyleType<TextInputStyle>
 }
 
+/**
+ * Common text restrict patterns.
+ */
 object RestrictPatterns {
 
 	val INTEGER = "[^0-9+-]"

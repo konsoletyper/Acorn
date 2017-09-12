@@ -61,21 +61,23 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 		get() = _text
 		set(value) {
 			if (_text == value) return
-			_text = if (_restrictPattern == null) value else value.replace(Regex(value), "")
+			_text = if (_restrictPatternRegex == null) value else value.replace(_restrictPatternRegex!!, "")
 			refreshText()
 		}
 
 	override var placeholder: String = ""
 
 	private var _restrictPattern: String? = null
+	private var _restrictPatternRegex: Regex? = null
 
 	override var restrictPattern: String?
 		get() = _restrictPattern
 		set(value) {
 			if (_restrictPattern == value) return
 			_restrictPattern = value
+			_restrictPatternRegex = if (value == null) null else Regex(value)
 			if (value != null) {
-				_text = _text.replace(Regex(value), "")
+				_text = _text.replace(_restrictPatternRegex!!, "")
 			}
 			refreshText()
 		}
@@ -220,9 +222,10 @@ open class GlTextInput(owner: Owned) : ContainerImpl(owner), TextInput {
 	}
 
 	private fun replaceSelection(str: String) {
+		val str2 = if (_restrictPatternRegex == null) str else str.replace(_restrictPatternRegex!!, "")
 		val sel = firstSelection ?: return
-		replaceTextRange(sel.startIndex, sel.endIndex, str)
-		selectionManager.selection = listOf(SelectionRange(this, sel.startIndex + str.length, sel.startIndex + str.length))
+		replaceTextRange(sel.startIndex, sel.endIndex, str2)
+		selectionManager.selection = listOf(SelectionRange(this, sel.startIndex + str2.length, sel.startIndex + str2.length))
 	}
 
 	override fun replaceTextRange(startIndex: Int, endIndex: Int, newText: String) {

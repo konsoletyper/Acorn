@@ -25,7 +25,6 @@ import com.acornui.core.focus.FocusManager
 import com.acornui.core.focus.Focusable
 import com.acornui.js.dom.component.DomContainer
 import com.acornui.math.Bounds
-import com.acornui.math.Ray
 import com.acornui.math.RayRo
 import com.acornui.math.Vector3
 import org.w3c.dom.HTMLElement
@@ -77,10 +76,9 @@ open class DomStageImpl(owner: Owned, root: HTMLElement) : Stage, ElementContain
 		val w = window.width
 		val h = window.height
 		super.updateLayout(w, h, out)
-		iterateElements {
+		for (i in 0.._elements.lastIndex) {
 			// Children of the stage all are explicitly sized to the dimensions of the stage.
-			it.setSize(w, h)
-			true
+			_elements[i].setSize(w, h)
 		}
 		out.set(w, h)
 	}
