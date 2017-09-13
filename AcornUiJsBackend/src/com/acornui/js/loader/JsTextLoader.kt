@@ -23,7 +23,7 @@ import com.acornui.action.DelegateAction
 import com.acornui.core.UserInfo
 import com.acornui.core.assets.AssetType
 import com.acornui.core.assets.AssetTypes
-import com.acornui.core.assets.MutableAssetLoader
+import com.acornui.core.assets.AssetLoader
 import com.acornui.core.request.MutableHttpRequest
 import com.acornui.core.request.ResponseType
 import com.acornui.js.io.JsHttpRequest
@@ -34,7 +34,7 @@ import com.acornui.js.io.JsHttpRequest
  */
 class JsTextLoader(
 		private val request: MutableHttpRequest = JsHttpRequest()
-) : DelegateAction(request), MutableAssetLoader<String> {
+) : DelegateAction(request), AssetLoader<String> {
 
 	override val type: AssetType<String> = AssetTypes.TEXT
 

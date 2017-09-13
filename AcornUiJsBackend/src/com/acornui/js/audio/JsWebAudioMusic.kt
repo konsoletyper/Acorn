@@ -2,14 +2,14 @@ package com.acornui.js.audio
 
 import com.acornui.core.audio.Music
 import com.acornui.core.audio.MusicReadyState
-import com.acornui.core.audio.MutableAudioManager
+import com.acornui.core.audio.AudioManager
 import com.acornui.math.MathUtils
 import com.acornui.signal.Signal
 import com.acornui.signal.Signal0
 import org.w3c.dom.HTMLMediaElement
 
 class JsWebAudioMusic(
-		private val audioManager: MutableAudioManager,
+		private val audioManager: AudioManager,
 		private val context: AudioContext,
 		private val element: HTMLMediaElement
 ) : Music {

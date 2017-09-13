@@ -61,9 +61,9 @@ enum class ActionStatus(vararg private val allowedNext: String) {
 // TODO: Simplify by removing aborted status and replace with an AbortedException
 
 /**
- * An [Action] is an object with a single state, represented via [ActionStatus]
+ * An [ActionRo] is an object with a single state, represented via [ActionStatus]
  */
-interface Action {
+interface ActionRo {
 
 	/**
 	 * Dispatched when the status flag has changed.
@@ -72,7 +72,7 @@ interface Action {
 	 *
 	 * @see ActionStatus
 	 */
-	val statusChanged: Signal<(Action, ActionStatus, ActionStatus, Throwable?) -> Unit>
+	val statusChanged: Signal<(ActionRo, ActionStatus, ActionStatus, Throwable?) -> Unit>
 
 	/**
 	 * The current status of the action.
@@ -98,7 +98,7 @@ interface Action {
 	 *
 	 * @see ActionStatus
 	 */
-	val completed: Signal<(Action, ActionStatus) -> Unit>
+	val completed: Signal<(ActionRo, ActionStatus) -> Unit>
 
 	/**
 	 * True if the action's status is currently SUCCESSFUL, ABORTED, or FAILED
@@ -122,7 +122,7 @@ interface Action {
 	 *
 	 * @see ActionStatus
 	 */
-	val invoked: Signal<(Action) -> Unit>
+	val invoked: Signal<(ActionRo) -> Unit>
 
 	/**
 	 * True if the action's status is not PENDING.
@@ -144,7 +144,7 @@ interface Action {
 	 *
 	 * @see ActionStatus
 	 */
-	val succeeded: Signal<(Action) -> Unit>
+	val succeeded: Signal<(ActionRo) -> Unit>
 
 	/**
 	 * True if the action's status is SUCCESSFUL.
@@ -158,7 +158,7 @@ interface Action {
 	 * ActionStatus.FAILED
 	 * ActionStatus.ABORTED
 	 */
-	val failed: Signal<(Action, ActionStatus, Throwable) -> Unit>
+	val failed: Signal<(ActionRo, ActionStatus, Throwable) -> Unit>
 
 	/**
 	 * True if the action's status is ABORTED or FAILED.
@@ -171,9 +171,9 @@ interface Action {
 }
 
 /**
- * A [MutableAction] is an [Action] that exposes methods to change its current state.
+ * A [Action] is an [ActionRo] that exposes methods to change its current state.
  */
-interface MutableAction : Action, Disposable {
+interface Action : ActionRo, Disposable {
 
 	fun abort() = abort(UserAborted)
 
@@ -225,7 +225,7 @@ interface MutableAction : Action, Disposable {
  * The chained action will be called at most once. That is, if this action succeeds, is reset, then succeeds again,
  * only the first success will invoke the provided chained action.
  */
-fun Action.onSuccess(chained: MutableAction) {
+fun ActionRo.onSuccess(chained: Action) {
 	if (hasSucceeded()) chained()
 	else succeeded.add({ chained() }, true)
 }
@@ -238,7 +238,7 @@ fun Action.onSuccess(chained: MutableAction) {
  *
  * This is similar to the Promise-style then()
  */
-fun <T : Action> T.onSuccess(chained: (action: T) -> Unit) {
+fun <T : ActionRo> T.onSuccess(chained: (action: T) -> Unit) {
 	if (hasSucceeded()) chained(this)
 	else succeeded.add({ chained(this) }, true)
 }
@@ -249,12 +249,12 @@ fun <T : Action> T.onSuccess(chained: (action: T) -> Unit) {
  * The chained action will be called at most once. That is, if this action fails, is reset, then fails again,
  * only the first fail will invoke the provided chained action.
  */
-fun Action.onFailed(chained: MutableAction) {
+fun ActionRo.onFailed(chained: Action) {
 	if (hasFailed()) chained()
 	else failed.add({ action, status, error -> chained() }, true)
 }
 
-fun Action.onFailed(handler: (e: Throwable) -> Unit) {
+fun ActionRo.onFailed(handler: (e: Throwable) -> Unit) {
 	if (hasFailed()) handler(error!!)
 	else failed.add({ action, status, error -> handler(error) }, true)
 }

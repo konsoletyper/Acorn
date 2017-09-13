@@ -16,8 +16,8 @@
 
 package com.acornui.core.request
 
+import com.acornui.action.LoadableRo
 import com.acornui.action.Loadable
-import com.acornui.action.MutableLoadable
 import com.acornui.browser.UrlParams
 import com.acornui.core.browser.MultipartFormData
 import com.acornui.io.NativeBuffer
@@ -80,7 +80,7 @@ interface RestServiceFactory {
 	}
 }
 
-interface HttpRequest : Loadable<Any> {
+interface HttpRequest : LoadableRo<Any> {
 
 	val responseError: ResponseException?
 		get() = error as? ResponseException
@@ -108,7 +108,7 @@ interface HttpRequest : Loadable<Any> {
 		}
 }
 
-interface MutableHttpRequest : HttpRequest, MutableLoadable<Any>
+interface MutableHttpRequest : HttpRequest, Loadable<Any>
 
 fun createRequest(): MutableHttpRequest {
 	return RestServiceFactory.instance.create()

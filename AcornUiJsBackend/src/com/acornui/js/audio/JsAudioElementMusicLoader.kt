@@ -19,11 +19,10 @@ package com.acornui.js.audio
 import com.acornui.action.BasicAction
 import com.acornui.core.assets.AssetType
 import com.acornui.core.assets.AssetTypes
-import com.acornui.core.assets.MutableAssetLoader
+import com.acornui.core.assets.AssetLoader
 import com.acornui.core.audio.Music
-import com.acornui.core.audio.MutableAudioManager
+import com.acornui.core.audio.AudioManager
 import org.w3c.dom.HTMLAudioElement
-import org.w3c.dom.HTMLSlotElement
 import kotlin.browser.document
 
 /**
@@ -31,8 +30,8 @@ import kotlin.browser.document
  * @author nbilyk
  */
 class JsAudioElementMusicLoader(
-		private val audioManager: MutableAudioManager
-) : BasicAction(), MutableAssetLoader<Music> {
+		private val audioManager: AudioManager
+) : BasicAction(), AssetLoader<Music> {
 
 	override val type: AssetType<Music> = AssetTypes.MUSIC
 

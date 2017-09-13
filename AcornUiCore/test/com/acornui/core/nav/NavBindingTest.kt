@@ -1,7 +1,7 @@
 package com.acornui.core.nav
 
-import com.acornui.core.Child
-import com.acornui.core.Parent
+import com.acornui.core.ChildRo
+import com.acornui.core.ParentRo
 import com.acornui.core.di.Injector
 import com.acornui.browser.decodeUriComponent2
 import com.acornui.browser.encodeUriComponent2
@@ -76,9 +76,9 @@ class NavBindingTest {
 
 }
 
-private class MockNavBindable(override val injector: Injector, private val depth: Int) : Parent<NavBindable>,  NavBindable {
+private class MockNavBindable(override val injector: Injector, private val depth: Int) : ParentRo<NavBindable>,  NavBindable {
 
-	override val parent: Parent<out Child>?
+	override val parent: ParentRo<out ChildRo>?
 		get() {
 			if (depth == 0) return null else return MockNavBindable(injector, depth - 1)
 		}

@@ -21,7 +21,7 @@ package com.acornui.core.graphics
 import com.acornui.core.Disposable
 import com.acornui.core.di.DKey
 import com.acornui.math.*
-import com.acornui.observe.ModTag
+import com.acornui.observe.ModTagRo
 import com.acornui.observe.ModTagImpl
 
 interface CameraRo {
@@ -29,7 +29,7 @@ interface CameraRo {
 	/**
 	 * Incremented whenever something on this camera has changed.
 	 */
-	val modTag: ModTag
+	val modTag: ModTagRo
 
 	/**
 	 * The combined projection and view matrix.

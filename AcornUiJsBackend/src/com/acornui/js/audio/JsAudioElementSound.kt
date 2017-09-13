@@ -1,13 +1,13 @@
 package com.acornui.js.audio
 
-import com.acornui.core.audio.MutableAudioManager
+import com.acornui.core.audio.AudioManager
 import com.acornui.core.audio.Sound
 import com.acornui.math.MathUtils
 import org.w3c.dom.HTMLAudioElement
 import org.w3c.dom.events.Event
 
 class JsAudioElementSound(
-		private val audioManager: MutableAudioManager,
+		private val audioManager: AudioManager,
 		private val src: String,
 		override val priority: Float
 ) : Sound {

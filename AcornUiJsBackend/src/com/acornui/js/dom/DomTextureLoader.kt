@@ -22,7 +22,7 @@ import com.acornui.action.onFailed
 import com.acornui.action.onSuccess
 import com.acornui.core.assets.AssetType
 import com.acornui.core.assets.AssetTypes
-import com.acornui.core.assets.MutableAssetLoader
+import com.acornui.core.assets.AssetLoader
 import com.acornui.core.graphics.Texture
 import com.acornui.core.request.ResponseType
 import com.acornui.js.io.JsHttpRequest
@@ -31,7 +31,7 @@ import com.acornui.js.io.JsHttpRequest
  * An asset loader for textures (images).
  * @author nbilyk
  */
-class DomTextureLoader : BasicAction(), MutableAssetLoader<Texture> {
+class DomTextureLoader : BasicAction(), AssetLoader<Texture> {
 
 	override val type: AssetType<Texture> = AssetTypes.TEXTURE
 

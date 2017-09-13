@@ -17,7 +17,7 @@
 package com.acornui.component
 
 import com.acornui._assert
-import com.acornui.core.Parent
+import com.acornui.core.ParentRo
 import com.acornui.core.di.DKey
 import com.acornui.core.di.DependencyKeyImpl
 import com.acornui.core.di.Owned
@@ -30,7 +30,7 @@ import com.acornui.math.RayRo
 import kotlin.properties.Delegates
 import kotlin.properties.ReadWriteProperty
 
-interface ContainerRo: UiComponentRo, Parent<UiComponentRo>
+interface ContainerRo: UiComponentRo, ParentRo<UiComponentRo>
 
 /**
  * An interface for a ui component that has child components.

@@ -30,14 +30,14 @@ package com.acornui.action
  *
  * @author nbilyk
  */
-open class DelegateAction(initialTarget: MutableAction? = null) : BasicAction() {
+open class DelegateAction(initialTarget: Action? = null) : BasicAction() {
 
-	private var _target: MutableAction? = null
+	private var _target: Action? = null
 
 	private var isResponse: Boolean = false
 
 	private val targetStatusChangedHandler = {
-		action: Action, oldStatus: ActionStatus, status: ActionStatus, error: Throwable? ->
+		action: ActionRo, oldStatus: ActionStatus, status: ActionStatus, error: Throwable? ->
 		isResponse = true
 		// If the target's status has changed, match it.
 		internalSetStatus(status, error)
@@ -47,7 +47,7 @@ open class DelegateAction(initialTarget: MutableAction? = null) : BasicAction() 
 	/**
 	 * Changes the target this action delegates to. Both this delegate and the target action must be status PENDING.
 	 */
-	protected var target: MutableAction?
+	protected var target: Action?
 		get() {
 			return _target
 		}

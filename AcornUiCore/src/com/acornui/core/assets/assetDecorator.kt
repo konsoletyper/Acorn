@@ -17,22 +17,22 @@
 package com.acornui.core.assets
 
 import com.acornui.action.Decorator
-import com.acornui.action.Loadable
+import com.acornui.action.LoadableRo
 import com.acornui.action.LoadableDecorator
 import com.acornui.core.di.Scoped
 import com.acornui.core.di.inject
 
-fun <T, R> Scoped.loadDecorated(path: String, type: AssetType<T>, decorator: Decorator<T, R>): Loadable<R> {
+fun <T, R> Scoped.loadDecorated(path: String, type: AssetType<T>, decorator: Decorator<T, R>): LoadableRo<R> {
 	return loadDecorated(inject(Cache), inject(AssetManager), path, type, decorator)
 }
 
 /**
  * Loads the given file, applies a decorator to the results, and caches the final value.
- * Subsequent calls to loadDecorated with the same [path] and [type] will return the same [Loadable] instance.
+ * Subsequent calls to loadDecorated with the same [path] and [type] will return the same [LoadableRo] instance.
  */
-fun <T, R> loadDecorated(cache: Cache, assetManager: AssetManager, path: String, type: AssetType<T>, decorator: Decorator<T, R>): Loadable<R> {
+fun <T, R> loadDecorated(cache: Cache, assetManager: AssetManager, path: String, type: AssetType<T>, decorator: Decorator<T, R>): LoadableRo<R> {
 	val key = AssetDecoratorCacheKey(path, type, decorator)
-	val loadable: Loadable<R>
+	val loadable: LoadableRo<R>
 	if (cache.containsKey(key)) {
 		loadable = cache[key]!!
 	} else {
@@ -63,7 +63,7 @@ private data class AssetDecoratorCacheKey<T, R>(
 		val decorator: Decorator<T, R>
 ) : CacheKey<LoadableDecorator<T, R>>
 
-private class AssetLoaderDecorator<T, R>(private val assetManager: AssetManager, private val loader: AssetLoader<T>, decorator: Decorator<T, R>) : LoadableDecorator<T, R>(loader, decorator) {
+private class AssetLoaderDecorator<T, R>(private val assetManager: AssetManager, private val loader: AssetLoaderRo<T>, decorator: Decorator<T, R>) : LoadableDecorator<T, R>(loader, decorator) {
 
 	override fun onAborted() {
 		super.onAborted()

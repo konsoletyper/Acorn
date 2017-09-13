@@ -30,7 +30,7 @@ import com.acornui.core.*
 import com.acornui.core.assets.AssetManager
 import com.acornui.core.assets.AssetManagerImpl
 import com.acornui.core.assets.AssetTypes
-import com.acornui.core.audio.MutableAudioManager
+import com.acornui.core.audio.AudioManager
 import com.acornui.core.cursor.CursorManager
 import com.acornui.core.di.*
 import com.acornui.core.focus.FocusManager
@@ -302,7 +302,7 @@ open class LwjglApplication(
 	protected open fun initializeAudio() {
 		try {
 			val audioManager = OpenAlAudioManager()
-			bootstrap[MutableAudioManager] = audioManager
+			bootstrap[AudioManager] = audioManager
 			bootstrap.on(AssetManager, TimeDriver) {
 				val timeDriver = bootstrap[TimeDriver]
 				timeDriver.addChild(audioManager)

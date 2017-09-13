@@ -1,11 +1,11 @@
 package com.acornui.js.audio
 
-import com.acornui.core.audio.MutableAudioManager
+import com.acornui.core.audio.AudioManager
 import com.acornui.core.audio.Sound
 import com.acornui.core.audio.SoundFactory
 
 class JsAudioElementSoundFactory(
-		private val audioManager: MutableAudioManager,
+		private val audioManager: AudioManager,
 		private val path: String,
 		override val duration: Float
 ) : SoundFactory {

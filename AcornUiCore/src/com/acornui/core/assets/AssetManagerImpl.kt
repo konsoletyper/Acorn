@@ -16,7 +16,7 @@
 
 package com.acornui.core.assets
 
-import com.acornui.action.Action
+import com.acornui.action.ActionRo
 import com.acornui.action.ActionStatus
 import com.acornui.action.BasicAction
 import com.acornui.action.PriorityQueueAction
@@ -45,7 +45,7 @@ class AssetManagerImpl(
 		simultaneous: Int = 5
 ) : AssetManager {
 
-	private val loaderFactories: HashMap<AssetType<*>, () -> MutableAssetLoader<*>> = HashMap()
+	private val loaderFactories: HashMap<AssetType<*>, () -> AssetLoader<*>> = HashMap()
 
 	override val loadingQueue: PriorityQueueAction = PriorityQueueAction()
 
@@ -55,11 +55,11 @@ class AssetManagerImpl(
 		loadingQueue.autoInvoke = true
 	}
 
-	override fun <T> setLoaderFactory(type: AssetType<T>, factory: () -> MutableAssetLoader<T>) {
+	override fun <T> setLoaderFactory(type: AssetType<T>, factory: () -> AssetLoader<T>) {
 		loaderFactories[type] = factory
 	}
 
-	private fun <T> _initLoader(loader: MutableAssetLoader<T>, path: String) {
+	private fun <T> _initLoader(loader: AssetLoader<T>, path: String) {
 		// Check if we can determine the estimated size by the manifest
 		val file = files.getFile(path)
 		if (file != null) {
@@ -72,9 +72,9 @@ class AssetManagerImpl(
 	}
 
 	@Suppress("UNCHECKED_CAST")
-	override fun <T> load(path: String, type: AssetType<T>, priority: Float): AssetLoader<T> {
+	override fun <T> load(path: String, type: AssetType<T>, priority: Float): AssetLoaderRo<T> {
 		val factory = loaderFactories[type] ?: createFailedLoaderFactory(type)
-		val loader = factory() as MutableAssetLoader<T>
+		val loader = factory() as AssetLoader<T>
 		_initLoader(loader, path)
 		loadingQueue.add(loader, priority)
 		return loader
@@ -82,7 +82,7 @@ class AssetManagerImpl(
 
 	override fun <T> abort(path: String, type: AssetType<T>) {
 		for (i in 0..loadingQueue.actions.lastIndex) {
-			val action = loadingQueue.actions[i] as MutableAssetLoader<*>
+			val action = loadingQueue.actions[i] as AssetLoader<*>
 			if (action.path == path && action.type == type) {
 				action.abort()
 				return
@@ -94,9 +94,9 @@ class AssetManagerImpl(
 	 * When an asset type is requested that doesn't have a corresponding loader factory, warn on first attempt, and
 	 * create a factory that produces a [FailedLoader]
 	 */
-	private fun <T> createFailedLoaderFactory(type: AssetType<T>): () -> MutableAssetLoader<T> {
+	private fun <T> createFailedLoaderFactory(type: AssetType<T>): () -> AssetLoader<T> {
 		Log.warn("No loader factory set for asset type $type")
-		val newFailedLoaderFactory: () -> MutableAssetLoader<T> = {
+		val newFailedLoaderFactory: () -> AssetLoader<T> = {
 			@Suppress("CAST_NEVER_SUCCEEDS")
 			FailedLoader(type)
 		}
@@ -108,7 +108,7 @@ class AssetManagerImpl(
 		get() {
 			var c = 0f
 			for (i in 0..loadingQueue.actions.lastIndex) {
-				val action = loadingQueue.actions[i] as AssetLoader<*>
+				val action = loadingQueue.actions[i] as AssetLoaderRo<*>
 				c += action.secondsLoaded
 			}
 			return c
@@ -118,7 +118,7 @@ class AssetManagerImpl(
 		get() {
 			var c = 0f
 			for (i in 0..loadingQueue.actions.lastIndex) {
-				val action = loadingQueue.actions[i] as AssetLoader<*>
+				val action = loadingQueue.actions[i] as AssetLoaderRo<*>
 				c += action.secondsTotal
 			}
 			return c
@@ -130,7 +130,7 @@ class AssetManagerImpl(
 
 	companion object {
 		var loadingFailedHandler = {
-			action: Action, status: ActionStatus, error: Throwable? ->
+			action: ActionRo, status: ActionStatus, error: Throwable? ->
 			if (status == ActionStatus.FAILED) {
 				Log.warn(error)
 			}
@@ -138,9 +138,9 @@ class AssetManagerImpl(
 	}
 }
 
-private data class AssetCacheKey(val path: String, val type: AssetType<*>) : CacheKey<AssetLoader<*>> {}
+private data class AssetCacheKey(val path: String, val type: AssetType<*>) : CacheKey<AssetLoaderRo<*>> {}
 
-private class FailedLoader<T>(override val type: AssetType<T>) : BasicAction(), MutableAssetLoader<T> {
+private class FailedLoader<T>(override val type: AssetType<T>) : BasicAction(), AssetLoader<T> {
 
 	override var estimatedBytesTotal: Int = 0
 

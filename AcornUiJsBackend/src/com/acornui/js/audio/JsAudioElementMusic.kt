@@ -2,14 +2,14 @@ package com.acornui.js.audio
 
 import com.acornui.core.audio.Music
 import com.acornui.core.audio.MusicReadyState
-import com.acornui.core.audio.MutableAudioManager
+import com.acornui.core.audio.AudioManager
 import com.acornui.math.MathUtils
 import com.acornui.signal.Signal0
 import org.w3c.dom.HTMLAudioElement
 import org.w3c.dom.events.Event
 
 open class JsAudioElementMusic(
-		private val audioManager: MutableAudioManager,
+		private val audioManager: AudioManager,
 		private val element: HTMLAudioElement) : Music {
 
 	override val readyStateChanged = Signal0()

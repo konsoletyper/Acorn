@@ -70,7 +70,7 @@ class CascadingStyleCalculatorTest {
 					)
 			)
 
-			override fun <T : Style> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) = filterRules(type, out)
+			override fun <T : StyleRo> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) = filterRules(type, out)
 
 			override val styleParent: Styleable? = null
 
@@ -90,7 +90,7 @@ class CascadingStyleCalculatorTest {
 					)
 			)
 
-			override fun <T : Style> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) = filterRules(type, out)
+			override fun <T : StyleRo> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) = filterRules(type, out)
 
 			override val styleParent: Styleable? = a
 
@@ -109,7 +109,7 @@ class CascadingStyleCalculatorTest {
 					)
 			)
 
-			override fun <T : Style> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) = filterRules(type, out)
+			override fun <T : StyleRo> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) = filterRules(type, out)
 
 			override val styleParent = a
 
@@ -133,7 +133,7 @@ class CascadingStyleCalculatorTest {
 
 }
 
-private fun <T : Style> Styleable.filterRules(type: StyleType<T>, out: MutableList<StyleRule<T>>) {
+private fun <T : StyleRo> Styleable.filterRules(type: StyleType<T>, out: MutableList<StyleRule<T>>) {
 	out.clear()
 	@Suppress("UNCHECKED_CAST")
 	(styleRules as Iterable<StyleRule<T>>).filterTo(out, { it.style.type == type })

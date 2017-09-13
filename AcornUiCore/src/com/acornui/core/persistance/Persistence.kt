@@ -14,6 +14,9 @@ interface Persistence : Clearable {
 
 	val allowed: Boolean
 
+	/**
+	 * Returns an integer representing the number of data items stored.
+	 */
 	val length: Int
 
 	/**

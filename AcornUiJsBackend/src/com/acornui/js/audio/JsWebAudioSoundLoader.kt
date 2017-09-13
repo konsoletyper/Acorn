@@ -22,10 +22,9 @@ import com.acornui.action.onFailed
 import com.acornui.action.onSuccess
 import com.acornui.core.assets.AssetType
 import com.acornui.core.assets.AssetTypes
-import com.acornui.core.assets.MutableAssetLoader
-import com.acornui.core.audio.MutableAudioManager
+import com.acornui.core.assets.AssetLoader
+import com.acornui.core.audio.AudioManager
 import com.acornui.core.audio.SoundFactory
-import com.acornui.core.request.HttpRequest
 import com.acornui.core.request.ResponseType
 import com.acornui.js.io.JsHttpRequest
 
@@ -36,8 +35,8 @@ import com.acornui.js.io.JsHttpRequest
  * @author nbilyk
  */
 class JsWebAudioSoundLoader(
-		private val audioManager: MutableAudioManager
-) : BasicAction(), MutableAssetLoader<SoundFactory> {
+		private val audioManager: AudioManager
+) : BasicAction(), AssetLoader<SoundFactory> {
 
 	override val type: AssetType<SoundFactory> = AssetTypes.SOUND
 

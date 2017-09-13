@@ -28,7 +28,7 @@ import com.acornui.core.di.inject
 /**
  * @author nbilyk
  */
-interface TimeDriver : MutableParent<DrivableChild>, Drivable {
+interface TimeDriver : Parent<DrivableChild>, Drivable {
 
 	companion object : DKey<TimeDriver> {}
 }
@@ -38,7 +38,7 @@ interface TimeDriver : MutableParent<DrivableChild>, Drivable {
  */
 open class TimeDriverImpl : LifecycleBase(), TimeDriver, Drivable {
 
-	override var parent: MutableParent<out Child>? = null
+	override var parent: Parent<out ChildRo>? = null
 	private val _children = ActiveList<DrivableChild>()
 	private val childIterator = _children.iterator()
 

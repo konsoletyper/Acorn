@@ -25,7 +25,7 @@ import com.acornui.core.assets.AssetManager
 import com.acornui.core.assets.AssetManagerImpl
 import com.acornui.core.assets.AssetTypes
 import com.acornui.core.audio.AudioManagerImpl
-import com.acornui.core.audio.MutableAudioManager
+import com.acornui.core.audio.AudioManager
 import com.acornui.core.cursor.CursorManager
 import com.acornui.core.di.Bootstrap
 import com.acornui.core.di.Owned
@@ -277,7 +277,7 @@ abstract class JsApplicationBase(
 	}
 
 	protected open fun initializeAssetManager() {
-		bootstrap.on(Files, MutableAudioManager) {
+		bootstrap.on(Files, AudioManager) {
 			val assetManager = AssetManagerImpl(config.rootPath, bootstrap[Files], appendVersion = true)
 			assetManager.setLoaderFactory(AssetTypes.TEXT, { JsTextLoader() })
 			this[AssetManager] = assetManager
@@ -288,7 +288,7 @@ abstract class JsApplicationBase(
 
 	protected open fun initializeAudio() {
 		val audioManager = AudioManagerImpl()
-		bootstrap[MutableAudioManager] = audioManager
+		bootstrap[AudioManager] = audioManager
 
 		bootstrap.on(AssetManager) {
 			// JS Audio doesn't need to be updated like OpenAL audio does, so we don't add it to the TimeDriver.

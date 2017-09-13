@@ -20,7 +20,7 @@ import com.acornui.collection.filterTo2
 import com.acornui.component.*
 import com.acornui.component.layout.algorithm.LayoutAlgorithm
 import com.acornui.component.layout.algorithm.LayoutDataProvider
-import com.acornui.component.style.MutableStyle
+import com.acornui.component.style.Style
 import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
 import com.acornui.core.focus.Focusable
@@ -35,7 +35,7 @@ interface LayoutContainer<S, out T : LayoutData> : LayoutDataProvider<T>, Elemen
 	override fun createLayoutData(): T
 }
 
-open class LayoutContainerImpl<S : MutableStyle, out U : LayoutData>(
+open class LayoutContainerImpl<S : Style, out U : LayoutData>(
 		owner: Owned,
 		override val layoutAlgorithm: LayoutAlgorithm<S, U>,
 		style: S,

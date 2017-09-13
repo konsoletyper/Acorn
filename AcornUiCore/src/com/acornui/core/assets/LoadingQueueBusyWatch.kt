@@ -16,7 +16,7 @@
 
 package com.acornui.core.assets
 
-import com.acornui.action.Action
+import com.acornui.action.ActionRo
 import com.acornui.action.ActionStatus
 import com.acornui.core.cursor.CursorManager
 import com.acornui.core.cursor.CursorPriority
@@ -37,7 +37,7 @@ class LoadingQueueBusyWatch(injector: Injector) {
 	private var _isRunning = false
 
 	private val loadingQueueStatusChangeHandler = {
-		a: Action, oldStatus: ActionStatus, newStatus: ActionStatus, error: Throwable? ->
+		a: ActionRo, oldStatus: ActionStatus, newStatus: ActionStatus, error: Throwable? ->
 		if (assets.loadingQueue.isRunning()) {
 			setBusy(true)
 		} else {

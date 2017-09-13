@@ -65,12 +65,12 @@ open class ActionWatch: ActionBase(), ProgressAction, Disposable {
 				refreshStatus()
 		}
 
-	private val _actions = ActiveList<Action>()
+	private val _actions = ActiveList<ActionRo>()
 
 	/**
 	 * Returns the list of observed actions.
 	 */
-	val actions: ObservableList<Action>
+	val actions: ObservableList<ActionRo>
 		get() {
 			return _actions
 		}
@@ -96,7 +96,7 @@ open class ActionWatch: ActionBase(), ProgressAction, Disposable {
 	 * Adds an action to the queue.
 	 * Returns the added action.
 	 */
-	fun <T : Action> add(action: T, index: Int = _actions.size): T {
+	fun <T : ActionRo> add(action: T, index: Int = _actions.size): T {
 		if (forgetActions && action.hasCompleted()) return action
 		if (_actions.contains(action)) throw IllegalArgumentException("The action must be removed first.")
 		watchAction(action)
@@ -108,7 +108,7 @@ open class ActionWatch: ActionBase(), ProgressAction, Disposable {
 	/**
 	 * Adds a list of actions to watch.
 	 */
-	fun addAll(vararg actions: Action) {
+	fun addAll(vararg actions: ActionRo) {
 		batch {
 			for (i in actions) {
 				add(i)
@@ -132,14 +132,14 @@ open class ActionWatch: ActionBase(), ProgressAction, Disposable {
 	/**
 	 * Returns the index of the given action.
 	 */
-	fun indexOf(action: Action): Int {
+	fun indexOf(action: ActionRo): Int {
 		return _actions.indexOf(action)
 	}
 
 	/**
 	 * Removes an action from this watch.
 	 */
-	fun remove(action: Action): Boolean {
+	fun remove(action: ActionRo): Boolean {
 		val actionIndex = indexOf(action)
 		if (actionIndex == -1) return false
 		removeAt(actionIndex)
@@ -171,7 +171,7 @@ open class ActionWatch: ActionBase(), ProgressAction, Disposable {
 	}
 
 	private val actionStatusChangedHandler = {
-		action: Action, oldStatus: ActionStatus, newStatus: ActionStatus, error: Throwable? ->
+		action: ActionRo, oldStatus: ActionStatus, newStatus: ActionStatus, error: Throwable? ->
 		onActionStatusChanged(action, oldStatus, newStatus, error)
 		refreshStatus()
 	}
@@ -180,7 +180,7 @@ open class ActionWatch: ActionBase(), ProgressAction, Disposable {
 	 * Adds listeners to the provided action.
 	 * @param action
 	 */
-	private fun watchAction(action: Action) {
+	private fun watchAction(action: ActionRo) {
 		action.statusChanged.add(actionStatusChangedHandler)
 	}
 
@@ -188,7 +188,7 @@ open class ActionWatch: ActionBase(), ProgressAction, Disposable {
 	 * Removes listeners from the provided action.
 	 * @param action
 	 */
-	private fun unwatchAction(action: Action) {
+	private fun unwatchAction(action: ActionRo) {
 		action.statusChanged.remove(actionStatusChangedHandler)
 	}
 
@@ -233,7 +233,7 @@ open class ActionWatch: ActionBase(), ProgressAction, Disposable {
 		}
 	}
 
-	protected open fun onActionStatusChanged(action: Action, oldStatus: ActionStatus, newStatus: ActionStatus, error: Throwable?) {
+	protected open fun onActionStatusChanged(action: ActionRo, oldStatus: ActionStatus, newStatus: ActionStatus, error: Throwable?) {
 	}
 
 	/**
@@ -296,7 +296,7 @@ open class ActionWatch: ActionBase(), ProgressAction, Disposable {
 	 * @param index
 	 * @return
 	 */
-	operator fun get(index: Int): Action? {
+	operator fun get(index: Int): ActionRo? {
 		if (index < 0 || index >= _actions.size) return null
 		return _actions[index]
 	}

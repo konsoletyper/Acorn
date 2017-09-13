@@ -309,7 +309,7 @@ open class UiComponentImpl(
 	// UiComponent properties
 	protected var _visible: Boolean = true
 
-	// Child properties
+	// ChildRo properties
 	override var parent: ContainerRo? = null
 
 	init {
@@ -733,17 +733,17 @@ open class UiComponentImpl(
 	override final val styleRules: MutableList<StyleRule<*>>
 		get() = styles.styleRules
 
-	override fun <T : Style> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) = styles.getRulesByType(type, out)
+	override fun <T : StyleRo> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) = styles.getRulesByType(type, out)
 
-	protected fun <T : MutableStyle> bind(style: T, calculator: StyleCalculator = CascadingStyleCalculator): T {
+	protected fun <T : Style> bind(style: T, calculator: StyleCalculator = CascadingStyleCalculator): T {
 		styles.bind(style, calculator)
 		return style
 	}
 
-	protected fun <T : MutableStyle> watch(style: T, priority: Float = 0f, callback: (T) -> Unit) = styles.watch(style, priority, callback)
-	protected fun unwatch(style: MutableStyle) = styles.unwatch(style)
+	protected fun <T : Style> watch(style: T, priority: Float = 0f, callback: (T) -> Unit) = styles.watch(style, priority, callback)
+	protected fun unwatch(style: Style) = styles.unwatch(style)
 
-	protected fun unbind(style: Style) = styles.unbind(style)
+	protected fun unbind(style: StyleRo) = styles.unbind(style)
 
 	override fun invalidateStyles() {
 		invalidate(ValidationFlags.STYLES)

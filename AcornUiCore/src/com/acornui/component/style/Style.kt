@@ -16,9 +16,7 @@
 
 package com.acornui.component.style
 
-import com.acornui.collection.ActiveList
 import com.acornui.collection.Clearable
-import com.acornui.collection.WatchedElementsActiveList
 import com.acornui.component.UiComponent
 import com.acornui.core.Disposable
 import com.acornui.core.di.Owned
@@ -32,7 +30,9 @@ import kotlin.reflect.KProperty
 /**
  * A Style object contains maps of style properties.
  */
-interface Style : Observable {
+interface StyleRo : Observable {
+
+	override val changed: Signal<(StyleRo) -> Unit>
 
 	val type: StyleType<*>
 
@@ -49,13 +49,15 @@ interface Style : Observable {
 	/**
 	 * When either the explicit or calculated values change, the mod tag is incremented.
 	 */
-	val modTag: ModTag
+	val modTag: ModTagRo
 }
 
 /**
  * Readable-writable styles.
  */
-interface MutableStyle : Style, Clearable {
+interface Style : StyleRo, Clearable {
+
+	override val changed: Signal<(Style) -> Unit>
 
 	override val explicit: MutableMap<String, Any?>
 
@@ -67,7 +69,7 @@ interface MutableStyle : Style, Clearable {
 	 */
 	fun notifyChanged()
 
-	override val modTag: MutableModTag
+	override val modTag: ModTag
 }
 
 /**
@@ -78,12 +80,12 @@ class NoopStyle : StyleBase(), StyleType<NoopStyle> {
 }
 
 /**
- * The base class for a typical [MutableStyle] implementation.
+ * The base class for a typical [Style] implementation.
  */
-abstract class StyleBase : MutableStyle, Disposable {
+abstract class StyleBase : Style, Disposable {
 
-	private val _changed = Signal1<Observable>()
-	override val changed: Signal<(Observable) -> Unit>
+	private val _changed = Signal1<StyleBase>()
+	override val changed: Signal<(StyleBase) -> Unit>
 		get() = _changed
 
 	override val modTag = ModTagImpl()
@@ -109,17 +111,8 @@ abstract class StyleBase : MutableStyle, Disposable {
 	}
 }
 
-@Deprecated("Use bind", ReplaceWith("bind(this, callback)"), DeprecationLevel.ERROR)
-fun <T : Style> T.onChanged(callback: (T) -> Unit) {
-}
-
-@Deprecated("Use bind", ReplaceWith("bind(style)"), DeprecationLevel.ERROR)
-fun <T : Style> UiComponent.style(style: T): T {
-	return style
-}
-
 class StyleValidator(
-		val style: MutableStyle,
+		val style: Style,
 		private val calculator: StyleCalculator
 ) {
 
@@ -128,7 +121,7 @@ class StyleValidator(
 	}
 }
 
-class StyleWatcher<out T : Style>(
+class StyleWatcher<out T : StyleRo>(
 		val style: T,
 		val priority: Float,
 		private val onChanged: (T) -> Unit
@@ -148,18 +141,9 @@ class StyleWatcher<out T : Style>(
 }
 
 /**
- * Updates several properties at once, only notifying change handlers at the end.
- */
-@Deprecated(replaceWith = ReplaceWith("apply(contents)"), message = "Use apply, batching no longer does anything.")
-fun <T : StyleBase> T.batch(contents: T.() -> Unit) {
-	contents()
-}
-
-
-/**
  * Returns a writer for the style's property if and only if that property is explicitly set.
  */
-fun Writer.styleProperty(style: MutableStyle, id: String): Writer? {
+fun Writer.styleProperty(style: Style, id: String): Writer? {
 	if (!style.explicit.containsKey(id)) return null
 	return property(id)
 }
@@ -168,17 +152,17 @@ fun Writer.styleProperty(style: MutableStyle, id: String): Writer? {
  * Sets this style to match that of the other style.
  */
 @Suppress("unchecked_cast")
-fun <T : MutableStyle> T.set(other: T) {
+fun <T : Style> T.set(other: T) {
 	explicit.clear()
 	explicit.putAll(other.calculated)
 	explicit.putAll(other.explicit)
 	notifyChanged()
 }
 
-open class StyleProp<T>(val defaultValue: T) : ReadWriteProperty<MutableStyle, T> {
+open class StyleProp<T>(val defaultValue: T) : ReadWriteProperty<Style, T> {
 
 	@Suppress("unchecked_cast")
-	override fun getValue(thisRef: MutableStyle, property: KProperty<*>): T {
+	override fun getValue(thisRef: Style, property: KProperty<*>): T {
 		if (thisRef.explicit.containsKey(property.name)) {
 			return thisRef.explicit[property.name]!! as T
 		} else if (thisRef.calculated.containsKey(property.name)) {
@@ -188,7 +172,7 @@ open class StyleProp<T>(val defaultValue: T) : ReadWriteProperty<MutableStyle, T
 		}
 	}
 
-	override fun setValue(thisRef: MutableStyle, property: KProperty<*>, value: T) {
+	override fun setValue(thisRef: Style, property: KProperty<*>, value: T) {
 		thisRef.explicit[property.name] = value as Any?
 		thisRef.notifyChanged()
 	}

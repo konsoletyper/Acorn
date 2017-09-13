@@ -1,7 +1,7 @@
 package com.acornui.core.assets
 
 import com.acornui.action.Decorator
-import com.acornui.action.Loadable
+import com.acornui.action.LoadableRo
 import com.acornui.core.di.Scoped
 import com.acornui.core.di.inject
 import com.acornui.core.io.JSON_KEY
@@ -25,7 +25,7 @@ fun <R> Scoped.jsonBinding(factory: From<R>, onFailed: () -> Unit = {}, onChange
 	return assetBinding(AssetTypes.TEXT, jsonDecorator(factory), onFailed, onChanged)
 }
 
-fun <R> Scoped.loadJson(path: String, factory: From<R>): Loadable<R> {
+fun <R> Scoped.loadJson(path: String, factory: From<R>): LoadableRo<R> {
 	return loadDecorated(path, AssetTypes.TEXT, jsonDecorator(factory))
 }
 

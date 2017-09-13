@@ -35,9 +35,9 @@ interface Progress {
 		get() = if (secondsTotal == 0f) 1f else secondsLoaded / secondsTotal
 }
 
-interface ProgressAction : Action, Progress
+interface ProgressAction : ActionRo, Progress
 
-interface ResultAction<out R> : Action {
+interface ResultActionRo<out R> : ActionRo {
 
 	/**
 	 * Only accessible on the action's success.
@@ -46,17 +46,17 @@ interface ResultAction<out R> : Action {
 }
 
 /**
- * The mutable version of a [ResultAction]
+ * The mutable version of a [ResultActionRo]
  */
-interface MutableResultAction<out R> : ResultAction<R>, MutableAction
+interface ResultAction<out R> : ResultActionRo<R>, Action
 
-interface InputAction<in R> : MutableAction {
+interface InputAction<in R> : Action {
 	fun success(result: R)
 }
 
 /**
  * Loadable is a read-only interface representing an action that has a final result, and indicates its progress.
  */
-interface Loadable<out R> : ResultAction<R>, ProgressAction
+interface LoadableRo<out R> : ResultActionRo<R>, ProgressAction
 
-interface MutableLoadable<out R> : Loadable<R>, MutableResultAction<R>
+interface Loadable<out R> : LoadableRo<R>, ResultAction<R>

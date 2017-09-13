@@ -206,7 +206,7 @@ open class GlScrollArea(
 		scrollRect.getAttachment<TossScroller>(TossScroller)?.enabled = needsHScrollBar || needsVScrollBar
 	}
 
-	protected open fun validateScroll() {
+	protected fun validateScroll() {
 		scrollRect.scrollTo(hScrollModel.value.toInt().toFloat() * hScrollBar.modelToPixels, vScrollModel.value.toInt().toFloat() * vScrollBar.modelToPixels)
 	}
 

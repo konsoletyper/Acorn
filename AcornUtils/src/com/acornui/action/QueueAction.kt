@@ -30,12 +30,12 @@ import com.acornui.signal.Signal2
  */
 open class QueueAction: BasicAction() {
 
-	private val _actions = ActiveList<MutableAction>()
+	private val _actions = ActiveList<Action>()
 
 	/**
 	 * Returns the list of controlled child actions.
 	 */
-	open val actions: ObservableList<Action>
+	open val actions: ObservableList<ActionRo>
 		get() {
 			return _actions
 		}
@@ -71,12 +71,12 @@ open class QueueAction: BasicAction() {
 	 * The action handler must have the signature:
 	 * (queue:QueueAction, actionInvoked:Action)
 	 */
-	val actionInvoked: Signal2<QueueAction, Action> = Signal2()
+	val actionInvoked: Signal2<QueueAction, ActionRo> = Signal2()
 
 	/**
 	 * Dispatched when a child action has been completed.
 	 */
-	val actionCompleted: Signal2<QueueAction, Action> = Signal2()
+	val actionCompleted: Signal2<QueueAction, ActionRo> = Signal2()
 
 	private val actionsIterator = _actions.concurrentIterator()
 
@@ -84,7 +84,7 @@ open class QueueAction: BasicAction() {
 	 * Adds an action to the queue.
 	 * Returns the added action.
 	 */
-	open fun <T : MutableAction> add(action: T, index: Int = _actions.size): T {
+	open fun <T : Action> add(action: T, index: Int = _actions.size): T {
 		if (forgetActions && action.hasCompleted()) return action
 		if (_actions.contains(action)) throw IllegalArgumentException("The action must be removed first.")
 		watchAction(action)
@@ -111,7 +111,7 @@ open class QueueAction: BasicAction() {
 	/**
 	 * Returns the index of the given action.
 	 */
-	open fun indexOf(action: MutableAction): Int {
+	open fun indexOf(action: Action): Int {
 		return _actions.indexOf(action)
 	}
 
@@ -119,7 +119,7 @@ open class QueueAction: BasicAction() {
 	 * Removes an action from the Queue.
 	 * @return True if the action was found.
 	 */
-	open fun remove(action: MutableAction): Boolean {
+	open fun remove(action: Action): Boolean {
 		val actionIndex = indexOf(action)
 		if (actionIndex == -1) return false
 		removeAt(actionIndex)
@@ -129,7 +129,7 @@ open class QueueAction: BasicAction() {
 	/**
 	 * Removes the action at [index] from the queue.
 	 */
-	open fun removeAt(index: Int): MutableAction? {
+	open fun removeAt(index: Int): Action? {
 		if (index >= _actions.size || index < 0) return null
 		val action = _actions[index]
 		_actions.removeAt(index)
@@ -148,11 +148,11 @@ open class QueueAction: BasicAction() {
 		_actions.clear()
 	}
 
-	protected val actionInvokedHandler: (Action) -> Unit = { action ->
+	protected val actionInvokedHandler: (ActionRo) -> Unit = { action ->
 		actionInvoked.dispatch(this, action)
 	}
 
-	protected val actionCompletedHandler: (Action, ActionStatus) -> Unit = { action, status ->
+	protected val actionCompletedHandler: (ActionRo, ActionStatus) -> Unit = { action, status ->
 		fillActionBuffer()
 		actionCompleted.dispatch(this, action)
 	}
@@ -161,7 +161,7 @@ open class QueueAction: BasicAction() {
 	 * Adds listeners to the provided action.
 	 * @param action
 	 */
-	protected open fun watchAction(action: Action) {
+	protected open fun watchAction(action: ActionRo) {
 		action.invoked.add(actionInvokedHandler)
 		action.completed.add(actionCompletedHandler)
 	}
@@ -170,7 +170,7 @@ open class QueueAction: BasicAction() {
 	 * Removes listeners from the provided action.
 	 * @param action
 	 */
-	protected open fun unwatchAction(action: Action) {
+	protected open fun unwatchAction(action: ActionRo) {
 		action.invoked.remove(actionInvokedHandler)
 		action.completed.remove(actionCompletedHandler)
 	}
@@ -262,7 +262,7 @@ open class QueueAction: BasicAction() {
 	 * @param index
 	 * @return
 	 */
-	open operator fun get(index: Int): MutableAction? {
+	open operator fun get(index: Int): Action? {
 		if (index < 0 || index >= _actions.size) return null
 		return _actions[index]
 	}
@@ -309,7 +309,7 @@ open class QueueAction: BasicAction() {
 /**
  * Creates an action that will invoke a list of other actions sequentially.
  */
-fun queue(vararg actions: MutableAction): QueueAction {
+fun queue(vararg actions: Action): QueueAction {
 	val queueAction = QueueAction()
 	for (action in actions) {
 		queueAction.add(action)
@@ -320,7 +320,7 @@ fun queue(vararg actions: MutableAction): QueueAction {
 /**
  * Creates an action that will invoke a list of other actions simultaneously.
  */
-fun group(vararg actions: MutableAction): QueueAction {
+fun group(vararg actions: Action): QueueAction {
 	val queueAction = MultiAction()
 	for (action in actions) {
 		queueAction.add(action)
@@ -352,7 +352,7 @@ open class PriorityQueueAction(
 	/**
 	 * A map of all the actions and their associated priorities.
 	 */
-	protected val prioritiesMap: HashMap<MutableAction, Float> = HashMap()
+	protected val prioritiesMap: HashMap<Action, Float> = HashMap()
 
 	/**
 	 * If forgetActions is true, when an action in the queue has completed,
@@ -401,18 +401,18 @@ open class PriorityQueueAction(
 	 * The action handler must have the signature:
 	 * (queue:QueueAction, currentAction:Action)
 	 */
-	val next: Signal2<QueueAction, Action>
+	val next: Signal2<QueueAction, ActionRo>
 		get() = queue.actionInvoked
 
 
 	private val actionRemovedHandler = {
-		index: Int, oldAction: Action ->
+		index: Int, oldAction: ActionRo ->
 		prioritiesMap.remove(oldAction)
 		Unit
 	}
 
 	private val actionComparator = {
-		o1: Action?, o2: Action? ->
+		o1: ActionRo?, o2: ActionRo? ->
 		if (o1 == null && o2 == null) 0
 		else if (o1 == null) -1
 		else if (o2 == null) 1
@@ -427,7 +427,7 @@ open class PriorityQueueAction(
 		actions.removed.add(actionRemovedHandler)
 	}
 
-	open fun add(action: MutableAction, priority: Float = 0f): PriorityQueueAction {
+	open fun add(action: Action, priority: Float = 0f): PriorityQueueAction {
 		if (forgetActions && action.hasCompleted()) return this
 		prioritiesMap[action] = priority
 		val index = actions.sortedInsertionIndex(action, actionComparator)
@@ -438,7 +438,7 @@ open class PriorityQueueAction(
 	/**
 	 * Removes an action from the Queue.
 	 */
-	open fun remove(action: MutableAction): Boolean {
+	open fun remove(action: Action): Boolean {
 		prioritiesMap.remove(action)
 		return queue.remove(action)
 	}

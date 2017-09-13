@@ -1,6 +1,6 @@
 package com.acornui.js.audio
 
-import com.acornui.core.audio.MutableAudioManager
+import com.acornui.core.audio.AudioManager
 import com.acornui.core.audio.Sound
 import com.acornui.core.audio.SoundFactory
 import org.khronos.webgl.ArrayBuffer
@@ -10,7 +10,7 @@ import org.khronos.webgl.ArrayBuffer
  * Does not work in IE.
  */
 class JsWebAudioSoundFactory(
-		private val audioManager: MutableAudioManager,
+		private val audioManager: AudioManager,
 		private val context: AudioContext,
 		private val decodedData: ArrayBuffer
 ) : SoundFactory {

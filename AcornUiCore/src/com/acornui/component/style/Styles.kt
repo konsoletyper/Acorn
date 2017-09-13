@@ -27,7 +27,7 @@ interface StyleableRo {
 	 */
 	val styleRules: List<StyleRule<*>>
 
-	fun <T : Style> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>)
+	fun <T : StyleRo> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>)
 
 	/**
 	 * The next ancestor of this styleable component.
@@ -53,11 +53,11 @@ interface Styleable : StyleableRo {
 
 }
 
-fun Styleable.addStyleRule(style: Style, filter: StyleFilter, priority: Float = 0f) {
+fun Styleable.addStyleRule(style: StyleRo, filter: StyleFilter, priority: Float = 0f) {
 	styleRules.add(StyleRule(style, filter, priority))
 }
 
-fun Styleable.addStyleRule(style: Style, priority: Float = 0f) {
+fun Styleable.addStyleRule(style: StyleRo, priority: Float = 0f) {
 	styleRules.add(StyleRule(style, AlwaysFilter, priority))
 }
 
@@ -105,7 +105,7 @@ class StylesImpl(private val host: Styleable) : Disposable {
 		host.invalidateStyles()
 	}
 
-	fun <T : Style> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) {
+	fun <T : StyleRo> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) {
 		@Suppress("UNCHECKED_CAST")
 		val entries = entriesByType[type] as List<StyleRule<T>>?
 		out.clear()
@@ -113,25 +113,25 @@ class StylesImpl(private val host: Styleable) : Disposable {
 			out.addAll(entries)
 	}
 
-	fun <T : MutableStyle> bind(style: T, calculator: StyleCalculator) {
+	fun <T : Style> bind(style: T, calculator: StyleCalculator) {
 		style.changed.add(this::styleChangedHandler)
 		styleValidators.add(StyleValidator(style, calculator))
 		host.invalidateStyles()
 	}
 
-	fun unbind(style: Style) {
+	fun unbind(style: StyleRo) {
 		style.changed.remove(this::styleChangedHandler)
 		styleValidators.removeFirst { it.style === style }
 	}
 
-	fun <T : MutableStyle> watch(style: T, priority: Float, callback: (T) -> Unit) {
+	fun <T : Style> watch(style: T, priority: Float, callback: (T) -> Unit) {
 		if (assertionsEnabled)
 			_assert(styleValidators.find2 { it.style === style } != null, "A style object is being watched without being bound. Use `val yourStyle = bind(YourStyle())`.")
 		val watcher = StyleWatcher(style, priority, callback)
 		styleWatchers.addSorted(watcher)
 	}
 
-	fun unwatch(style: MutableStyle) {
+	fun unwatch(style: Style) {
 		styleWatchers.removeFirst { it.style === style }
 	}
 
@@ -164,7 +164,7 @@ class StylesImpl(private val host: Styleable) : Disposable {
  * when the filter passes.
  * Entries will be applied in the order from deepest child to highest ancestor (the stage).
  */
-class StyleRule<out T : Style>(
+class StyleRule<out T : StyleRo>(
 
 		/**
 		 * The explicit values on this style object will be applied to the target if the filter passes.
@@ -185,7 +185,7 @@ class StyleRule<out T : Style>(
 		val priority: Float = 0f
 )
 
-interface StyleType<out T : Style> {
+interface StyleType<out T : StyleRo> {
 
 	val extends: StyleType<*>?
 		get() = null
@@ -227,16 +227,16 @@ fun AttachmentHolder.removeTag(tag: StyleTag) {
 }
 
 @Deprecated("Deprecated", ReplaceWith("this.addStyleRule(style, tag)"))
-fun <T : Style> Styleable.setStyle(style: T, tag: StyleTag) = addStyleRule(style, tag)
+fun <T : StyleRo> Styleable.setStyle(style: T, tag: StyleTag) = addStyleRule(style, tag)
 
 @Deprecated("Deprecated", ReplaceWith("this.addStyleRule(style)"))
-fun <T : Style> Styleable.setStyle(style: T) = addStyleRule(style)
+fun <T : StyleRo> Styleable.setStyle(style: T) = addStyleRule(style)
 
 /**
  * Creates a style entry to be applied when all specified tags are present.
  */
 @Deprecated("Deprecated", ReplaceWith("addStyleRule(style, tag, priority)"))
-fun <T : Style> Styleable.setStyle(style: T, priority: Float, tag: StyleTag) {
+fun <T : StyleRo> Styleable.setStyle(style: T, priority: Float, tag: StyleTag) {
 	addStyleRule(style, tag, priority)
 }
 

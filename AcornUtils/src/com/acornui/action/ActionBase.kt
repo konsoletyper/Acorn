@@ -23,27 +23,27 @@ import com.acornui.signal.*
 /**
  * The base class for actions. This does not expose an API that allows for mutating the action.
  */
-abstract class ActionBase : Action, Disposable {
+abstract class ActionBase : ActionRo, Disposable {
 
-	protected val _statusChanged: Signal4<Action, ActionStatus, ActionStatus, Throwable?> = Signal4()
-	protected val _completed: Signal2<Action, ActionStatus> = Signal2()
-	protected val _invoked: Signal1<Action> = Signal1()
-	protected val _succeeded: Signal1<Action> = Signal1()
-	protected val _failed: Signal3<Action, ActionStatus, Throwable> = Signal3()
+	protected val _statusChanged: Signal4<ActionRo, ActionStatus, ActionStatus, Throwable?> = Signal4()
+	protected val _completed: Signal2<ActionRo, ActionStatus> = Signal2()
+	protected val _invoked: Signal1<ActionRo> = Signal1()
+	protected val _succeeded: Signal1<ActionRo> = Signal1()
+	protected val _failed: Signal3<ActionRo, ActionStatus, Throwable> = Signal3()
 
-	override final val statusChanged: Signal<(Action, ActionStatus, ActionStatus, Throwable?) -> Unit>
+	override final val statusChanged: Signal<(ActionRo, ActionStatus, ActionStatus, Throwable?) -> Unit>
 		get() = _statusChanged
 
-	override final val completed: Signal<(Action, ActionStatus) -> Unit>
+	override final val completed: Signal<(ActionRo, ActionStatus) -> Unit>
 		get() = _completed
 
-	override final val invoked: Signal<(Action) -> Unit>
+	override final val invoked: Signal<(ActionRo) -> Unit>
 		get() = _invoked
 
-	override final val succeeded: Signal<(Action) -> Unit>
+	override final val succeeded: Signal<(ActionRo) -> Unit>
 		get() = _succeeded
 
-	override final val failed: Signal<(Action, ActionStatus, Throwable) -> Unit>
+	override final val failed: Signal<(ActionRo, ActionStatus, Throwable) -> Unit>
 		get() = _failed
 
 	private var _status: ActionStatus = ActionStatus.PENDING
@@ -198,11 +198,11 @@ abstract class ActionBase : Action, Disposable {
 }
 
 /**
- * The simplest implementation of [MutableAction]
+ * The simplest implementation of [Action]
  *
  * @author nbilyk
  */
-open class BasicAction : ActionBase(), MutableAction {
+open class BasicAction : ActionBase(), Action {
 
 	/**
 	 * @inheritDoc

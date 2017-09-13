@@ -32,7 +32,7 @@ interface SoundFactory : Disposable {
 interface Sound : Disposable {
 
 	/**
-	 * This sound's priority. The [MutableAudioManager.simultaneousSounds] property limits how many sounds can
+	 * This sound's priority. The [AudioManager.simultaneousSounds] property limits how many sounds can
 	 * be simultaneously played. When the limit is reached higher priority sounds will stop sounds with lower
 	 * priority values.
 	 */

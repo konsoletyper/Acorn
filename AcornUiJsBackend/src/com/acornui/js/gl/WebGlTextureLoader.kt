@@ -20,7 +20,7 @@ import com.acornui.action.BasicAction
 import com.acornui.core.UserInfo
 import com.acornui.core.assets.AssetType
 import com.acornui.core.assets.AssetTypes
-import com.acornui.core.assets.MutableAssetLoader
+import com.acornui.core.assets.AssetLoader
 import com.acornui.core.graphics.Texture
 import com.acornui.gl.core.Gl20
 import com.acornui.gl.core.GlState
@@ -32,7 +32,7 @@ import com.acornui.gl.core.GlState
 class WebGlTextureLoader(
 		private val gl: Gl20,
 		private val glState: GlState
-) : BasicAction(), MutableAssetLoader<Texture> {
+) : BasicAction(), AssetLoader<Texture> {
 
 	override val type: AssetType<Texture> = AssetTypes.TEXTURE
 

@@ -8,25 +8,7 @@ import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
 import com.acornui.math.Bounds
 
-/**
- * Given a factory method that produces a new element [T], if this element container already
- * contains an
- */
-inline fun <reified T : UiComponent> ElementContainer.createOrReuseContents(factory: Owned.() -> T): T {
-	_assert(elements.size <= 1, "createOrReuseContents should not be used on element containers with more than one child.")
-	val existing: T
-	val contents = elements.getOrNull(0)
-	if (contents !is T) {
-		contents?.dispose()
-		existing = factory()
-		addElement(existing)
-	} else {
-		existing = contents
-	}
-	return existing
-}
-
-interface ElementParent<out T> {
+interface ElementParentRo<out T> {
 
 	val elements: List<T>
 
@@ -35,18 +17,18 @@ interface ElementParent<out T> {
 /**
  * An element parent is an interface that externally exposes the ability to add and remove elements.
  */
-interface MutableElementParent<T> : ElementParent<T> {
+interface ElementParent<T> : ElementParentRo<T> {
 
 	/**
 	 * Syntax sugar for addElement.
 	 */
 	operator fun <P : T> P.unaryPlus(): P {
-		this@MutableElementParent.addElement(this@MutableElementParent.elements.size, this)
+		this@ElementParent.addElement(this@ElementParent.elements.size, this)
 		return this
 	}
 
 	operator fun <P : T> P.unaryMinus(): P {
-		this@MutableElementParent.removeElement(this)
+		this@ElementParent.removeElement(this)
 		return this
 	}
 
@@ -95,14 +77,14 @@ interface MutableElementParent<T> : ElementParent<T> {
 	}
 }
 
-interface ElementContainerRo<out T> : ContainerRo, ElementParent<T>
+interface ElementContainerRo<out T> : ContainerRo, ElementParentRo<T>
 
 /**
  * An ElementContainer is a container that can be provided a list of components as part of its external API.
  * It is up to this element container how to treat added elements. It may add them as children, it may provide the
  * element to a child element container.
  */
-interface ElementContainer : ElementContainerRo<UiComponent>, MutableElementParent<UiComponent>, UiComponent
+interface ElementContainer : ElementContainerRo<UiComponent>, ElementParent<UiComponent>, UiComponent
 
 /**
  * @author nbilyk
@@ -216,4 +198,23 @@ open class ElementContainerImpl(
 		_elements.clear()
 		super.dispose()
 	}
+}
+
+
+/**
+ * Given a factory method that produces a new element [T], if this element container already
+ * contains an
+ */
+inline fun <reified T : UiComponent> ElementContainer.createOrReuseContents(factory: Owned.() -> T): T {
+	_assert(elements.size <= 1, "createOrReuseContents should not be used on element containers with more than one child.")
+	val existing: T
+	val contents = elements.getOrNull(0)
+	if (contents !is T) {
+		contents?.dispose()
+		existing = factory()
+		addElement(existing)
+	} else {
+		existing = contents
+	}
+	return existing
 }

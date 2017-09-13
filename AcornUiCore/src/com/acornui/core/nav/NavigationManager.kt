@@ -8,7 +8,7 @@ import com.acornui.component.Button
 import com.acornui.component.ElementContainer
 import com.acornui.component.UiComponent
 import com.acornui.component.showAssetLoadingBar
-import com.acornui.core.Child
+import com.acornui.core.ChildRo
 import com.acornui.core.Disposable
 import com.acornui.core.Lifecycle
 import com.acornui.core.LifecycleRo
@@ -175,7 +175,7 @@ class NavEventImpl : NavEvent {
 	override val newPath = ArrayList<NavNode>()
 }
 
-interface NavBindable : Child, Scoped {}
+interface NavBindable : ChildRo, Scoped {}
 
 @Suppress("UNUSED_ANONYMOUS_PARAMETER")
 /**

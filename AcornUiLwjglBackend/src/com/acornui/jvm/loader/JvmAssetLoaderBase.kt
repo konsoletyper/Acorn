@@ -2,7 +2,7 @@ package com.acornui.jvm.loader
 
 import com.acornui.action.BasicAction
 import com.acornui.core.UserInfo
-import com.acornui.core.assets.MutableAssetLoader
+import com.acornui.core.assets.AssetLoader
 import com.acornui.core.time.TimeDriver
 import com.acornui.jvm.async
 import java.io.File
@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutorService
 abstract class JvmAssetLoaderBase<out T : Any>(
 		protected val isAsync: Boolean,
 		protected val timeDriver: TimeDriver? = null
-) : BasicAction(), MutableAssetLoader<T> {
+) : BasicAction(), AssetLoader<T> {
 
 	private var _asset: T? = null
 

@@ -17,7 +17,7 @@
 package com.esotericsoftware.spine.component
 
 import com.acornui.action.ActionWatch
-import com.acornui.action.Loadable
+import com.acornui.action.LoadableRo
 import com.acornui.action.ProgressAction
 import com.acornui.action.onSuccess
 import com.acornui.core.Disposable
@@ -60,7 +60,7 @@ class SkeletonLoader(
 		 * THe filepath to the texture atlas data.
 		 */
 		private val textureAtlasPath: String
-) : Scoped, Loadable<LoadedSkeleton>, ActionWatch() {
+) : Scoped, LoadableRo<LoadedSkeleton>, ActionWatch() {
 
 	private val files = inject(Files)
 
@@ -155,9 +155,9 @@ private class SkeletonSkinLoader(
 		override val injector: Injector,
 		private val skinData: SkinData,
 		private val atlasFile: FileEntry,
-		private val textureAtlasData: TextureAtlasData) : ActionWatch(), Scoped, Loadable<LoadedSkin>, Disposable {
+		private val textureAtlasData: TextureAtlasData) : ActionWatch(), Scoped, LoadableRo<LoadedSkin>, Disposable {
 
-	private val textureLoaders: HashMap<AtlasPageData, Loadable<Texture>> = HashMap()
+	private val textureLoaders: HashMap<AtlasPageData, LoadableRo<Texture>> = HashMap()
 
 	private var _result: LoadedSkin? = null
 	override val result: LoadedSkin

@@ -33,7 +33,7 @@ class AssetManagerImplTest {
 
 }
 
-class MockLoader() : BasicAction(), MutableAssetLoader<String> {
+class MockLoader() : BasicAction(), AssetLoader<String> {
 
 	override val type: AssetType<String> = AssetTypes.TEXT
 

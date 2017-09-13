@@ -19,7 +19,7 @@ package com.acornui.action
 import com.acornui.core.Disposable
 
 /**
- * A [ActionDecorator] mirrors the status of a given target [ResultAction], invoking a [decorator] wrapper on the
+ * A [ActionDecorator] mirrors the status of a given target [ResultActionRo], invoking a [decorator] wrapper on the
  * target's result.
  */
 open class ActionDecorator<T, R>(
@@ -28,14 +28,14 @@ open class ActionDecorator<T, R>(
 		 * The target action to wrap. The status of this decorator will match the target, and on success
 		 * apply the given [decorator], providing that as the new result.
 		 */
-		private val target: ResultAction<T>,
+		private val target: ResultActionRo<T>,
 
 		/**
 		 * The decorator to apply to the wrapped target.
 		 */
 		private val decorator: Decorator<T, R>
 
-) : ActionBase(), ResultAction<R>, Disposable {
+) : ActionBase(), ResultActionRo<R>, Disposable {
 
 	var _result: R? = null
 
@@ -43,7 +43,7 @@ open class ActionDecorator<T, R>(
 		get() = _result ?: throw Exception("This action is not yet completed.")
 
 	private val targetStatusChangedHandler = {
-		_: Action, _: ActionStatus, status: ActionStatus, error: Throwable? ->
+		_: ActionRo, _: ActionStatus, status: ActionStatus, error: Throwable? ->
 		internalSetStatus(status, error)
 	}
 
@@ -70,7 +70,7 @@ open class ActionDecorator<T, R>(
  * An ActionDecorator that also provides progress.
  */
 open class LoadableDecorator<T, R>(
-		private val loadableTarget: Loadable<T>,
+		private val loadableTarget: LoadableRo<T>,
 
 		/**
 		 * The decorator to apply to the wrapped target.
@@ -81,7 +81,7 @@ open class LoadableDecorator<T, R>(
 		 * The number of seconds it is estimated to apply the decorator function to the result.
 		 */
 		private val estimatedDecorationTime: Float = 0.001f
-) : ActionDecorator<T, R>(loadableTarget, decorator), Loadable<R> {
+) : ActionDecorator<T, R>(loadableTarget, decorator), LoadableRo<R> {
 
 	override val secondsLoaded: Float
 		get() {

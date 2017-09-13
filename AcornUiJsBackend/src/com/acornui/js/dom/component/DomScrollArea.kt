@@ -22,6 +22,7 @@ import com.acornui.core.Disposable
 import com.acornui.core.di.Owned
 import com.acornui.math.Bounds
 import com.acornui.math.Matrix4
+import com.acornui.signal.Signal
 import com.acornui.signal.Signal1
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.events.Event
@@ -72,7 +73,7 @@ class DomScrollArea(
 	}
 
 	//-----------------------------------------------------
-	// Child element delegation
+	// ChildRo element delegation
 	//-----------------------------------------------------
 
 	override fun onElementAdded(index: Int, element: UiComponent) {
@@ -200,12 +201,14 @@ abstract class DomScrollModelBase(protected val element: HTMLElement) : ClampedS
 	/**
 	 * Dispatched when the min, max, or value properties have changed.
 	 */
-	override val changed = Signal1<ScrollModelRo>()
+	private val _changed = Signal1<ClampedScrollModelRo>()
+	override val changed: Signal<(ClampedScrollModelRo) -> Unit>
+		get() = _changed
 
 	private fun <T> bindable(initial: T): ReadWriteProperty<Any?, T> {
 		return Delegates.observable(initial, {
 			meta, old, new ->
-			if (old != new) changed.dispatch(this)}
+			if (old != new) _changed.dispatch(this)}
 		)
 	}
 
@@ -215,7 +218,7 @@ abstract class DomScrollModelBase(protected val element: HTMLElement) : ClampedS
 
 	private val elementScrollHandler = {
 		event: Event ->
-		changed.dispatch(this)
+		_changed.dispatch(this)
 	}
 
 	init {

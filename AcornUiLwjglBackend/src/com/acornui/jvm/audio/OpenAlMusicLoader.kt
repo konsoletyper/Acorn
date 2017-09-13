@@ -3,7 +3,7 @@ package com.acornui.jvm.audio
 import com.acornui.action.BasicAction
 import com.acornui.core.assets.AssetType
 import com.acornui.core.assets.AssetTypes
-import com.acornui.core.assets.MutableAssetLoader
+import com.acornui.core.assets.AssetLoader
 import com.acornui.core.audio.Music
 import java.io.File
 import java.io.FileInputStream
@@ -14,7 +14,7 @@ import java.net.URL
 
 class OpenAlMusicLoader(
 		val audioManager: OpenAlAudioManager
-) : BasicAction(), MutableAssetLoader<Music> {
+) : BasicAction(), AssetLoader<Music> {
 
 	override val type: AssetType<Music> = AssetTypes.MUSIC
 

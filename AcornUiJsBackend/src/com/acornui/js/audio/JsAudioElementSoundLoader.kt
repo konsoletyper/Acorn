@@ -19,8 +19,8 @@ package com.acornui.js.audio
 import com.acornui.action.BasicAction
 import com.acornui.core.assets.AssetType
 import com.acornui.core.assets.AssetTypes
-import com.acornui.core.assets.MutableAssetLoader
-import com.acornui.core.audio.MutableAudioManager
+import com.acornui.core.assets.AssetLoader
+import com.acornui.core.audio.AudioManager
 import com.acornui.core.audio.SoundFactory
 import org.w3c.dom.HTMLAudioElement
 import org.w3c.dom.events.Event
@@ -31,8 +31,8 @@ import org.w3c.dom.events.Event
  * @author nbilyk
  */
 class JsAudioElementSoundLoader(
-		private val audioManager: MutableAudioManager
-) : BasicAction(), MutableAssetLoader<SoundFactory> {
+		private val audioManager: AudioManager
+) : BasicAction(), AssetLoader<SoundFactory> {
 
 	override val type: AssetType<SoundFactory> = AssetTypes.SOUND
 

@@ -27252,7 +27252,7 @@ var AcornUiCore = function (_, Kotlin, $module$AcornUtils) {
     if (Kotlin.equals(child, this))
       throw new Exception('Cannot add a child to itself.');
     if (child.parent != null)
-      throw new Exception('Child already has a parent.');
+      throw new Exception('ChildRo already has a parent.');
     child.parent = this;
     this.children.add_wxm5ur$(index, child);
     return child;

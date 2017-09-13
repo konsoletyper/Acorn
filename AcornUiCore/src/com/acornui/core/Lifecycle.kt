@@ -139,9 +139,9 @@ interface Updatable : Disposable {
 	fun update(stepTime: Float)
 }
 
-interface DrivableChild : Drivable, Child {
+interface DrivableChild : Drivable, ChildRo {
 
-	override var parent: MutableParent<DrivableChild>?
+	override var parent: Parent<DrivableChild>?
 
 	fun remove() {
 		parent?.removeChild(this)
@@ -150,7 +150,7 @@ interface DrivableChild : Drivable, Child {
 
 abstract class DrivableChildBase : LifecycleBase(), DrivableChild {
 
-	override var parent: MutableParent<DrivableChild>? = null
+	override var parent: Parent<DrivableChild>? = null
 
 	override fun dispose() {
 		super.dispose()

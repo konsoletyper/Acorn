@@ -1,13 +1,13 @@
 package com.acornui.js.audio
 
-import com.acornui.core.audio.MutableAudioManager
+import com.acornui.core.audio.AudioManager
 import com.acornui.core.audio.Sound
 import com.acornui.core.time.time
 import com.acornui.math.MathUtils
 import org.khronos.webgl.ArrayBuffer
 
 class JsWebAudioSound(
-		private val audioManager: MutableAudioManager,
+		private val audioManager: AudioManager,
 		private val context: AudioContext,
 		private val decodedData: ArrayBuffer,
 		override val priority: Float) : Sound {

@@ -10,7 +10,7 @@ import com.acornui.core.DrivableChildBase
 import com.acornui.core.di.DKey
 
 
-interface AudioManager {
+interface AudioManagerRo {
 
 	/**
 	 * The global sound gain. 0-1
@@ -32,11 +32,11 @@ interface AudioManager {
 	 */
 	val activeMusics: List<Music>
 
-	companion object : DKey<AudioManager>
+	companion object : DKey<AudioManagerRo>
 
 }
 
-interface MutableAudioManager : AudioManager, DrivableChild {
+interface AudioManager : AudioManagerRo, DrivableChild {
 
 	val simultaneousSounds: Int
 
@@ -57,15 +57,15 @@ interface MutableAudioManager : AudioManager, DrivableChild {
 	fun registerMusic(music: Music)
 	fun unregisterMusic(music: Music)
 
-	companion object : DKey<MutableAudioManager> {
+	companion object : DKey<AudioManager> {
 
 		override val isPrivate: Boolean = true
 
-		override val extends: DKey<AudioManager>? = AudioManager
+		override val extends: DKey<AudioManagerRo>? = AudioManagerRo
 	}
 }
 
-open class AudioManagerImpl(override final val simultaneousSounds: Int = 8) : DrivableChildBase(), MutableAudioManager, Disposable {
+open class AudioManagerImpl(override final val simultaneousSounds: Int = 8) : DrivableChildBase(), AudioManager, Disposable {
 
 	override val activeSounds = ActiveList<Sound>(simultaneousSounds)
 	override val activeMusics = ActiveList<Music>()

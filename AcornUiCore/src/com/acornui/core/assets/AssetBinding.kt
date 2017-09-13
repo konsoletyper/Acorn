@@ -69,18 +69,18 @@ class AssetBinding<T, R>(
 
 
 	private val failedHandler = {
-		action: Action, status: ActionStatus, error: Throwable? ->
+		action: ActionRo, status: ActionStatus, error: Throwable? ->
 		onFailed()
 	}
 
 	private val succeedHandler = {
-		action: Action ->
+		action: ActionRo ->
 		onChanged(_decoratorEntry!!.result)
 	}
 
 	private var _path: String? = null
 
-	private var _decoratorEntry: Loadable<R>? = null
+	private var _decoratorEntry: LoadableRo<R>? = null
 
 	var path: String?
 		get() {
@@ -102,7 +102,7 @@ class AssetBinding<T, R>(
 			}
 		}
 
-	private fun decoratorEntry(entry: Loadable<R>?) {
+	private fun decoratorEntry(entry: LoadableRo<R>?) {
 		val oldEntry = _decoratorEntry
 		if (oldEntry == entry) return
 		if (oldEntry != null) {

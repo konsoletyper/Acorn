@@ -1,7 +1,7 @@
 package com.acornui.gl.component.drawing
 
 import com.acornui.collection.Clearable
-import com.acornui.core.MutableParent
+import com.acornui.core.Parent
 import com.acornui.core.graphics.BlendMode
 import com.acornui.core.graphics.Texture
 import com.acornui.gl.core.Gl20
@@ -11,7 +11,7 @@ import com.acornui.graphics.ColorRo
 import com.acornui.math.*
 
 
-class MeshData : MutableParent<MeshData>, Clearable {
+class MeshData : Parent<MeshData>, Clearable {
 
 	/**
 	 * If this is true, this node will flush any batched operations before and after a render.
@@ -168,7 +168,7 @@ class MeshData : MutableParent<MeshData>, Clearable {
 	//--------------------------------------------
 	override fun <S : MeshData> addChild(index: Int, child: S): S {
 		if (child == this) throw Exception("Cannot add a child to itself.")
-		if (child.parent != null) throw Exception("Child already has a parent.")
+		if (child.parent != null) throw Exception("ChildRo already has a parent.")
 		child.parent = this
 		children.add(index, child)
 		return child

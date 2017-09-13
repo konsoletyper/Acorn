@@ -16,15 +16,15 @@
 
 package com.acornui.core.assets
 
-import com.acornui.action.Loadable
-import com.acornui.action.MutableResultAction
+import com.acornui.action.LoadableRo
+import com.acornui.action.ResultAction
 
 
 /**
  * AssetLoader is a read-only interface that represents a loading asset. It has progress and a value for a final result.
  * It is used by the asset manager.
  */
-interface AssetLoader<out T> : Loadable<T> {
+interface AssetLoaderRo<out T> : LoadableRo<T> {
 
 	/**
 	 * The asset type this loader represents.
@@ -40,7 +40,7 @@ interface AssetLoader<out T> : Loadable<T> {
 /**
  * An asset loader that exposes an API capable of mutation.
  */
-interface MutableAssetLoader<out T> : AssetLoader<T>, MutableResultAction<T> {
+interface AssetLoader<out T> : AssetLoaderRo<T>, ResultAction<T> {
 
 	/**
 	 * The estimated total number of bytes this loader will load.

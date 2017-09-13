@@ -16,7 +16,7 @@
 
 package com.acornui.core.assets
 
-import com.acornui.action.Action
+import com.acornui.action.ActionRo
 import com.acornui.action.ActionStatus
 import com.acornui.action.Progress
 import com.acornui.core.Disposable
@@ -30,7 +30,7 @@ interface AssetManager : Disposable, Progress {
 	/**
 	 * Sets the factory for asset loaders associated with the specified asset type.
 	 */
-	fun <T> setLoaderFactory(type: AssetType<T>, factory: () -> MutableAssetLoader<T>)
+	fun <T> setLoaderFactory(type: AssetType<T>, factory: () -> AssetLoader<T>)
 
 	/**
 	 * The loading queue representing the queue of currently loading assets.
@@ -38,7 +38,7 @@ interface AssetManager : Disposable, Progress {
 	 * Invoking a callback when the queue is empty:
 	 * [D.assetManager.loadingQueue.onSuccess { println("Nothing is loading") }]
 	 */
-	val loadingQueue: Action
+	val loadingQueue: ActionRo
 
 	/**
 	 * Loads specified file, invoking a callback on completion.
@@ -48,10 +48,10 @@ interface AssetManager : Disposable, Progress {
 	 * @param onSuccess A callback to be invoked if the asset successfully loads.
 	 * @see assetBinding
 	 */
-	fun <T> load(path: String, type: AssetType<T>, onSuccess: (T) -> Unit, onFail: ((Throwable) -> Unit)? = null, priority: Float = 0f): AssetLoader<T> {
+	fun <T> load(path: String, type: AssetType<T>, onSuccess: (T) -> Unit, onFail: ((Throwable) -> Unit)? = null, priority: Float = 0f): AssetLoaderRo<T> {
 		val loader = load(path, type, priority)
 		val onComplete = {
-			action: Action, status: ActionStatus ->
+			action: ActionRo, status: ActionStatus ->
 			if (status == ActionStatus.SUCCESSFUL) {
 				onSuccess(loader.result)
 			} else {
@@ -75,7 +75,7 @@ interface AssetManager : Disposable, Progress {
 	 * if the asset has already been loaded)
 	 * @see assetBinding
 	 */
-	fun <T> load(path: String, type: AssetType<T>, priority: Float = 0f): AssetLoader<T>
+	fun <T> load(path: String, type: AssetType<T>, priority: Float = 0f): AssetLoaderRo<T>
 
 	/**
 	 * Aborts loading of the specified asset. This does nothing if the asset is not currently loading.

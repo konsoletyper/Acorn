@@ -18,7 +18,7 @@ package com.acornui.component
 
 import com.acornui.component.layout.LayoutElement
 import com.acornui.component.layout.LayoutElementRo
-import com.acornui.core.Child
+import com.acornui.core.ChildRo
 import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
 import com.acornui.core.input.InteractionEvent
@@ -27,7 +27,7 @@ import com.acornui.core.input.InteractivityManager
 import com.acornui.math.Vector2
 import com.acornui.signal.StoppableSignal
 
-interface InteractiveElementRo : LayoutElementRo, CameraElementRo, AttachmentHolder, Child, Owned {
+interface InteractiveElementRo : LayoutElementRo, CameraElementRo, AttachmentHolder, ChildRo, Owned {
 
 	val native: NativeComponent
 

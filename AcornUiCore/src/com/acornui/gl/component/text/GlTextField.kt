@@ -206,7 +206,7 @@ class TfCharStyle {
 	val backgroundColor: Color = Color()
 }
 
-interface TextSpanElementRo<out T : TextElementRo> : ElementParent<T>, StyleableRo {
+interface TextSpanElementRo<out T : TextElementRo> : ElementParentRo<T>, StyleableRo {
 
 	val parent: TextNodeRo?
 
@@ -236,7 +236,7 @@ interface TextSpanElement : TextSpanElementRo<TextElement> {
 	fun setColorTint(concatenatedColorTint: ColorRo)
 }
 
-class TextSpanElementImpl : TextSpanElement, MutableElementParent<TextElement>, Styleable {
+class TextSpanElementImpl : TextSpanElement, ElementParent<TextElement>, Styleable {
 
 	private val _styleTags = ActiveList<StyleTag>()
 	override val styleTags: MutableList<StyleTag>
@@ -245,7 +245,7 @@ class TextSpanElementImpl : TextSpanElement, MutableElementParent<TextElement>, 
 	override val styleRules: MutableList<StyleRule<*>>
 		get() = _styleRules
 
-	override fun <T : Style> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) {
+	override fun <T : StyleRo> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) {
 		out.clear()
 		@Suppress("UNCHECKED_CAST")
 		(styleRules as Iterable<StyleRule<T>>).filterTo(out, { it.style.type == type })
@@ -504,7 +504,7 @@ interface TextNodeComponent : TextNode, UiComponent
 /**
  * A TextFlow component is a container of styleable text spans, to be used inside of a TextField.
  */
-class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, MutableElementParent<TextSpanElement> {
+class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, ElementParent<TextSpanElement> {
 
 	val flowStyle = bind(TextFlowStyle())
 

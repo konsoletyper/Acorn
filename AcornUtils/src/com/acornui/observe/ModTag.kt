@@ -18,13 +18,13 @@ package com.acornui.observe
 
 import com.acornui.collection.Clearable
 
-interface ModTag {
+interface ModTagRo {
 
 	val crc: Long
 
 }
 
-interface MutableModTag : ModTag {
+interface ModTag : ModTagRo {
 
 	/**
 	 * Marks the modification tag as having been changed.
@@ -36,7 +36,7 @@ interface MutableModTag : ModTag {
 /**
  * @author nbilyk
  */
-class ModTagImpl : MutableModTag {
+class ModTagImpl : ModTag {
 
 	private var _id: Int = ++counter
 	private var _modCount: Int = 0
@@ -62,7 +62,7 @@ class ModTagWatch : Clearable {
 	 * Sets this ModTag to match the source ModTag
 	 * Returns true if there was a change, false if modification tag is current.
 	 */
-	fun set(target: ModTag): Boolean {
+	fun set(target: ModTagRo): Boolean {
 		if (crc == target.crc) return false
 		crc = target.crc
 		return true
@@ -72,7 +72,7 @@ class ModTagWatch : Clearable {
 	 * Sets this ModTag to have a crc that matches the list of provided mod tags.
 	 * Returns true if there was a change, false if modification tag is current.
 	 */
-	fun set(targets: List<ModTag>): Boolean {
+	fun set(targets: List<ModTagRo>): Boolean {
 		Crc32.CRC.reset()
 		for (i in 0..targets.lastIndex) {
 			val target = targets[i]

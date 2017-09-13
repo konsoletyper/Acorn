@@ -256,7 +256,7 @@ class QueueActionTest() {
 		action.add(action5)
 
 		assertListEquals(arrayOf(1, 2, 3), arr)
-		assertListEquals(arrayOf<Action>(action2, action3, action4, action5), action.actions)
+		assertListEquals(arrayOf<ActionRo>(action2, action3, action4, action5), action.actions)
 	}
 
 	open class BasicActionImpl() : BasicAction() {
