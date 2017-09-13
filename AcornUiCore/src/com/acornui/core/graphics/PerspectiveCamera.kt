@@ -16,14 +16,18 @@
 
 package com.acornui.core.graphics
 
-import com.acornui.core.di.Scoped
+import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
-import com.acornui.math.*
+import com.acornui.core.di.own
+import com.acornui.math.MathUtils
+import com.acornui.math.Matrix4
+import com.acornui.math.Vector2
+import com.acornui.math.Vector3
 
 /**
  * @author nbilyk
  */
-class PerspectiveCamera(window: Window) : CameraBase(window) {
+class PerspectiveCamera : CameraBase() {
 
 	/**
 	 * The field of view of the height, in radians
@@ -34,7 +38,6 @@ class PerspectiveCamera(window: Window) : CameraBase(window) {
 	private val tmp2: Vector2 = Vector2()
 
 	init {
-		centerCamera()
 		update()
 	}
 
@@ -50,7 +53,7 @@ class PerspectiveCamera(window: Window) : CameraBase(window) {
 			_invCombined.inv()
 			_frustum.update(_invCombined)
 		}
-		modTag.increment()
+		_modTag.increment()
 	}
 
 	override fun moveToLookAtRect(x: Float, y: Float, width: Float, height: Float, scaling: Scaling) {
@@ -61,8 +64,9 @@ class PerspectiveCamera(window: Window) : CameraBase(window) {
 	}
 }
 
-fun Scoped.perspectiveCamera(init: PerspectiveCamera.() -> Unit = {}): PerspectiveCamera {
-	val p = PerspectiveCamera(inject(Window))
+fun Owned.perspectiveCamera(autoCenter: Boolean = false, init: PerspectiveCamera.() -> Unit = {}): PerspectiveCamera {
+	val p = PerspectiveCamera()
+	if (autoCenter) own(inject(Window).autoCenterCamera(p))
 	p.init()
 	return p
 }

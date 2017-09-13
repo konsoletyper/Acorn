@@ -141,7 +141,7 @@ class Vector3 (
 		override var z: Float = 0f
 ) : Clearable, Vector3Ro {
 
-	constructor(vector: Vector2, z: Float): this(vector.x, vector.y, z)
+	constructor(vector: Vector2Ro, z: Float): this(vector.x, vector.y, z)
 
 	/**
 	 * Sets the vector to the given components
@@ -401,7 +401,7 @@ class Vector3 (
 	 * @param matrix The matrix
 	 * @return This vector for chaining
 	 */
-	fun mul(matrix: Matrix3): Vector3 {
+	fun mul(matrix: Matrix3Ro): Vector3 {
 		val l_mat = matrix.values
 		return set(x * l_mat[Matrix3.M00] + y * l_mat[Matrix3.M01] + z * l_mat[Matrix3.M02], x * l_mat[Matrix3.M10] + y * l_mat[Matrix3.M11] + z * l_mat[Matrix3.M12], x * l_mat[Matrix3.M20] + y * l_mat[Matrix3.M21] + z * l_mat[Matrix3.M22])
 	}
@@ -411,7 +411,7 @@ class Vector3 (
 	 * @param matrix The matrix
 	 * @return This vector for chaining
 	 */
-	fun traMul(matrix: Matrix3): Vector3 {
+	fun traMul(matrix: Matrix3Ro): Vector3 {
 		val l_mat = matrix.values
 		return set(x * l_mat[Matrix3.M00] + y * l_mat[Matrix3.M10] + z * l_mat[Matrix3.M20], x * l_mat[Matrix3.M01] + y * l_mat[Matrix3.M11] + z * l_mat[Matrix3.M21], x * l_mat[Matrix3.M02] + y * l_mat[Matrix3.M12] + z * l_mat[Matrix3.M22])
 	}
@@ -420,7 +420,7 @@ class Vector3 (
 	 * Multiplies the vector by the given {@link Quaternion}.
 	 * @return This vector for chaining
 	 */
-	fun mul(quat: Quaternion): Vector3 {
+	fun mul(quat: QuaternionRo): Vector3 {
 		return quat.transform(this)
 	}
 
@@ -430,7 +430,7 @@ class Vector3 (
 	 * @param matrix The matrix
 	 * @return This vector for chaining
 	 */
-	fun rot(matrix: Matrix4): Vector3 {
+	fun rot(matrix: Matrix4Ro): Vector3 {
 		val l_mat = matrix.values
 		return this.set(x * l_mat[0] + y * l_mat[4] + z * l_mat[8], x * l_mat[1] + y * l_mat[5] + z * l_mat[9], x * l_mat[2] + y * l_mat[6] + z * l_mat[10])
 	}
@@ -441,7 +441,7 @@ class Vector3 (
 	 * @param matrix The transformation matrix
 	 * @return The vector for chaining
 	 */
-	fun unrotate(matrix: Matrix4): Vector3 {
+	fun unrotate(matrix: Matrix4Ro): Vector3 {
 		val l_mat = matrix.values
 		return this.set(x * l_mat[0] + y * l_mat[1] + z * l_mat[2], x * l_mat[4] + y * l_mat[5] + z * l_mat[6], x * l_mat[8] + y * l_mat[9] + z * l_mat[10])
 	}
@@ -453,7 +453,7 @@ class Vector3 (
 	 * @param matrix The transformation matrix
 	 * @return The vector for chaining
 	 */
-	fun untransform(matrix: Matrix4): Vector3 {
+	fun untransform(matrix: Matrix4Ro): Vector3 {
 		val l_mat = matrix.values
 		x -= l_mat[12]
 		y -= l_mat[12]

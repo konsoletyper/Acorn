@@ -1,12 +1,15 @@
+@file:Suppress("LoopToCallChain")
+
 package com.acornui.jvm.persistance
 
 import com.acornui.core.Version
+import com.acornui.core.VersionRo
 import com.acornui.core.persistance.Persistence
 import com.acornui.serialization.*
 import java.io.File
 
 open class LwjglPersistence(
-		private val currentVersion: Version,
+		private val currentVersion: VersionRo,
 		name: String,
 		persistenceDir: String = System.getProperty("user.home") + "/.prefs"
 ) : Persistence {
@@ -14,7 +17,7 @@ open class LwjglPersistence(
 	private val file = File(persistenceDir, name + ".data")
 	private val data: PersistenceData
 
-	override val version: Version?
+	override val version: VersionRo?
 		get() = data.version
 
 	init {
@@ -36,10 +39,8 @@ open class LwjglPersistence(
 
 	override fun key(index: Int): String? {
 		if (index >= data.size) return null
-		var c = 0
-		for (key in data.keys) {
+		for ((c, key) in data.keys.withIndex()) {
 			if (c == index) return key
-			c++
 		}
 		return null
 	}
@@ -68,8 +69,8 @@ open class LwjglPersistence(
 }
 
 private class PersistenceData(
-		val map: HashMap<String, String> = HashMap(),
-		var version: Version? = null
+		val map: MutableMap<String, String> = HashMap(),
+		var version: VersionRo? = null
 
 ) : MutableMap<String, String> by map
 
@@ -78,19 +79,19 @@ private object PersistenceDataSerializer : From<PersistenceData>, To<Persistence
 	override fun read(reader: Reader): PersistenceData {
 		val versionStr = reader.string("version")
 		val version = if (versionStr == null) null else Version.fromStr(versionStr)
-		val d = PersistenceData(version = version)
-		val mapReader = reader["map"] ?: return d
-		mapReader.forEach { s, reader ->
-			d.map[s] = reader.string()!!
+
+		val map = HashMap<String, String>()
+		reader["map"]?.forEach { s, reader ->
+			map[s] = reader.string()!!
 		}
-		return d
+		return PersistenceData(map, version)
 	}
 
 	override fun PersistenceData.write(writer: Writer) {
-		writer.string("version", version.toString())
+		writer.string("version", version?.toVersionString())
 		writer.obj("map", true, {
-			for (v in map) {
-				it.string(v.key, v.value)
+			for ((key, value) in map) {
+				it.string(key, value)
 			}
 		})
 	}

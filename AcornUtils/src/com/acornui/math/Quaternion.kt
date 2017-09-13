@@ -81,7 +81,7 @@ interface QuaternionRo {
 	 * @param other the other quaternion.
 	 * @return the dot product of this and the other quaternion.
 	 */
-	fun dot(other: Quaternion): Float
+	fun dot(other: QuaternionRo): Float
 
 	/**
 	 * Get the dot product between this and the other quaternion (commutative).
@@ -161,6 +161,27 @@ interface QuaternionRo {
 	 */
 	fun getAngleAroundRad(axis: Vector3): Float
 
+	/**
+	 * Transforms the given vector using this quaternion
+	 *
+	 * @param v Vector to transform
+	 */
+	fun transform(v: Vector3): Vector3 {
+		tmp2.set(this)
+		tmp2.conjugate()
+		tmp2.mulLeft(tmp1.set(v.x, v.y, v.z, 0f)).mulLeft(this)
+
+		v.x = tmp2.x
+		v.y = tmp2.y
+		v.z = tmp2.z
+		return v
+	}
+
+	companion object {
+		private val tmp1 = Quaternion(0f, 0f, 0f, 0f)
+		private val tmp2 = Quaternion(0f, 0f, 0f, 0f)
+	}
+
 }
 
 /**
@@ -198,7 +219,7 @@ data class Quaternion(
 	 * @param quaternion The quaternion.
 	 * @return This quaternion for chaining.
 	 */
-	fun set(quaternion: Quaternion): Quaternion {
+	fun set(quaternion: QuaternionRo): Quaternion {
 		return this.set(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
 	}
 
@@ -312,30 +333,13 @@ data class Quaternion(
 		return this
 	}
 
-	// TODO : this would better fit into the vector3 class
-	/**
-	 * Transforms the given vector using this quaternion
-	 *
-	 * @param v Vector to transform
-	 */
-	fun transform(v: Vector3): Vector3 {
-		tmp2.set(this)
-		tmp2.conjugate()
-		tmp2.mulLeft(tmp1.set(v.x, v.y, v.z, 0f)).mulLeft(this)
-
-		v.x = tmp2.x
-		v.y = tmp2.y
-		v.z = tmp2.z
-		return v
-	}
-
 	/**
 	 * Multiplies this quaternion with another one in the form of this = this * other
 	 *
 	 * @param other Quaternion to multiply with
 	 * @return This quaternion for chaining
 	 */
-	fun mul(other: Quaternion): Quaternion {
+	fun mul(other: QuaternionRo): Quaternion {
 		val newX = this.w * other.x + this.x * other.w + this.y * other.z - this.z * other.y
 		val newY = this.w * other.y + this.y * other.w + this.z * other.x - this.x * other.z
 		val newZ = this.w * other.z + this.z * other.w + this.x * other.y - this.y * other.x
@@ -347,7 +351,7 @@ data class Quaternion(
 		return this
 	}
 
-	fun times(other: Quaternion): Quaternion {
+	operator fun times(other: QuaternionRo): Quaternion {
 		return copy().mul(other)
 	}
 
@@ -378,7 +382,7 @@ data class Quaternion(
 	 * @param other Quaternion to multiply with
 	 * @return This quaternion for chaining
 	 */
-	fun mulLeft(other: Quaternion): Quaternion {
+	fun mulLeft(other: QuaternionRo): Quaternion {
 		val newX = other.w * this.x + other.x * this.w + other.y * this.z - other.z * y
 		val newY = other.w * this.y + other.y * this.w + other.z * this.x - other.x * z
 		val newZ = other.w * this.z + other.z * this.w + other.x * this.y - other.y * x
@@ -414,7 +418,7 @@ data class Quaternion(
 	/**
 	 * Add the x,y,z,w components of the passed in quaternion to the ones of this quaternion
 	 */
-	fun add(quaternion: Quaternion): Quaternion {
+	fun add(quaternion: QuaternionRo): Quaternion {
 		this.x += quaternion.x
 		this.y += quaternion.y
 		this.z += quaternion.z
@@ -422,7 +426,7 @@ data class Quaternion(
 		return this
 	}
 
-	fun plus(quaternion: Quaternion): Quaternion {
+	operator fun plus(quaternion: QuaternionRo): Quaternion {
 		return copy().plus(quaternion)
 	}
 
@@ -687,7 +691,7 @@ data class Quaternion(
 	 * @param alpha alpha in the range [0,1]
 	 * @return this quaternion for chaining
 	 */
-	fun slerp(end: Quaternion, alpha: Float): Quaternion {
+	fun slerp(end: QuaternionRo, alpha: Float): Quaternion {
 		val dot = dot(end)
 		val absDot = if (dot < 0f) -dot else dot
 
@@ -796,7 +800,7 @@ data class Quaternion(
 	 * @param other the other quaternion.
 	 * @return the dot product of this and the other quaternion.
 	 */
-	override fun dot(other: Quaternion): Float {
+	override fun dot(other: QuaternionRo): Float {
 		return this.x * other.x + this.y * other.y + this.z * other.z + this.w * other.w
 	}
 

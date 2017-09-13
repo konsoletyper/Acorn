@@ -7,9 +7,9 @@ class VersionTest {
 
 	@Test fun testFromStr() {
 		val v = Version(1, 2, 3, 4)
-		assertEquals("1.2.3.4", v.toString())
-		val v2 = Version.fromStr(v.toString())
-		assertEquals("1.2.3.4", v2.toString())
+		assertEquals("1.2.3.4", v.toVersionString())
+		val v2 = Version.fromStr(v.toVersionString())
+		assertEquals("1.2.3.4", v2.toVersionString())
 		assertEquals(v, v2)
 	}
 }

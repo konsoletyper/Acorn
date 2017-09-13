@@ -107,8 +107,8 @@ open class BasicUiSkin(
 
 	protected open fun textStyle() {
 		target.addStyleRule(theme.textStyle)
-		target.addStyleRule(theme.headingStyle, StyleSelectors.headingStyle)
-		target.addStyleRule(theme.formLabelStyle, formLabelStyle)
+		target.addStyleRule(theme.headingStyle, withAncestor(StyleSelectors.headingStyle))
+		target.addStyleRule(theme.formLabelStyle, withAncestor(formLabelStyle))
 		target.addStyleRule(charStyle { selectable = true }, withAncestor(TextInput) or withAncestor(TextArea))
 
 		if (UserInfo.isOpenGl)

@@ -27,32 +27,26 @@ import org.mockito.Mockito
  */
 class PerspectiveCameraTest {
 
-	private val window: Window = mockWindow(400f, 300f)
-
 	@Test fun project() {
-		val cam = PerspectiveCamera(window)
+		val cam = PerspectiveCamera()
+		val viewportX = 0f
+		val viewportY = 0f
+		val viewportW = 400f
+		val viewportH = 300f
 
 		val coords = Vector3(0f, 0f, 0f)
-		cam.project(coords)
+		cam.project(coords, viewportX, viewportY, viewportW, viewportH)
 		assertClose(0f, coords.x, 0.1f)
 		assertClose(0f, coords.y, 0.1f)
 
 		coords.set(400f, 300f, 0f)
-		cam.project(coords)
+		cam.project(coords, viewportX, viewportY, viewportW, viewportH)
 		assertClose(400f, coords.x, 0.1f)
 		assertClose(300f, coords.y, 0.1f)
 
 		coords.set(0.020372868f, 0.015261769f, 0.9960859f)
 		//cam.project(coords)
-		cam.canvasToGlobal(coords)
+		cam.canvasToGlobal(coords, viewportX, viewportY, viewportW, viewportH)
 	}
 
-}
-
-private fun mockWindow(width: Float, height: Float): Window {
-	val w = Mockito.mock(Window::class.java)
-	Mockito.`when`(w.sizeChanged).thenReturn(Signal3<Float, Float, Boolean>())
-	Mockito.`when`(w.width).thenReturn(width)
-	Mockito.`when`(w.height).thenReturn(height)
-	return w
 }

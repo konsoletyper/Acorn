@@ -69,6 +69,7 @@ import com.acornui.serialization.JsonSerializer
 import com.acornui.browser.appendParam
 import com.acornui.browser.decodeUriComponent2
 import com.acornui.browser.encodeUriComponent2
+import com.acornui.core.graphics.autoCenterCamera
 import com.acornui.core.text.NumberFormatter
 import com.acornui.core.text.DateTimeFormatter
 import com.acornui.core.time.*
@@ -254,7 +255,9 @@ abstract class JsApplicationBase(
 
 	protected open fun initializeCamera() {
 		bootstrap.on(Window) {
-			this[Camera] = OrthographicCamera(bootstrap[Window])
+			val camera = OrthographicCamera()
+			bootstrap[Camera] = camera
+			bootstrap[Window].autoCenterCamera(camera)
 		}
 	}
 
@@ -263,7 +266,7 @@ abstract class JsApplicationBase(
 		bootstrap.on(JSON_KEY) {
 			val json = bootstrap[JSON_KEY]
 			val manifestLoader = JsTextLoader()
-			manifestLoader.path = config.rootPath + config.assetsManifestPath.appendParam("version", config.version.toString())
+			manifestLoader.path = config.rootPath + config.assetsManifestPath.appendParam("version", config.version.toVersionString())
 			manifestLoader.onSuccess {
 				val manifest = json.read(manifestLoader.result, FilesManifestSerializer)
 				this[Files] = FilesImpl(manifest)

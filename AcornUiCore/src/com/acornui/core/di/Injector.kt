@@ -16,6 +16,7 @@
 
 package com.acornui.core.di
 
+import com.acornui.assertionsEnabled
 import com.acornui.core.Disposable
 
 
@@ -102,6 +103,7 @@ class InjectorImpl(private val parent: Injector? = null) : Injector, Disposable 
 	}
 
 	@Suppress("UNCHECKED_CAST") private fun <T : Any> _set(key: DKey<T>, value: T) {
+		if (assertionsEnabled && dependencies.containsKey(key)) throw Exception("Injector already contains dependency $key")
 		dependencies[key] = value
 		if (!dependenciesOrdered.contains(value))
 			dependenciesOrdered.add(value)

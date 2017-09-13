@@ -1,15 +1,8 @@
 package com.acornui.graphics.lighting
 
 import com.acornui.collection.Clearable
-import com.acornui.ecs.ComponentBase
-import com.acornui.ecs.SerializableComponentType
 import com.acornui.graphics.Color
-import com.acornui.graphics.color
 import com.acornui.math.Vector3
-import com.acornui.math.vector3
-import com.acornui.serialization.Reader
-import com.acornui.serialization.Writer
-import com.acornui.serialization.float
 
 
 /**
