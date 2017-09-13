@@ -291,14 +291,14 @@ class FocusNode private constructor() : Comparable<FocusNode> {
 	var childIndex: Int = 0
 	var focusOrder: Float = 0f
 	var focusable: Focusable? = null
-	val children: ArrayList<FocusNode> = ArrayList()
+	val children: MutableList<FocusNode> = ArrayList()
 
 	override fun compareTo(other: FocusNode): Int {
 		if (focusOrder == other.focusOrder) return childIndex.compareTo(other.childIndex)
 		return focusOrder.compareTo(other.focusOrder)
 	}
 
-	fun flatten(list: ArrayList<Focusable>) {
+	fun flatten(list: MutableList<Focusable>) {
 		// If the parent FocusContainer is itself Focusable, it is ordered before its children.
 		if (focusable != null) list.add(focusable!!)
 		for (i in 0..children.lastIndex) {

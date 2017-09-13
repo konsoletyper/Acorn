@@ -49,17 +49,17 @@ import com.esotericsoftware.spine.data.SkeletonData
 
 class Skeleton(val data: SkeletonData, val atlas: TextureAtlasData) : Clearable {
 
-	val bones: ArrayList<Bone>
+	val bones: MutableList<Bone>
 	val skins: HashMap<String, Skin>
-	val slots: ArrayList<Slot>
+	val slots: MutableList<Slot>
 	val animations: HashMap<String, Animation>
 
 	/**
 	 * The slots and the order they will be drawn.
 	 */
-	var drawOrder: ArrayList<Slot>
-	val ikConstraints: ArrayList<IkConstraint>
-	val transformConstraints: ArrayList<TransformConstraint>
+	var drawOrder: MutableList<Slot>
+	val ikConstraints: MutableList<IkConstraint>
+	val transformConstraints: MutableList<TransformConstraint>
 
 	private var _currentSkin: Skin? = null
 

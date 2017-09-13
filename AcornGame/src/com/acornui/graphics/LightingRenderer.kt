@@ -6,6 +6,7 @@ import com.acornui.core.di.Scoped
 import com.acornui.core.di.inject
 import com.acornui.core.graphics.BlendMode
 import com.acornui.core.graphics.Camera
+import com.acornui.core.graphics.CameraRo
 import com.acornui.core.graphics.Window
 import com.acornui.gl.core.*
 import com.acornui.graphics.lighting.*
@@ -89,7 +90,7 @@ class LightingRenderer(
 		glState.shader = glState.defaultShader
 	}
 
-	fun render(camera: Camera, ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLights: List<PointLight>, renderOcclusion: () -> Unit, renderWorld: () -> Unit) {
+	fun render(camera: CameraRo, ambientLight: AmbientLight, directionalLight: DirectionalLight, pointLights: List<PointLight>, renderOcclusion: () -> Unit, renderWorld: () -> Unit) {
 		val currentW = window.width.toInt()
 		val currentH = window.height.toInt()
 		if (currentW == 0 || currentH == 0) return
@@ -114,7 +115,7 @@ class LightingRenderer(
 	 * Step 3.
 	 * Render the directional and point light shadows.
 	 */
-	private fun renderOcclusion(camera: Camera, directionalLight: DirectionalLight, pointLights: List<PointLight>, renderOcclusion: () -> Unit) {
+	private fun renderOcclusion(camera: CameraRo, directionalLight: DirectionalLight, pointLights: List<PointLight>, renderOcclusion: () -> Unit) {
 		val previousBlendingEnabled = glState.blendingEnabled
 		glState.batch.flush(true)
 		glState.blendingEnabled = false
@@ -129,7 +130,7 @@ class LightingRenderer(
 		glState.blendingEnabled = previousBlendingEnabled
 	}
 
-	private fun directionalLightShadows(camera: Camera, directionalLight: DirectionalLight, renderOcclusion: () -> Unit) {
+	private fun directionalLightShadows(camera: CameraRo, directionalLight: DirectionalLight, renderOcclusion: () -> Unit) {
 		// Directional light shadows
 		glState.shader = directionalShadowMapShader
 		directionalShadowsFbo.begin()

@@ -2,7 +2,7 @@ package com.acornui.component.text
 
 import com.acornui.component.BoxStyle
 import com.acornui.component.scroll.ScrollPolicy
-import com.acornui.component.scroll.MutableClampedScrollModel
+import com.acornui.component.scroll.ClampedScrollModel
 import com.acornui.component.style.StyleTag
 import com.acornui.core.di.DKey
 import com.acornui.core.di.DependencyKeyImpl
@@ -23,8 +23,8 @@ interface EditableTextField : Focusable, TextField {
 	 */
 	var editable: Boolean
 
-	val hScrollModel: MutableClampedScrollModel
-	val vScrollModel: MutableClampedScrollModel
+	val hScrollModel: ClampedScrollModel
+	val vScrollModel: ClampedScrollModel
 	var hScrollPolicy: ScrollPolicy
 	var vScrollPolicy: ScrollPolicy
 

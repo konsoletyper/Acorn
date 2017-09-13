@@ -252,7 +252,7 @@ class VirtualList<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
 	 *
 	 * @return
 	 */
-	private fun renderItems(explicitWidth: Float?, explicitHeight: Float?, currentIndex: Int, startIndex: Float, isReversed: Boolean, previousElement: LayoutElement?, laidOutRenderers: ArrayList<ItemRenderer<E>>) {
+	private fun renderItems(explicitWidth: Float?, explicitHeight: Float?, currentIndex: Int, startIndex: Float, isReversed: Boolean, previousElement: LayoutElement?, laidOutRenderers: MutableList<ItemRenderer<E>>) {
 		val n = data.size
 		var skipped = 0
 		val d = if (isReversed) -1 else 1

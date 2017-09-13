@@ -41,7 +41,7 @@ abstract class ScrollBarBase(owner: Owned) : ContainerImpl(owner) {
 
 	protected val _scrollModel = own(ScrollModelImpl())
 
-	val scrollModel: MutableClampedScrollModel
+	val scrollModel: ClampedScrollModel
 		get() = _scrollModel
 
 	val style = bind(ScrollBarStyle())

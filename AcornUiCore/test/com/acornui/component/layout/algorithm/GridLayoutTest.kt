@@ -102,7 +102,7 @@ class GridLayoutTest {
 				arrayOf(Pair(0, 0), Pair(0, 1), Pair(1, 0), Pair(2, 0), Pair(2, 2), Pair(2, 3), Pair(4, 3), Pair(5, 3)), positions)
 	}
 
-	private fun createSpacers(n: Int): ArrayList<LayoutElement> {
+	private fun createSpacers(n: Int): MutableList<LayoutElement> {
 		val list = ArrayList<LayoutElement>()
 		for (i in 0..n-1) {
 			list.add(spacer("[Spacer $i]"))

@@ -272,7 +272,7 @@ open class ContainerImpl(
 		}
 	}
 
-	protected open fun childInvalidatedHandler(child: UiComponent, flagsInvalidated: Int) {
+	protected open fun childInvalidatedHandler(child: UiComponentRo, flagsInvalidated: Int) {
 		if (!_isInvalidatingChildren) {
 			if (flagsInvalidated and layoutInvalidatingFlags > 0) {
 				if (child.includeInLayout || flagsInvalidated and ValidationFlags.HIERARCHY_ASCENDING > 0) {

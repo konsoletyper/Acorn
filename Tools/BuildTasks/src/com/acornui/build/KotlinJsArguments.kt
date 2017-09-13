@@ -32,7 +32,7 @@ data class KotlinJsArguments(
 		/**
 		 * Path to zipped library sources or kotlin files separated by commas
 		 */
-		val libraries: ArrayList<String>? = null,
+		val libraries: MutableList<String>? = null,
 
 		/**
 		 * Generate source map
@@ -69,7 +69,7 @@ data class KotlinJsArguments(
 
 ) {
 
-	fun populate(args: ArrayList<String>) {
+	fun populate(args: MutableList<String>) {
 		if (output != null) args.add("-output", output)
 		if (noStdlib) args.add("-no-stdlib")
 		if (libraries != null && libraries.isNotEmpty()) args.add("-libraries", libraries.joinToString(";"))

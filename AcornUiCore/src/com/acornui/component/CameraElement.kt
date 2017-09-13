@@ -19,6 +19,7 @@ package com.acornui.component
 import com.acornui.component.layout.Transformable
 import com.acornui.component.layout.TransformableRo
 import com.acornui.core.graphics.Camera
+import com.acornui.core.graphics.CameraRo
 import com.acornui.math.Ray
 import com.acornui.math.Vector2
 import com.acornui.math.Vector3
@@ -51,7 +52,7 @@ interface CameraElementRo : TransformableRo {
 	 * Returns the camera to be used for this component.
 	 * camera.
 	 */
-	val camera: Camera
+	val camera: CameraRo
 }
 
 /**
@@ -63,5 +64,5 @@ interface CameraElement : CameraElementRo, Transformable {
 	 * Overrides the camera to be used for this component (and its children).
 	 * Set to null to switch back to the inherited camera.
 	 */
-	var cameraOverride: Camera?
+	var cameraOverride: CameraRo?
 }

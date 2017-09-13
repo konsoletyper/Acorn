@@ -28,6 +28,7 @@ import com.acornui.core.*
 import com.acornui.core.assets.AssetManager
 import com.acornui.core.di.*
 import com.acornui.core.graphics.Camera
+import com.acornui.core.graphics.CameraRo
 import com.acornui.core.graphics.Window
 import com.acornui.core.input.InteractionEvent
 import com.acornui.core.input.InteractionType
@@ -38,6 +39,7 @@ import com.acornui.graphics.Color
 import com.acornui.graphics.ColorRo
 import com.acornui.math.*
 import com.acornui.signal.Signal
+import com.acornui.signal.Signal1
 import com.acornui.signal.Signal2
 import com.acornui.signal.StoppableSignal
 import kotlin.collections.set
@@ -51,6 +53,9 @@ typealias ComponentInit<T> = (@ComponentDslMarker T).() -> Unit
 interface UiComponentRo : LifecycleRo, ColorTransformableRo, InteractiveElementRo, Validatable, StyleableRo {
 
 	override val disposed: Signal<(UiComponentRo) -> Unit>
+	override val activated: Signal<(UiComponentRo) -> Unit>
+	override val deactivated: Signal<(UiComponentRo) -> Unit>
+	override val invalidated: Signal<(UiComponentRo, Int) -> Unit>
 
 	override val parent: ContainerRo?
 
@@ -134,6 +139,8 @@ interface UiComponentRo : LifecycleRo, ColorTransformableRo, InteractiveElementR
 interface UiComponent : UiComponentRo, Lifecycle, ColorTransformable, InteractiveElement, Styleable {
 
 	override val disposed: Signal<(UiComponent) -> Unit>
+	override val activated: Signal<(UiComponent) -> Unit>
+	override val deactivated: Signal<(UiComponent) -> Unit>
 
 	override val owner: Owned
 
@@ -172,11 +179,53 @@ interface UiComponent : UiComponentRo, Lifecycle, ColorTransformable, Interactiv
 open class UiComponentImpl(
 		override final val owner: Owned,
 		override val native: NativeComponent = owner.inject(NativeComponent.FACTORY_KEY)(owner)
-) : LifecycleBase(), UiComponent {
+) : UiComponent {
 
-	override val disposed: Signal<(UiComponent) -> Unit>
-		@Suppress("UNCHECKED_CAST") // The disposed signal dispatches (this)
-		get() = super.disposed as Signal<(UiComponent) -> Unit>
+	//---------------------------------------------------------
+	// Lifecycle
+	//---------------------------------------------------------
+
+	protected val _activated = Signal1<UiComponent>()
+	override val activated: Signal<(UiComponent) -> Unit>
+		get() = _activated
+	protected val _deactivated = Signal1<UiComponent>()
+	override val deactivated: Signal<(UiComponent) -> Unit>
+		get() = _deactivated
+	protected val _disposed = Signal1<UiComponent>()
+	override val disposed: Signal<(UiComponent)->Unit>
+		get() = _disposed
+
+	protected var _isDisposed: Boolean = false
+	protected var _isActive: Boolean = false
+
+	override val isActive: Boolean
+		get() = _isActive
+
+	override val isDisposed: Boolean
+		get() = _isDisposed
+
+	final override fun activate() {
+		if (_isDisposed)
+			throw IllegalStateException("Disposed")
+		if (_isActive)
+			throw IllegalStateException("Already active")
+		_isActive = true
+		onActivated()
+		_activated.dispatch(this)
+	}
+
+	protected open fun onActivated() {}
+
+	final override fun deactivate() {
+		if (_isDisposed) throw IllegalStateException("Disposed")
+		if (!_isActive) throw IllegalStateException("Not active")
+		_isActive = false
+		onDeactivated()
+		_deactivated.dispatch(this)
+	}
+
+	protected open fun onDeactivated() {
+	}
 
 	override final val injector = owner.injector
 
@@ -214,7 +263,8 @@ open class UiComponentImpl(
 	protected val _rotation = Vector3(0f, 0f, 0f)
 	protected val _scale: Vector3 = Vector3(1f, 1f, 1f)
 	protected val _origin: Vector3 = Vector3(0f, 0f, 0f)
-	override var cameraOverride: Camera? = null
+
+	override var cameraOverride: CameraRo? = null
 
 	/**
 	 * True if no scaling or rotation has been applied.
@@ -980,7 +1030,7 @@ open class UiComponentImpl(
 	/**
 	 * Returns the camera to be used for this component.
 	 */
-	override val camera: Camera
+	override val camera: CameraRo
 		get() {
 			if (cameraOverride != null) return cameraOverride!!
 			val p = parent
@@ -1055,8 +1105,15 @@ open class UiComponentImpl(
 	//-----------------------------------------------
 
 	override fun dispose() {
-		super.dispose()
+		if (_isDisposed)
+			throw IllegalStateException("Already disposed")
+		if (isActive) deactivate()
+		_disposed.dispatch(this)
+		_disposed.dispose()
+		_activated.dispose()
+		_deactivated.dispose()
 		owner.disposed.remove(this::ownerDisposedHandler)
+		_isDisposed = true
 		if (assertionsEnabled) {
 			parentWalk {
 				if (!owner.owns(it)) {

@@ -27,7 +27,7 @@ data class KotlinJvmArguments(
 		/**
 		 * Paths where to find user class files
 		 */
-		val classpath: ArrayList<String>? = null,
+		val classpath: MutableList<String>? = null,
 
 		/**
 		 * Paths to external annotations
@@ -89,7 +89,7 @@ data class KotlinJvmArguments(
 
 ) {
 
-	fun populate(args: ArrayList<String>) {
+	fun populate(args: MutableList<String>) {
 		if (destination != null) args.add("-d", destination)
 		if (classpath != null && classpath.isNotEmpty()) args.add("-classpath", classpath.joinToString(";"))
 		if (annotations != null) args.add("-annotations", annotations)

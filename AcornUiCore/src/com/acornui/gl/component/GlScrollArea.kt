@@ -39,10 +39,10 @@ open class GlScrollArea(
 	private val vScrollBar = VScrollBar(this)
 	private var corner: UiComponent? = null
 
-	override final val hScrollModel: MutableClampedScrollModel
+	override final val hScrollModel: ClampedScrollModel
 		get() = hScrollBar.scrollModel
 
-	override final val vScrollModel: MutableClampedScrollModel
+	override final val vScrollModel: ClampedScrollModel
 		get() = vScrollBar.scrollModel
 
 	private var _tossScrolling = false
@@ -75,7 +75,7 @@ open class GlScrollArea(
 		}
 
 	private val scrollChangedHandler = {
-		scrollModel: ScrollModel ->
+		scrollModel: ScrollModelRo ->
 		invalidate(ScrollArea.SCROLLING)
 		Unit
 	}

@@ -41,5 +41,5 @@ interface Timeline {
 	 * Sets the value(s) for the specified time.
 	 * @param events May be null to not collect fired events.
 	 */
-	fun apply(skeleton: Skeleton, lastTime: Float, time: Float, events: ArrayList<SpineEvent>?, alpha: Float)
+	fun apply(skeleton: Skeleton, lastTime: Float, time: Float, events: MutableList<SpineEvent>?, alpha: Float)
 }

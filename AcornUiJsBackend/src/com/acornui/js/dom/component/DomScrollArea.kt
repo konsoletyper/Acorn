@@ -36,10 +36,10 @@ class DomScrollArea(
 	override val style = bind(ScrollAreaStyle())
 
 	private val _hScrollModel = DomScrollLeftModel(native.element)
-	override val hScrollModel: ClampedScrollModel
+	override val hScrollModel: ClampedScrollModelRo
 		get() = _hScrollModel
 	private val _vScrollModel = DomScrollTopModel(native.element)
-	override val vScrollModel: ClampedScrollModel
+	override val vScrollModel: ClampedScrollModelRo
 		get() = _vScrollModel
 
 	private val contents = addChild(StackLayoutContainer(owner, DomInlineContainer()))
@@ -47,7 +47,7 @@ class DomScrollArea(
 	override var hScrollPolicy: ScrollPolicy by validationProp(ScrollPolicy.AUTO, ValidationFlags.LAYOUT)
 	override var vScrollPolicy: ScrollPolicy by validationProp(ScrollPolicy.AUTO, ValidationFlags.LAYOUT)
 
-	private val scrollChangedHandler: (scrollModel: ScrollModel) -> Unit = {
+	private val scrollChangedHandler: (scrollModel: ScrollModelRo) -> Unit = {
 		invalidate(ScrollArea.SCROLLING)
 		Unit
 	}
@@ -195,12 +195,12 @@ class DomInlineContainer : DomContainer() {
 	}
 }
 
-abstract class DomScrollModelBase(protected val element: HTMLElement) : MutableClampedScrollModel, Disposable {
+abstract class DomScrollModelBase(protected val element: HTMLElement) : ClampedScrollModel, Disposable {
 
 	/**
 	 * Dispatched when the min, max, or value properties have changed.
 	 */
-	override val changed = Signal1<ScrollModel>()
+	override val changed = Signal1<ScrollModelRo>()
 
 	private fun <T> bindable(initial: T): ReadWriteProperty<Any?, T> {
 		return Delegates.observable(initial, {

@@ -80,7 +80,7 @@ class MaxRectsPacker(algorithmSettings: PackerAlgorithmSettingsData) : Rectangle
 		return packerPages.toList()
 	}
 
-	private fun pack(inputRects: ArrayList<Rect>): ArrayList<Page> {
+	private fun pack(inputRects: MutableList<Rect>): MutableList<Page> {
 		var rects = inputRects
 		if (settings.fast) {
 			if (settings.rotation) {
@@ -106,7 +106,7 @@ class MaxRectsPacker(algorithmSettings: PackerAlgorithmSettingsData) : Rectangle
 		return pages
 	}
 
-	private fun packPage(inputRects: ArrayList<Rect>): Page {
+	private fun packPage(inputRects: MutableList<Rect>): Page {
 		var minWidth = Integer.MAX_VALUE
 		var minHeight = Integer.MAX_VALUE
 		val padW = if (settings.edgePadding) settings.paddingX * 2 else 0
@@ -198,7 +198,7 @@ class MaxRectsPacker(algorithmSettings: PackerAlgorithmSettingsData) : Rectangle
 	 * @param fully If true, the only results that pack all rects will be considered. If false, all results are
 	 * considered, not all rects may be packed.
 	 */
-	private fun packAtSize(fully: Boolean, width: Int, height: Int, inputRects: ArrayList<Rect>): Page? {
+	private fun packAtSize(fully: Boolean, width: Int, height: Int, inputRects: MutableList<Rect>): Page? {
 		var bestResult: Page? = null
 		var i = -1
 		val n = methods.size
@@ -354,7 +354,7 @@ private class MaxRects(val settings: MaxRectsSettings) {
 	/**
 	 * For each rectangle, packs each one then chooses the best and packs that. Slow!
 	 */
-	fun pack(rects: ArrayList<Rect>, method: FreeRectChoiceHeuristic): Page {
+	fun pack(rects: MutableList<Rect>, method: FreeRectChoiceHeuristic): Page {
 		val r = ArrayList(rects)
 		while (r.size > 0) {
 			var bestRectIndex = -1
@@ -812,8 +812,8 @@ private class RectComparator : Comparator<Rect> {
  * @author Nathan Sweet
  */
 private data class Page(
-		var outputRects: ArrayList<Rect> = ArrayList(),
-		var remainingRects: ArrayList<Rect> = ArrayList(),
+		var outputRects: MutableList<Rect> = ArrayList(),
+		var remainingRects: MutableList<Rect> = ArrayList(),
 		var occupancy: Float = 0f,
 		var width: Int = 0,
 		var height: Int = 0

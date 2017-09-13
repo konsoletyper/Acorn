@@ -31,8 +31,8 @@ interface ScrollArea : LayoutDataProvider<StackLayoutData>, ElementContainer {
 
 	val style: ScrollAreaStyle
 
-	val hScrollModel: ClampedScrollModel
-	val vScrollModel: ClampedScrollModel
+	val hScrollModel: ClampedScrollModelRo
+	val vScrollModel: ClampedScrollModelRo
 
 	var hScrollPolicy: ScrollPolicy
 	var vScrollPolicy: ScrollPolicy

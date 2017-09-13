@@ -53,7 +53,7 @@ class DataScroller<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
 
 	private val isVertical = layoutAlgorithm.direction == VirtualDirection.VERTICAL
 
-	val scrollModel: MutableScrollModel
+	val scrollModel: ScrollModel
 		get() = scrollBar.scrollModel
 
 	private val scrollBar = addChild(if (isVertical) vScrollBar() else hScrollBar())

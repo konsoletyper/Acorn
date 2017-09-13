@@ -191,14 +191,14 @@ class DataGrid<E>(
 	private val hScrollBar = clipper.addElement(hScrollBar { visible = false; styleTags.add(SCROLL_BAR) })
 	private val vScrollBar = clipper.addElement(vScrollBar { visible = false; styleTags.add(SCROLL_BAR) })
 
-	val hScrollModel: MutableScrollModel
+	val hScrollModel: ScrollModel
 		get() = hScrollBar.scrollModel
 
 	/**
 	 * Use this to set the vertical scroll position.
 	 * The vertical position is the row position index.
 	 */
-	val vScrollModel: MutableScrollModel
+	val vScrollModel: ScrollModel
 		get() = vScrollBar.scrollModel
 
 	private val tossScroller = contents.enableTossScrolling()

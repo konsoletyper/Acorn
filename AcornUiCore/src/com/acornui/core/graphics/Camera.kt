@@ -24,8 +24,7 @@ import com.acornui.math.*
 import com.acornui.observe.ModTag
 import com.acornui.observe.ModTagImpl
 
-
-interface Camera : Disposable {
+interface CameraRo {
 
 	/**
 	 * Incremented whenever something on this camera has changed.
@@ -56,17 +55,17 @@ interface Camera : Disposable {
 	/**
 	 * The position of the camera
 	 */
-	val position: Vector3
+	val position: Vector3Ro
 
 	/**
 	 * The unit length direction vector of the camera
 	 */
-	val direction: Vector3
+	val direction: Vector3Ro
 
 	/**
 	 * The unit length up vector of the camera
 	 */
-	val up: Vector3
+	val up: Vector3Ro
 
 	/**
 	 * The projection matrix.
@@ -83,22 +82,22 @@ interface Camera : Disposable {
 	/**
 	 * The near clipping plane distance, has to be positive
 	 */
-	var near: Float
+	val near: Float
 
 	/**
 	 * The far clipping plane distance, has to be positive
 	 */
-	var far: Float
+	val far: Float
 
 	/**
 	 * The viewport width
 	 */
-	var viewportWidth: Float
+	val viewportWidth: Float
 
 	/**
 	 * The viewport height
 	 */
-	var viewportHeight: Float
+	val viewportHeight: Float
 
 	val aspect: Float
 		get() = viewportWidth / viewportHeight
@@ -112,6 +111,72 @@ interface Camera : Disposable {
 	 * The inverse combined projection and view matrix
 	 */
 	val invCombined: Matrix4Ro
+
+	/**
+	 * Function to translate a point given in screen coordinates to global space. It's the same as GLU gluUnProject but
+	 * does not rely on OpenGL. The viewport is assumed to span the whole screen and is fetched from [Window.getWidth]
+	 * and [Window.getHeight]. The x- and y-coordinate of [canvasCoords] are assumed to be in screen coordinates
+	 * (origin is the top left corner, y pointing down, x pointing to the right) as reported by the canvas coordinates
+	 * in input events. A z-coordinate of 0 will return a point on the near plane, a z-coordinate of 1 will return a
+	 * point on the far plane.
+	 * @param canvasCoords the point in screen coordinates
+	 */
+	fun canvasToGlobal(canvasCoords: Vector3): Vector3
+
+	/**
+	 * Translates a point given in screen coordinates to global space. It's the same as GLU gluUnProject, but
+	 * does not rely on OpenGL. The x- and y-coordinate of vec are assumed to be in screen coordinates (origin is the
+	 * top left corner, y pointing down, x pointing to the right) as reported by the canvas coordinates in
+	 * input events. A z-coordinate of 0 will return a point on the near plane, a z-coordinate
+	 * of 1 will return a point on the far plane. This method allows you to specify the viewport position and
+	 * dimensions in the coordinate system expected by {@link GL20#glViewport(int, int, int, int)}, with the origin in
+	 * the top left corner of the screen.
+	 * @param canvasCoords the point in canvas coordinates (origin top left)
+	 * @param viewportX the coordinate of the bottom left corner of the viewport in glViewport coordinates.
+	 * @param viewportY the coordinate of the bottom left corner of the viewport in glViewport coordinates.
+	 * @param viewportWidth the width of the viewport in pixels
+	 * @param viewportHeight the height of the viewport in pixels
+	 */
+	fun canvasToGlobal(canvasCoords: Vector3, viewportX: Float, viewportY: Float, viewportWidth: Float, viewportHeight: Float): Vector3
+
+}
+
+interface Camera : CameraRo, Disposable {
+
+	/**
+	 * The position of the camera
+	 */
+	override val position: Vector3
+
+	/**
+	 * The unit length direction vector of the camera
+	 */
+	override val direction: Vector3
+
+	/**
+	 * The unit length up vector of the camera
+	 */
+	override val up: Vector3
+
+	/**
+	 * The near clipping plane distance, has to be positive
+	 */
+	override var near: Float
+
+	/**
+	 * The far clipping plane distance, has to be positive
+	 */
+	override var far: Float
+
+	/**
+	 * The viewport width
+	 */
+	override var viewportWidth: Float
+
+	/**
+	 * The viewport height
+	 */
+	override var viewportHeight: Float
 
 	/**
 	 * If true (default) this camera will call [centerCamera] after the window has resized.
@@ -167,33 +232,6 @@ interface Camera : Disposable {
 	 * @param scaling The scaling type to fit to the given width/height. This may not be a stretch type.
 	 */
 	fun moveToLookAtRect(x: Float, y: Float, width: Float, height: Float, scaling: Scaling = Scaling.FIT)
-
-	/**
-	 * Function to translate a point given in screen coordinates to global space. It's the same as GLU gluUnProject but
-	 * does not rely on OpenGL. The viewport is assumed to span the whole screen and is fetched from [Window.getWidth]
-	 * and [Window.getHeight]. The x- and y-coordinate of [canvasCoords] are assumed to be in screen coordinates
-	 * (origin is the top left corner, y pointing down, x pointing to the right) as reported by the canvas coordinates
-	 * in input events. A z-coordinate of 0 will return a point on the near plane, a z-coordinate of 1 will return a
-	 * point on the far plane.
-	 * @param canvasCoords the point in screen coordinates
-	 */
-	fun canvasToGlobal(canvasCoords: Vector3): Vector3
-
-	/**
-	 * Translates a point given in screen coordinates to global space. It's the same as GLU gluUnProject, but
-	 * does not rely on OpenGL. The x- and y-coordinate of vec are assumed to be in screen coordinates (origin is the
-	 * top left corner, y pointing down, x pointing to the right) as reported by the canvas coordinates in
-	 * input events. A z-coordinate of 0 will return a point on the near plane, a z-coordinate
-	 * of 1 will return a point on the far plane. This method allows you to specify the viewport position and
-	 * dimensions in the coordinate system expected by {@link GL20#glViewport(int, int, int, int)}, with the origin in
-	 * the top left corner of the screen.
-	 * @param canvasCoords the point in canvas coordinates (origin top left)
-	 * @param viewportX the coordinate of the bottom left corner of the viewport in glViewport coordinates.
-	 * @param viewportY the coordinate of the bottom left corner of the viewport in glViewport coordinates.
-	 * @param viewportWidth the width of the viewport in pixels
-	 * @param viewportHeight the height of the viewport in pixels
-	 */
-	fun canvasToGlobal(canvasCoords: Vector3, viewportX: Float, viewportY: Float, viewportWidth: Float, viewportHeight: Float): Vector3
 
 	companion object : DKey<Camera>
 }

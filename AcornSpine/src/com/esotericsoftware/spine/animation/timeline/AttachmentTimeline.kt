@@ -51,7 +51,7 @@ class AttachmentTimeline(
 		attachmentNames = Array(data.frames.size, { data.frames[it].attachment })
 	}
 
-	override fun apply(skeleton: Skeleton, lastTime: Float, time: Float, events: ArrayList<SpineEvent>?, alpha: Float) {
+	override fun apply(skeleton: Skeleton, lastTime: Float, time: Float, events: MutableList<SpineEvent>?, alpha: Float) {
 		var lastTime = lastTime
 		val frames = this.frames
 		if (time < frames[0]) {

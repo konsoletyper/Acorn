@@ -59,7 +59,7 @@ class JsonNode(private var source: String,
 ) : Reader {
 
 	private val _properties: HashMap<String, JsonNode> = HashMap()
-	private val _elements: ArrayList<JsonNode> = ArrayList()
+	private val _elements: MutableList<JsonNode> = ArrayList()
 
 	private var isParsed: Boolean = false
 	private val fromIndex: Int
@@ -90,7 +90,7 @@ class JsonNode(private var source: String,
 		val isObject = source[fromIndex] == '{'
 		if (!isObject && source[fromIndex] != '[') return
 		marker = fromIndex + 1
-		val tagStack: ArrayList<Char> = ArrayList()
+		val tagStack: MutableList<Char> = ArrayList()
 
 		while (marker < toIndex) {
 			consumeWhitespace()

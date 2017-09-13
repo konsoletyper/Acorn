@@ -90,7 +90,7 @@ class Animation(
 	 * @param lastTime The last time the animation was applied.
 	 * @param events Any triggered events are added.
 	 */
-	fun apply(skeleton: Skeleton, lastTime: Float, time: Float, loop: Boolean, events: ArrayList<SpineEvent>?, alpha: Float = 1f) {
+	fun apply(skeleton: Skeleton, lastTime: Float, time: Float, loop: Boolean, events: MutableList<SpineEvent>?, alpha: Float = 1f) {
 		var lastTime = lastTime
 		var time = time
 

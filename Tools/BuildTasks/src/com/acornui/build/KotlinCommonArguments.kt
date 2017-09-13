@@ -26,7 +26,7 @@ data class KotlinCommonArguments(
 		/**
 		 * Source files
 		 */
-		val src: ArrayList<String>? = null,
+		val src: MutableList<String>? = null,
 
 		/**
 		 * Generate no warnings
@@ -62,7 +62,7 @@ data class KotlinCommonArguments(
 
 ) {
 
-	fun populate(args: ArrayList<String>) {
+	fun populate(args: MutableList<String>) {
 		if (noWarn) args.add("-nowarn")
 		if (verbose) args.add("-verbose")
 		if (version) args.add("-version")

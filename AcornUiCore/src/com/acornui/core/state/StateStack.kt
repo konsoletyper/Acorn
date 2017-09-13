@@ -28,7 +28,7 @@
 // */
 //open class StateStack<T : Drivable> : LifecycleBase(), Renderable {
 //
-//	protected val stateStack: ArrayList<T> = ArrayList()
+//	protected val stateStack: MutableList<T> = ArrayList()
 //	private var currentState: T? = null
 //	private var isDirty: Boolean = false
 //

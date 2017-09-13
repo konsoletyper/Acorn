@@ -17,7 +17,6 @@
 package com.acornui.component.scroll
 
 import com.acornui.collection.poll
-import com.acornui.component.InteractiveElement
 import com.acornui.component.InteractiveElementRo
 import com.acornui.component.UiComponent
 import com.acornui.component.createOrReuseAttachment
@@ -36,7 +35,7 @@ import com.acornui.signal.StoppableSignalImpl
 
 
 /**
- * A toss scroller lets you grab a target component, and update [ScrollModel] objects by dragging it.
+ * A toss scroller lets you grab a target component, and update [ScrollModelRo] objects by dragging it.
  */
 class TossScroller(
 		val target: UiComponent,
@@ -232,8 +231,8 @@ class TossScroller(
 
 class TossScrollModelBinding(
 		val tossScroller: TossScroller,
-		val hScrollModel: MutableScrollModel,
-		val vScrollModel: MutableScrollModel
+		val hScrollModel: ScrollModel,
+		val vScrollModel: ScrollModel
 ) : Disposable {
 
 	var modelToPixelsX: Float = 1f

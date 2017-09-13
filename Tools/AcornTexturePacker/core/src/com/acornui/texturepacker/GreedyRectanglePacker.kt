@@ -42,7 +42,7 @@ class GreedyRectanglePacker(private val settings: PackerAlgorithmSettingsData) :
 		return pages
 	}
 
-	private fun fillPages(remaining: ArrayList<PackerRectangleData>, pages: ArrayList<PackerPageData>) {
+	private fun fillPages(remaining: MutableList<PackerRectangleData>, pages: MutableList<PackerPageData>) {
 
 		//		if (region.width > largestDimension) largestDimension = region.width
 		//		if (region.height > largestDimension) largestDimension = region.height
@@ -101,7 +101,7 @@ class GreedyRectanglePacker(private val settings: PackerAlgorithmSettingsData) :
 
 	}
 
-	private fun fillPage(pageWidth: Int, pageHeight: Int, placed: ArrayList<PackerRectangleData>, remaining: ArrayList<PackerRectangleData>, testMode: Boolean) {
+	private fun fillPage(pageWidth: Int, pageHeight: Int, placed: MutableList<PackerRectangleData>, remaining: MutableList<PackerRectangleData>, testMode: Boolean) {
 		val buckets = ArrayList<IntRectangle>()
 		addBucket(buckets, IntRectangle(settings.paddingX, settings.paddingY, pageWidth - settings.paddingX * 2, pageHeight - settings.paddingY * 2))
 		val remainingIt = remaining.iterator()
@@ -135,7 +135,7 @@ class GreedyRectanglePacker(private val settings: PackerAlgorithmSettingsData) :
 	/**
 	 * When putting a region inside a bucket, it removes that bucket and adds two smaller ones (If they are big enough to fit a region).
 	 */
-	private fun splitBucket(bucket: IntRectangle, bounds: IntRectangle, buckets: ArrayList<IntRectangle>) {
+	private fun splitBucket(bucket: IntRectangle, bounds: IntRectangle, buckets: MutableList<IntRectangle>) {
 		buckets.remove(bucket)
 		val padX = settings.paddingX
 		val padY = settings.paddingY
@@ -154,13 +154,13 @@ class GreedyRectanglePacker(private val settings: PackerAlgorithmSettingsData) :
 		}
 	}
 
-	private fun addBucket(buckets: ArrayList<IntRectangle>, bucket: IntRectangle) {
+	private fun addBucket(buckets: MutableList<IntRectangle>, bucket: IntRectangle) {
 		if (bucket.isEmpty) return
 		val index = getAreaIndex(bucket.area, buckets)
 		buckets.add(index, bucket)
 	}
 
-	private fun getAreaIndex(area: Int, buckets: ArrayList<IntRectangle>): Int {
+	private fun getAreaIndex(area: Int, buckets: MutableList<IntRectangle>): Int {
 		var left = 0
 		var right = buckets.size
 		while (right > left) {

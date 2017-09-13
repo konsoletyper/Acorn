@@ -202,8 +202,8 @@
 //		private set
 //	var maxY: Float = 0f
 //		private set
-//	val boundingBoxes: ArrayList<BoundingBoxAttachment> = ArrayList()
-//	val polygons: ArrayList<ArrayList<Float>> = ArrayList()
+//	val boundingBoxes: MutableList<BoundingBoxAttachment> = ArrayList()
+//	val polygons: MutableList<ArrayList<Float>> = ArrayList()
 //
 //	private val polygonPool = Pool() { ArrayList<Float>() }
 //

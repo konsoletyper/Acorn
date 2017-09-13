@@ -177,7 +177,7 @@ abstract class Module(
 		}
 	}
 
-	private fun ArrayList<File>.toStringList(): ArrayList<String> {
+	private fun ArrayList<File>.toStringList(): MutableList<String> {
 		val arr = ArrayList<String>()
 		for (i in this) {
 			arr.add(i.absolutePath)

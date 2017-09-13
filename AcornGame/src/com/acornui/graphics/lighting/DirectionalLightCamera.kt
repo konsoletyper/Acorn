@@ -2,14 +2,14 @@ package com.acornui.graphics.lighting
 
 import com.acornui._assert
 import com.acornui.collection.equalsArray
-import com.acornui.core.graphics.Camera
+import com.acornui.core.graphics.CameraRo
 import com.acornui.math.*
 import com.acornui.observe.ModTagWatch
 
 /**
  * @author nbilyk
  */
-class DirectionalLightCamera() {
+class DirectionalLightCamera {
 
 	/**
 	 * The clip space dimensions, (in relation to the view camera) where shadows can be created.
@@ -32,7 +32,7 @@ class DirectionalLightCamera() {
 	/**
 	 * Sets the clip space based on world coordinates.
 	 */
-	fun setClipSpaceFromWorld(left: Float, right: Float, bottom: Float, top: Float, near: Float, far: Float, viewCamera: Camera) {
+	fun setClipSpaceFromWorld(left: Float, right: Float, bottom: Float, top: Float, near: Float, far: Float, viewCamera: CameraRo) {
 		setClipSpace(left, right, bottom, top, near, far)
 		for (i in 0..clipSpace.lastIndex) {
 			viewCamera.combined.prj(clipSpace[i])
@@ -80,9 +80,9 @@ class DirectionalLightCamera() {
 	/**
 	 * Updates the [combined] matrix based on the light's direction.
 	 */
-	fun update(newDirection: Vector3, viewCam: Camera): Boolean {
+	fun update(newDirection: Vector3Ro, viewCam: CameraRo): Boolean {
 		if (!viewCamWatch.set(viewCam.modTag) &&
-				direction.equals(newDirection) && lastClipSpace.equalsArray(clipSpace)) {
+				direction == newDirection && lastClipSpace.equalsArray(clipSpace)) {
 			// Up-to-date
 			return false
 		}
@@ -111,7 +111,7 @@ class DirectionalLightCamera() {
 	/**
 	 * Sets the new direction, keeping the up vector orthonormal.
 	 */
-	private fun setDirection(newDirection: Vector3) {
+	private fun setDirection(newDirection: Vector3Ro) {
 		tmp.set(newDirection)
 		val dot = tmp.dot(up)
 		if (MathUtils.isZero(dot - 1)) {

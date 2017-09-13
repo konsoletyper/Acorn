@@ -42,7 +42,7 @@ open class AStar(
 	/**
 	 * Populates the out parameter with x,y pairs that are the path from the target to the start.
 	 */
-	fun calculatePath(startX: Int, startY: Int, targetX: Int, targetY: Int, out: ArrayList<Int>) {
+	fun calculatePath(startX: Int, startY: Int, targetX: Int, targetY: Int, out: MutableList<Int>) {
 		this.targetX = targetX
 		this.targetY = targetY
 

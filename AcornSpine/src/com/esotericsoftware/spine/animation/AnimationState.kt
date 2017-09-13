@@ -49,7 +49,7 @@ class AnimationState(
 	/**
 	 * Returns the list of tracks that have animations, which may contain nulls.
 	 */
-	private val tracks: ArrayList<AnimationTrackEntry?> = ArrayList()
+	private val tracks: MutableList<AnimationTrackEntry?> = ArrayList()
 
 	private val events = ArrayList<SpineEvent>()
 	private val listeners = ArrayList<AnimationStateListener>()

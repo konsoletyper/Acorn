@@ -40,7 +40,7 @@ import com.esotericsoftware.spine.data.IkConstraintData
 
 class IkConstraint : Updatable {
 	val data: IkConstraintData
-	val bones: ArrayList<Bone>
+	val bones: MutableList<Bone>
 	val target: Bone
 	var mix = 1f
 	var bendDirection: Int = 0

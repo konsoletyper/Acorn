@@ -18,14 +18,11 @@ package com.acornui.gl.core
 
 import com.acornui.collection.ArrayList
 import com.acornui.collection.arrayCopy
-import com.acornui.collection.equalsArray
 import com.acornui.core.Disposable
 import com.acornui.core.di.DKey
-import com.acornui.core.graphics.BlendMode
-import com.acornui.core.graphics.Camera
-import com.acornui.core.graphics.Texture
-import com.acornui.core.graphics.rgbData
+import com.acornui.core.graphics.*
 import com.acornui.graphics.Color
+import com.acornui.graphics.ColorRo
 import com.acornui.math.Matrix4
 import com.acornui.math.Matrix4Ro
 
@@ -182,7 +179,7 @@ class GlState(
 
 	private val _mvp = Matrix4()
 
-	fun camera(camera: Camera, model: Matrix4Ro = Matrix4.IDENTITY) {
+	fun camera(camera: CameraRo, model: Matrix4Ro = Matrix4.IDENTITY) {
 		val hasModel = _shader!!.getUniformLocation(ShaderProgram.U_MODEL_TRANS) != null
 		if (hasModel) {
 			viewProjection(camera.combined.values)
@@ -194,7 +191,7 @@ class GlState(
 		}
 	}
 
-	fun projTrans(value: Matrix4) = viewProjection(value.values)
+	fun projTrans(value: Matrix4Ro) = viewProjection(value.values)
 
 	/**
 	 * Applies the given matrix as the view-projection transformation.
@@ -254,7 +251,7 @@ private class ColorCache(
 	private val _value = Color()
 	private var _shader: ShaderProgram? = null
 
-	fun set(value: Color, shader: ShaderProgram, batch: ShaderBatch) {
+	fun set(value: ColorRo, shader: ShaderProgram, batch: ShaderBatch) {
 		val uniform = shader.getUniformLocation(name) ?: return
 		if (_shader != shader || value != _value) {
 			batch.flush(true)

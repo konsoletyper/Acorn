@@ -58,7 +58,7 @@ class ColorTimeline(
 		}
 	}
 
-	override fun apply(skeleton: Skeleton, lastTime: Float, time: Float, events: ArrayList<SpineEvent>?, alpha: Float) {
+	override fun apply(skeleton: Skeleton, lastTime: Float, time: Float, events: MutableList<SpineEvent>?, alpha: Float) {
 		val frames = this.frames
 		if (time < frames[0]) return  // Time is before first frame.
 

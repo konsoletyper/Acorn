@@ -92,7 +92,7 @@ class FfdTimeline(
 		}
 	}
 
-	override fun apply(skeleton: Skeleton, lastTime: Float, time: Float, events: ArrayList<SpineEvent>?, alpha: Float) {
+	override fun apply(skeleton: Skeleton, lastTime: Float, time: Float, events: MutableList<SpineEvent>?, alpha: Float) {
 		var alpha = alpha
 		val slot = skeleton.slots[slotIndex]
 		val slotAttachment = slot.attachment

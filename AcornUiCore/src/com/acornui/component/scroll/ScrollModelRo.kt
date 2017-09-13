@@ -23,15 +23,12 @@ import com.acornui.signal.Signal1
 import kotlin.properties.Delegates
 import kotlin.properties.ReadWriteProperty
 
-interface ScrollModel {
+interface ScrollModelRo {
 
 	/**
-	 * Dispatched when the min, max, or value properties have changed.
-	 * The handler should have the signature:
-	 * (scrollModel)->Unit
-	 * scrollModel - this scroll model
+	 * Dispatched when the value property has changed.
 	 */
-	val changed: Signal<(ScrollModel) -> Unit>
+	val changed: Signal<(ScrollModelRo) -> Unit>
 
 	/**
 	 * The undecorated value.
@@ -49,7 +46,7 @@ interface ScrollModel {
 		get() = rawValue
 }
 
-interface MutableScrollModel : ScrollModel {
+interface ScrollModel : ScrollModelRo {
 
 	override var rawValue: Float
 
@@ -61,7 +58,12 @@ interface MutableScrollModel : ScrollModel {
 		}
 }
 
-interface ClampedScrollModel : ScrollModel {
+interface ClampedScrollModelRo : ScrollModelRo {
+
+	/**
+	 * Dispatched when the min, max, or value properties have changed.
+	 */
+	override val changed: Signal<(ClampedScrollModelRo) -> Unit>
 
 	/**
 	 * The min value.  When changed a changed signal is dispatched.
@@ -110,9 +112,9 @@ interface ClampedScrollModel : ScrollModel {
 }
 
 /**
- * An interface to ClampedScrollModel that allows the bounds to be externally changed.
+ * A mutable scroll model with clamping.
  */
-interface MutableClampedScrollModel : ClampedScrollModel, MutableScrollModel {
+interface ClampedScrollModel : ClampedScrollModelRo, ScrollModel {
 
 	override var min: Float
 	override var max: Float
@@ -135,17 +137,16 @@ class ScrollModelImpl(
 		min: Float = 0f,
 		max: Float = 0f,
 		snap: Float = 0f
-) : MutableClampedScrollModel, Disposable {
+) : ClampedScrollModel, Disposable {
 
-	/**
-	 * Dispatched when the min, max, or value properties have changed.
-	 */
-	override val changed = Signal1<ScrollModel>()
+	private val _changed = Signal1<ClampedScrollModel>()
+	override val changed: Signal<(ClampedScrollModel) -> Unit>
+		get() = _changed
 
 	private fun <T> bindable(initial: T): ReadWriteProperty<Any?, T> {
 		return Delegates.observable(initial, {
 			meta, old, new ->
-			if (old != new) changed.dispatch(this)}
+			if (old != new) _changed.dispatch(this)}
 		)
 	}
 
@@ -158,10 +159,10 @@ class ScrollModelImpl(
 	override var rawValue by bindable(value)
 
 	override fun toString(): String {
-		return "[ScrollModel value=$rawValue min=$min max=$max"
+		return "[ScrollModelRo value=$rawValue min=$min max=$max"
 	}
 
 	override fun dispose() {
-		changed.dispose()
+		_changed.dispose()
 	}
 }

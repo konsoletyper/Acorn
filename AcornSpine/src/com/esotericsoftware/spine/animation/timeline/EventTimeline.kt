@@ -60,7 +60,7 @@ class EventTimeline(
 	/**
 	 * Fires events for frames > lastTime and <= time.
 	 */
-	override fun apply(skeleton: Skeleton, lastTime: Float, time: Float, events: ArrayList<SpineEvent>?, alpha: Float) {
+	override fun apply(skeleton: Skeleton, lastTime: Float, time: Float, events: MutableList<SpineEvent>?, alpha: Float) {
 		if (events == null) return
 		var lastTime = lastTime
 		val frames = this.frames
