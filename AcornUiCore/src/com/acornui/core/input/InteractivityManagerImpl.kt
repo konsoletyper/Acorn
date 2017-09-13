@@ -21,6 +21,7 @@ import com.acornui.collection.arrayListPool
 import com.acornui.component.InteractiveElement
 import com.acornui.component.InteractiveElementRo
 import com.acornui.component.UiComponent
+import com.acornui.component.UiComponentRo
 import com.acornui.core.ancestry
 import com.acornui.core.focus.FocusManager
 import com.acornui.core.input.interaction.*
@@ -40,8 +41,8 @@ open class InteractivityManagerImpl(
 		private val keyInput: KeyInput,
 		private val focus: FocusManager) : InteractivityManager {
 
-	private var _root: UiComponent? = null
-	private val root: UiComponent
+	private var _root: UiComponentRo? = null
+	private val root: UiComponentRo
 		get() = _root!!
 
 	private val mouse = MouseInteraction()
@@ -152,7 +153,7 @@ open class InteractivityManagerImpl(
 		if (char.defaultPrevented()) event.preventDefault()
 	}
 
-	override fun init(root: UiComponent) {
+	override fun init(root: UiComponentRo) {
 		_assert(_root == null, "Already initialized.")
 		_root = root
 		mouseInput.overCanvasChanged.add(overCanvasChangedHandler)

@@ -84,7 +84,7 @@ interface UiComponentRo : LifecycleRo, ColorTransformableRo, InteractiveElementR
 	 * @param canvasY The y coordinate relative to the canvas.
 	 * @param out The array list to populate with elements.
 	 */
-	fun getChildrenUnderPoint(canvasX: Float, canvasY: Float, out: ArrayList<UiComponentRo>, onlyInteractive: Boolean): ArrayList<UiComponentRo> {
+	fun getChildrenUnderPoint(canvasX: Float, canvasY: Float, out: MutableList<UiComponentRo>, onlyInteractive: Boolean): MutableList<UiComponentRo> {
 		val ray = Ray.obtain()
 		camera.getPickRay(canvasX, canvasY, ray)
 		getChildrenUnderRay(ray, out, onlyInteractive)
@@ -100,7 +100,7 @@ interface UiComponentRo : LifecycleRo, ColorTransformableRo, InteractiveElementR
 	 *
 	 * This method will not return elements where [UiComponent.visible] is false.
 	 */
-	fun getChildrenUnderRay(globalRay: RayRo, out: ArrayList<UiComponentRo>, onlyInteractive: Boolean, returnAll: Boolean = true)
+	fun getChildrenUnderRay(globalRay: RayRo, out: MutableList<UiComponentRo>, onlyInteractive: Boolean, returnAll: Boolean = true)
 
 	/**
 	 * If false, this component will not be rendered, interact with user input, included in layouts, or included in
@@ -646,7 +646,7 @@ open class UiComponentImpl(
 	//-----------------------------------------------
 
 
-	override fun getChildrenUnderRay(globalRay: RayRo, out: ArrayList<UiComponentRo>, onlyInteractive: Boolean, returnAll: Boolean) {
+	override fun getChildrenUnderRay(globalRay: RayRo, out: MutableList<UiComponentRo>, onlyInteractive: Boolean, returnAll: Boolean) {
 		if (!_visible || (onlyInteractive && !interactivityEnabled)) return
 		if (intersectsGlobalRay(globalRay)) {
 			out.add(this)

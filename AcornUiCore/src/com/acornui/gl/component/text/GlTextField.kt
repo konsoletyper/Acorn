@@ -173,8 +173,8 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 		contents.setSize(explicitWidth, explicitHeight)
 		out.set(contents.bounds)
 
-		val lineHeight = BitmapFontRegistry.getFont(charStyle)?.data?.lineHeight?.toFloat() ?: 0f
-		if (out.height < lineHeight) out.height = lineHeight
+		val minHeight = flowStyle.padding.expandHeight(BitmapFontRegistry.getFont(charStyle)?.data?.lineHeight?.toFloat()) ?: 0f
+		if (out.height < minHeight) out.height = minHeight
 
 		if (explicitWidth != null) out.width = explicitWidth
 		if (explicitHeight != null) out.height = explicitHeight
@@ -630,6 +630,7 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, MutableE
 		}
 		linesPool.free(currentLine)
 
+		// We now have the elements per line; measure the line heights/widths and position the elements within the line.
 		var y = padding.top
 		var measuredWidth = 0f
 		for (i in 0.._lines.lastIndex) {

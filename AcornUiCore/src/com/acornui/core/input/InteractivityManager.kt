@@ -20,6 +20,7 @@ import com.acornui.collection.Clearable
 import com.acornui.component.InteractiveElement
 import com.acornui.component.InteractiveElementRo
 import com.acornui.component.UiComponent
+import com.acornui.component.UiComponentRo
 import com.acornui.core.Disposable
 import com.acornui.core.di.DKey
 import com.acornui.signal.Stoppable
@@ -34,7 +35,7 @@ interface InteractivityManager : Disposable {
 	/**
 	 * Initializes the interactivity manager with the root element for dispatching.
 	 */
-	fun init(root: UiComponent)
+	fun init(root: UiComponentRo)
 
 	/**
 	 * Produces a new Signal for the specified interaction type.

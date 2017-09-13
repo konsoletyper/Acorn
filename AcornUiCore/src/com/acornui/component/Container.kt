@@ -17,7 +17,6 @@
 package com.acornui.component
 
 import com.acornui._assert
-import com.acornui.core.Disposable
 import com.acornui.core.Parent
 import com.acornui.core.di.DKey
 import com.acornui.core.di.DependencyKeyImpl
@@ -237,7 +236,7 @@ open class ContainerImpl(
 	// Interactivity utility methods
 	//-----------------------------------------------------
 
-	override fun getChildrenUnderRay(globalRay: RayRo, out: ArrayList<UiComponentRo>, onlyInteractive: Boolean, returnAll: Boolean) {
+	override fun getChildrenUnderRay(globalRay: RayRo, out: MutableList<UiComponentRo>, onlyInteractive: Boolean, returnAll: Boolean) {
 		if (!visible || (onlyInteractive && inheritedInteractivityMode == InteractivityMode.NONE)) return
 		if (!intersectsGlobalRay(globalRay)) {
 			return
@@ -287,8 +286,7 @@ open class ContainerImpl(
 		}
 	}
 
-	protected open fun childDisposedHandler(child: Disposable) {
-		(child as UiComponent)
+	protected open fun childDisposedHandler(child: UiComponent) {
 		removeChild(child)
 	}
 

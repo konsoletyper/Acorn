@@ -19,7 +19,7 @@ package com.acornui.js.dom
 import com.acornui._assert
 import com.acornui.collection.arrayListPool
 import com.acornui.component.InteractiveElementRo
-import com.acornui.component.UiComponent
+import com.acornui.component.UiComponentRo
 import com.acornui.core.ancestry
 import com.acornui.core.input.InteractionEvent
 import com.acornui.core.input.InteractionType
@@ -34,7 +34,6 @@ import com.acornui.signal.StoppableSignalImpl
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.Node
 import org.w3c.dom.events.*
-
 import kotlin.browser.window
 
 /**
@@ -46,8 +45,8 @@ open class DomInteractivityManager : InteractivityManager {
 
 	var scrollSpeed = 24f
 
-	private var _root: UiComponent? = null
-	private val root: UiComponent
+	private var _root: UiComponentRo? = null
+	private val root: UiComponentRo
 		get() = _root!!
 	private var _rootElement: HTMLElement? = null
 	private val rootElement: HTMLElement
@@ -96,7 +95,7 @@ open class DomInteractivityManager : InteractivityManager {
 		Unit
 	}
 
-	override fun init(root: UiComponent) {
+	override fun init(root: UiComponentRo) {
 		_assert(_root == null, "Already initialized.")
 		_root = root
 		_rootElement = (root.native as DomComponent).element
