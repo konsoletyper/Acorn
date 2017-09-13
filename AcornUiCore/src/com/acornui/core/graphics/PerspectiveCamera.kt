@@ -32,28 +32,17 @@ class PerspectiveCamera : CameraBase() {
 	/**
 	 * The field of view of the height, in radians
 	 **/
-	var fieldOfView: Float = 67f * MathUtils.degRad
+	var fieldOfView: Float by bindable(67f * MathUtils.degRad)
 
 	private val tmp = Vector3()
 	private val tmp2: Vector2 = Vector2()
 
-	init {
-		update()
-	}
-
-	override fun update(updateFrustum: Boolean) {
+	override fun updateViewProjection() {
 		val aspect = viewportWidth / viewportHeight
 		_projection.setToProjection(MathUtils.abs(near), MathUtils.abs(far), fieldOfView, aspect)
 		_view.setToLookAt(position, tmp.set(position).add(direction), up)
 		_combined.set(_projection)
 		_combined.mul(_view)
-
-		if (updateFrustum) {
-			_invCombined.set(_combined)
-			_invCombined.inv()
-			_frustum.update(_invCombined)
-		}
-		_modTag.increment()
 	}
 
 	override fun moveToLookAtRect(x: Float, y: Float, width: Float, height: Float, scaling: Scaling) {

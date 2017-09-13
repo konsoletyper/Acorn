@@ -20,10 +20,9 @@ class PointLightCamera(window: Window, resolution: Float) {
 
 	fun update(pointLight: PointLight, direction: Int) {
 		if (pointLight.radius < 0.0001f) return
-		camera.position.set(pointLight.position)
-		camera.direction.set(CUBEMAP_DIRECTIONS[direction])
-		camera.up.set(CUBEMAP_UP[direction])
-		camera.update()
+		camera.setPosition(pointLight.position)
+		camera.setDirection(CUBEMAP_DIRECTIONS[direction], keepUpOrthonormal = false)
+		camera.setUp(CUBEMAP_UP[direction])
 	}
 
 	companion object {

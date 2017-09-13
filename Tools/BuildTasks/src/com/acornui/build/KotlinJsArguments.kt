@@ -82,7 +82,7 @@ data class KotlinJsArguments(
 		common.populate(args)
 	}
 
-	private fun <T> ArrayList<T>.add(first: T, second: T) {
+	private fun <T> MutableList<T>.add(first: T, second: T) {
 		add(first)
 		add(second)
 	}

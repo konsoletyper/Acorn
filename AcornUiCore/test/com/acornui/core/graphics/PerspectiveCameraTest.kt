@@ -17,10 +17,8 @@
 package com.acornui.core.graphics
 
 import com.acornui.math.Vector3
-import com.acornui.signal.Signal3
 import com.acornui.test.assertClose
 import org.junit.Test
-import org.mockito.Mockito
 
 /**
  * @author nbilyk
@@ -33,6 +31,8 @@ class PerspectiveCameraTest {
 		val viewportY = 0f
 		val viewportW = 400f
 		val viewportH = 300f
+		cam.setViewport(viewportW, viewportH)
+		cam.moveToLookAtRect(0f, 0f, viewportW, viewportH)
 
 		val coords = Vector3(0f, 0f, 0f)
 		cam.project(coords, viewportX, viewportY, viewportW, viewportH)

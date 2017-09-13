@@ -23,6 +23,8 @@ import com.acornui.core.di.DKey
 import com.acornui.math.*
 import com.acornui.observe.ModTagRo
 import com.acornui.observe.ModTagImpl
+import kotlin.properties.Delegates
+import kotlin.properties.ReadWriteProperty
 
 interface CameraRo {
 
@@ -33,7 +35,6 @@ interface CameraRo {
 
 	/**
 	 * The combined projection and view matrix.
-	 * This is read only, and will be accurate after an [Camera.update]
 	 */
 	val combined: Matrix4Ro
 
@@ -68,7 +69,7 @@ interface CameraRo {
 		combined.prj(globalCoords)
 		globalCoords.x = viewportWidth * (globalCoords.x + 1f) * 0.5f + viewportX
 		globalCoords.y = viewportHeight * (-globalCoords.y + 1f) * 0.5f + viewportY
-		globalCoords.z = (globalCoords.z + 1f) * 0.5f;
+		globalCoords.z = (globalCoords.z + 1f) * 0.5f
 		return globalCoords
 	}
 
@@ -89,13 +90,11 @@ interface CameraRo {
 
 	/**
 	 * The projection matrix.
-	 * This will be valid after [Camera.update].
 	 */
 	val projection: Matrix4Ro
 
 	/**
 	 * The view matrix.
-	 * This will be valid after [Camera.update].
 	 */
 	val view: Matrix4Ro
 
@@ -112,12 +111,12 @@ interface CameraRo {
 	/**
 	 * The viewport width
 	 */
-	val viewportWidth: Float
+	var viewportWidth: Float
 
 	/**
 	 * The viewport height
 	 */
-	val viewportHeight: Float
+	var viewportHeight: Float
 
 	val aspect: Float
 		get() = viewportWidth / viewportHeight
@@ -152,20 +151,19 @@ interface CameraRo {
 
 interface Camera : CameraRo {
 
-	/**
-	 * The position of the camera
-	 */
-	override val position: Vector3
+	fun setPosition(value: Vector3Ro) = setPosition(value.x, value.y, value.z)
+	fun setPosition(x: Float = position.x, y: Float = position.y, z: Float = position.z)
 
 	/**
-	 * The unit length direction vector of the camera
+	 * Sets this camera's direction.
+	 * @param keepUpOrthonormal If true, setting the direction also sets up, ensuring that the up vector and direction
+	 * vector remain orthonormal.
 	 */
-	override val direction: Vector3
+	fun setDirection(x: Float = direction.x, y: Float = direction.y, z: Float = direction.z, keepUpOrthonormal: Boolean = true)
+	fun setDirection(value: Vector3Ro, keepUpOrthonormal: Boolean = true) = setDirection(value.x, value.y, value.z, keepUpOrthonormal)
 
-	/**
-	 * The unit length up vector of the camera
-	 */
-	override val up: Vector3
+	fun setUp(x: Float = up.x, y: Float = up.y, z: Float = up.z)
+	fun setUp(value: Vector3Ro) = setUp(value.x, value.y, value.z)
 
 	/**
 	 * The near clipping plane distance, has to be positive
@@ -177,36 +175,10 @@ interface Camera : CameraRo {
 	 */
 	override var far: Float
 
-	/**
-	 * The viewport width
-	 */
-	override var viewportWidth: Float
-
-	/**
-	 * The viewport height
-	 */
-	override var viewportHeight: Float
-
-	/**
-	 * Recalculates the projection and view matrix of this camera and the Frustum planes if <code>updateFrustum</code>
-	 * is true. Use this after you've manipulated any of the attributes of the camera.
-	 *
-	 * Implementations of this method should call [modTag.increment()] to track a change count.
-	 * Observers of this camera can check if it's been updated by comparing a local modTag to this camera's modTag
-	 */
-	fun update(updateFrustum: Boolean = true)
-
 	fun setViewport(width: Float, height: Float) {
-		viewportWidth = maxOf(1f, width)
-		viewportHeight = maxOf(1f, height)
+		viewportWidth = width
+		viewportHeight = height
 	}
-
-	fun setDirection(value: Vector3) = setDirection(value.x, value.y, value.z)
-
-	/**
-	 * Sets this camera's direction, ensuring that the up vector and direction vector remain orthonormal.
-	 */
-	fun setDirection(x: Float, y: Float, z: Float)
 
 	fun pointToLookAt(target: Vector3) = pointToLookAt(target.x, target.y, target.z)
 
@@ -238,7 +210,10 @@ abstract class CameraBase : Camera {
 
 	protected val _combined: Matrix4 = Matrix4()
 	override val combined: Matrix4Ro
-		get() = _combined
+		get() {
+			validateViewProjection()
+			return _combined
+		}
 
 	protected val _modTag = ModTagImpl()
 
@@ -248,20 +223,40 @@ abstract class CameraBase : Camera {
 	override val modTag: ModTagRo
 		get() = _modTag
 
+	protected val _position = Vector3()
+
 	/**
 	 * The position of the camera
 	 */
-	override val position: Vector3 = Vector3()
+	override val position: Vector3Ro
+		get() = _position
+
+
+	override fun setPosition(x: Float, y: Float, z: Float) {
+		_position.set(x, y, z)
+		dirty()
+	}
+
+	protected val _direction = Vector3(0f, 0f, 1f)
 
 	/**
 	 * The unit length direction vector of the camera
 	 */
-	override val direction: Vector3 = Vector3(0f, 0f, 1f)
+	override val direction: Vector3Ro
+		get() = _direction
+
+	protected val _up: Vector3 = Vector3(0f, -1f, 0f)
 
 	/**
 	 * The unit length up vector of the camera
 	 */
-	override val up: Vector3 = Vector3(0f, -1f, 0f)
+	override val up: Vector3Ro
+		get() = _up
+
+	override fun setUp(x: Float, y: Float, z: Float) {
+		_up.set(x, y, z)
+		dirty()
+	}
 
 	protected val _projection: Matrix4 = Matrix4()
 
@@ -269,7 +264,10 @@ abstract class CameraBase : Camera {
 	 * The projection matrix
 	 */
 	override val projection: Matrix4Ro
-		get() = _projection
+		get() {
+			validateViewProjection()
+			return _projection
+		}
 
 	protected val _view: Matrix4 = Matrix4()
 
@@ -277,27 +275,30 @@ abstract class CameraBase : Camera {
 	 * The view matrix
 	 */
 	override val view: Matrix4Ro
-		get() = _view
+		get() {
+			validateViewProjection()
+			return _view
+		}
 
 	/**
 	 * The near clipping plane distance, has to be positive
 	 */
-	override var near: Float = 1f
+	override var near by bindable(1f)
 
 	/**
 	 * The far clipping plane distance, has to be positive
 	 */
-	override var far: Float = 3000f
+	override var far by bindable(3000f)
 
 	/**
 	 * The viewport width
 	 */
-	override var viewportWidth: Float = 1f
+	override var viewportWidth by bindable(1f)
 
 	/**
 	 * The viewport height
 	 */
-	override var viewportHeight: Float = 1f
+	override var viewportHeight by bindable(1f)
 
 	//------------------------------------
 	// Set after update()
@@ -309,7 +310,10 @@ abstract class CameraBase : Camera {
 	 * The frustum
 	 */
 	override val frustum: FrustumRo
-		get() = _frustum
+		get() {
+			validateFrustum()
+			return _frustum
+		}
 
 	protected val _invCombined: Matrix4 = Matrix4()
 
@@ -317,7 +321,10 @@ abstract class CameraBase : Camera {
 	 * The inverse combined projection and view matrix
 	 */
 	override val invCombined: Matrix4Ro
-		get() = _invCombined
+		get() {
+			validateInvCombined()
+			return _invCombined
+		}
 
 	//------------------------------------
 	// Temp storage
@@ -328,20 +335,24 @@ abstract class CameraBase : Camera {
 	/**
 	 * Sets the camera's direction, keeping the up vector orthonormal.
 	 */
-	override fun setDirection(x: Float, y: Float, z: Float) {
-		tmpVec.set(x, y, z)
-		if (!tmpVec.isZero()) {
-			val dot = tmpVec.dot(up)
+	override fun setDirection(x: Float, y: Float, z: Float, keepUpOrthonormal: Boolean) {
+		if (x == 0f && y == 0f && z == 0f) return
+		if (keepUpOrthonormal) {
+			tmpVec.set(x, y, z)
+			val dot = tmpVec.dot(_up)
 			if (MathUtils.isZero(dot - 1)) {
 				// Collinear
-				up.set(direction).scl(-1f)
+				_up.set(direction).scl(-1f)
 			} else if (MathUtils.isZero(dot + 1)) {
 				// Collinear opposite
-				up.set(direction)
+				_up.set(direction)
 			}
-			direction.set(tmpVec)
+			_direction.set(tmpVec)
 			normalizeUp()
+		} else {
+			_direction.set(x, y, z)
 		}
+		dirty()
 	}
 
 	/**
@@ -357,7 +368,7 @@ abstract class CameraBase : Camera {
 	 */
 	protected fun normalizeUp() {
 		tmpVec.set(direction).crs(up).nor()
-		up.set(tmpVec).crs(direction).nor()
+		_up.set(tmpVec).crs(direction).nor()
 	}
 
 	/**
@@ -370,8 +381,9 @@ abstract class CameraBase : Camera {
 	 * @param axisZ the z-component of the axis
 	 */
 	fun rotate(radians: Float, axisX: Float, axisY: Float, axisZ: Float) {
-		direction.rotateRad(radians, axisX, axisY, axisZ)
-		up.rotateRad(radians, axisX, axisY, axisZ)
+		_direction.rotateRad(radians, axisX, axisY, axisZ)
+		_up.rotateRad(radians, axisX, axisY, axisZ)
+		dirty()
 	}
 
 	/**
@@ -382,8 +394,9 @@ abstract class CameraBase : Camera {
 	 * @param radians the angle
 	 */
 	fun rotate(axis: Vector3Ro, radians: Float) {
-		direction.rotateRad(axis, radians)
-		up.rotateRad(axis, radians)
+		_direction.rotateRad(axis, radians)
+		_up.rotateRad(axis, radians)
+		dirty()
 	}
 
 	/**
@@ -401,8 +414,9 @@ abstract class CameraBase : Camera {
 	 * @param transform The rotation matrix
 	 */
 	fun rotate(transform: Matrix4Ro) {
-		direction.rot(transform)
-		up.rot(transform)
+		_direction.rot(transform)
+		_up.rot(transform)
+		dirty()
 	}
 
 	/**
@@ -412,8 +426,9 @@ abstract class CameraBase : Camera {
 	 * @param quat The quaternion
 	 */
 	fun rotate(quat: QuaternionRo) {
-		quat.transform(direction)
-		quat.transform(up)
+		quat.transform(_direction)
+		quat.transform(_up)
+		dirty()
 	}
 
 	/**
@@ -439,7 +454,7 @@ abstract class CameraBase : Camera {
 	 * @param transform The transform matrix
 	 */
 	fun transform(transform: Matrix4Ro) {
-		position.mul(transform)
+		_position.mul(transform)
 		rotate(transform)
 	}
 
@@ -450,7 +465,8 @@ abstract class CameraBase : Camera {
 	 * @param z the displacement on the z-axis
 	 */
 	fun translate(x: Float, y: Float, z: Float = 0f) {
-		position.add(x, y, z)
+		_position.add(x, y, z)
+		dirty()
 	}
 
 	/**
@@ -458,7 +474,8 @@ abstract class CameraBase : Camera {
 	 * @param vec the displacement vector
 	 */
 	fun translate(vec: Vector3Ro) {
-		position.add(vec)
+		_position.add(vec)
+		dirty()
 	}
 
 	/**
@@ -472,7 +489,7 @@ abstract class CameraBase : Camera {
 	override fun canvasToGlobal(canvasCoords: Vector3, viewportX: Float, viewportY: Float, viewportWidth: Float, viewportHeight: Float): Vector3 {
 		canvasCoords.x = 2f * (canvasCoords.x - viewportX) / viewportWidth - 1f
 		canvasCoords.y = -2f * (canvasCoords.y - viewportY) / viewportHeight + 1f
-		canvasCoords.z = 2f * canvasCoords.z - 1f;
+		canvasCoords.z = 2f * canvasCoords.z - 1f
 		invCombined.prj(canvasCoords)
 		return canvasCoords
 	}
@@ -482,7 +499,57 @@ abstract class CameraBase : Camera {
 	 */
 	override fun moveToLookAtPoint(x: Float, y: Float, z: Float, distance: Float) {
 		tmpVec.set(direction).scl(distance) // Assumes direction is normalized
-		position.set(x, y, z).sub(tmpVec)
+		_position.set(x, y, z).sub(tmpVec)
+		dirty()
+	}
+
+	private var viewProjectionIsValid: Boolean = false
+	private var invCombinedIsValid: Boolean = false
+	private var frustumIsValid: Boolean = false
+
+	protected fun dirty() {
+		viewProjectionIsValid = false
+		invCombinedIsValid = false
+		frustumIsValid = false
+		_modTag.increment()
+	}
+
+	private fun validateViewProjection() {
+		if (viewProjectionIsValid) return
+		viewProjectionIsValid = true
+		updateViewProjection()
+	}
+
+	private fun validateInvCombined() {
+		if (invCombinedIsValid) return
+		invCombinedIsValid = true
+		validateViewProjection()
+		updateInvCombined()
+	}
+
+	private fun validateFrustum() {
+		if (frustumIsValid) return
+		frustumIsValid = true
+		validateInvCombined()
+		updateFrustum()
+	}
+
+	abstract protected fun updateViewProjection()
+
+	protected open fun updateInvCombined() {
+		_invCombined.set(_combined)
+		_invCombined.inv()
+	}
+
+	protected open fun updateFrustum() {
+		_frustum.update(_invCombined)
+	}
+
+	protected fun <T> bindable(initial: T): ReadWriteProperty<Any?, T> {
+		return Delegates.observable(initial) {
+			meta, old, new ->
+			if (old != new) dirty()
+		}
 	}
 }
 
@@ -490,11 +557,9 @@ fun Window.autoCenterCamera(camera: Camera): Disposable {
 	val windowResizedHandler = {
 		newWidth: Float, newHeight: Float, isUserInteraction: Boolean ->
 		centerCamera(camera)
-		camera.update()
 	}
 	sizeChanged.add(windowResizedHandler)
 	centerCamera(camera)
-	camera.update()
 	return object : Disposable {
 		override fun dispose() {
 			sizeChanged.remove(windowResizedHandler)

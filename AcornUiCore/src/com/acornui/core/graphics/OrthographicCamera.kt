@@ -36,35 +36,28 @@ class OrthographicCamera : CameraBase() {
 	/**
 	 * The zoom of the camera.
 	 */
-	var zoom: Float = 1f
+	var zoom: Float by bindable(1f)
 
 	private val tmp: Vector3 = Vector3()
 	private val tmp2: Vector2 = Vector2()
 
 	init {
 		near = -1f
-		update()
 	}
 
-	override fun update(updateFrustum: Boolean) {
+	override fun updateViewProjection() {
 		_projection.setToOrtho(zoom * -viewportWidth / 2f, zoom * viewportWidth / 2f, zoom * -viewportHeight / 2f, zoom * viewportHeight / 2f, near, far)
 		_view.setToLookAt(position, tmp.set(position).add(direction), up)
 		_combined.set(_projection)
 		_combined.mul(_view)
-
-		if (updateFrustum) {
-			_invCombined.set(_combined)
-			_invCombined.inv()
-			_frustum.update(_invCombined)
-		}
-		_modTag.increment()
 	}
 
 	override fun moveToLookAtRect(x: Float, y: Float, width: Float, height: Float, scaling: Scaling) {
 		scaling.apply(viewportWidth, viewportHeight, width, height, tmp2)
 		val (newW, newH) = tmp2
 		zoom = if (viewportWidth == 0f) 0f else newW / viewportWidth
-		position.set(x + newW * 0.5f, y + newH * 0.5f, 0f)
+		_position.set(x + newW * 0.5f, y + newH * 0.5f, 0f)
+		dirty()
 	}
 
 }

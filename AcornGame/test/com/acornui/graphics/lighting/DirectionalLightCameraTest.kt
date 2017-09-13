@@ -30,8 +30,7 @@ class DirectionalLightCameraTest {
 		_testUpdate(d, Vector3(-1f, -1f, -1f), viewCamera)
 		_testUpdate(d, Vector3(0.5f, -1.5f, -1f), viewCamera)
 
-		viewCamera.position.set(200f, 300f, -200f)
-		viewCamera.update()
+		viewCamera.setPosition(200f, 300f, -200f)
 
 		_testUpdate(d, Vector3(0f, 0f, 1f), viewCamera)
 		_testUpdate(d, Vector3(1f, 0f, 0f), viewCamera)
@@ -68,7 +67,6 @@ class DirectionalLightCameraTest {
 		val viewCamera = OrthographicCamera()
 		viewCamera.near = 1000f
 		viewCamera.far = 5000f
-		viewCamera.update(updateFrustum = true)
 
 		d.setClipSpaceFromWorld(100f, 300f, 150f, 0f, 2000f, 4000f, viewCamera)
 		println(d.clipSpace.joinToString())
