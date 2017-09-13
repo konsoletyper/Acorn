@@ -19,8 +19,10 @@
 
 package com.acornui.core.graphics
 
+import com.acornui.core.di.Owned
 import com.acornui.core.di.Scoped
 import com.acornui.core.di.inject
+import com.acornui.core.di.own
 import com.acornui.math.*
 
 
@@ -29,7 +31,7 @@ import com.acornui.math.*
  *
  * @author mzechner
  */
-class OrthographicCamera(window: Window) : CameraBase(window) {
+class OrthographicCamera : CameraBase() {
 
 	/**
 	 * The zoom of the camera.
@@ -41,7 +43,6 @@ class OrthographicCamera(window: Window) : CameraBase(window) {
 
 	init {
 		near = -1f
-		centerCamera()
 		update()
 	}
 
@@ -56,7 +57,7 @@ class OrthographicCamera(window: Window) : CameraBase(window) {
 			_invCombined.inv()
 			_frustum.update(_invCombined)
 		}
-		modTag.increment()
+		_modTag.increment()
 	}
 
 	override fun moveToLookAtRect(x: Float, y: Float, width: Float, height: Float, scaling: Scaling) {
@@ -69,8 +70,9 @@ class OrthographicCamera(window: Window) : CameraBase(window) {
 }
 
 
-fun Scoped.orthographicCamera(init: OrthographicCamera.() -> Unit = {}): OrthographicCamera {
-	val p = OrthographicCamera(inject(Window))
+fun Owned.orthographicCamera(autoCenter: Boolean = false, init: OrthographicCamera.() -> Unit = {}): OrthographicCamera {
+	val p = OrthographicCamera()
+	if (autoCenter) own(inject(Window).autoCenterCamera(p))
 	p.init()
 	return p
 }

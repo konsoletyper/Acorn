@@ -33,24 +33,44 @@ interface CameraRo {
 
 	/**
 	 * The combined projection and view matrix.
-	 * This is read only, and will be accurate after an [update]
+	 * This is read only, and will be accurate after an [Camera.update]
 	 */
 	val combined: Matrix4Ro
 
 	/**
-	 * Creates a picking [Ray] from the coordinates given in screen coordinates. It is assumed that the viewport spans
-	 * the whole canvas. The global coordinates origin is assumed to be in the top left corner, its y-axis pointing
-	 * down, the x-axis pointing to the right.
-	 * @return The [out] parameter. The [Ray] will be in global coordinate space.
+	 * Creates a picking {@link Ray} from the coordinates given in global coordinates. The global coordinates origin
+	 * is assumed to be in the top left corner, its y-axis pointing down, the x-axis  pointing to the right.
+	 *
+	 * @param viewportX the coordinate of the bottom left corner of the viewport in glViewport coordinates.
+	 * @param viewportY the coordinate of the bottom left corner of the viewport in glViewport coordinates.
+	 * @param viewportWidth the width of the viewport in pixels
+	 * @param viewportHeight the height of the viewport in pixels
+	 * @return The [out] parameter. The Ray will be in global coordinate space.
 	 */
-	fun getPickRay(canvasX: Float, canvasY: Float, out: Ray): Ray
+	fun getPickRay(canvasX: Float, canvasY: Float, viewportX: Float, viewportY: Float, viewportWidth: Float, viewportHeight: Float, out: Ray): Ray {
+		canvasToGlobal(out.origin.set(canvasX, canvasY, -1f), viewportX, viewportY, viewportWidth, viewportHeight)
+		canvasToGlobal(out.direction.set(canvasX, canvasY, 0f), viewportX, viewportY, viewportWidth, viewportHeight)
+		out.direction.sub(out.origin)
+		out.update()
+		return out
+	}
 
 	/**
-	 * Projects the {@link Vector3} given in global space to screen coordinates. It's the same as GLU gluProject
-	 * with one small deviation: The viewport is assumed to span the whole screen. The screen coordinate system has
-	 * its origin in the top left, with the y-axis pointing downwards and the x-axis pointing to the right.
+	 * Projects the {@link Vector3} given in global space to screen coordinates. The screen coordinate system has its
+	 * origin in the top left, with the y-axis pointing downwards and the x-axis pointing to the right.
+	 *
+	 * @param viewportX the coordinate of the top left corner of the viewport in glViewport coordinates.
+	 * @param viewportY the coordinate of the top left corner of the viewport in glViewport coordinates.
+	 * @param viewportWidth the width of the viewport in pixels
+	 * @param viewportHeight the height of the viewport in pixels
 	 */
-	fun project(globalCoords: Vector3): Vector3
+	fun project(globalCoords: Vector3, viewportX: Float, viewportY: Float, viewportWidth: Float, viewportHeight: Float): Vector3 {
+		combined.prj(globalCoords)
+		globalCoords.x = viewportWidth * (globalCoords.x + 1f) * 0.5f + viewportX
+		globalCoords.y = viewportHeight * (-globalCoords.y + 1f) * 0.5f + viewportY
+		globalCoords.z = (globalCoords.z + 1f) * 0.5f;
+		return globalCoords
+	}
 
 	/**
 	 * The position of the camera
@@ -69,13 +89,13 @@ interface CameraRo {
 
 	/**
 	 * The projection matrix.
-	 * This will be valid after [update].
+	 * This will be valid after [Camera.update].
 	 */
 	val projection: Matrix4Ro
 
 	/**
 	 * The view matrix.
-	 * This will be valid after [update].
+	 * This will be valid after [Camera.update].
 	 */
 	val view: Matrix4Ro
 
@@ -113,17 +133,6 @@ interface CameraRo {
 	val invCombined: Matrix4Ro
 
 	/**
-	 * Function to translate a point given in screen coordinates to global space. It's the same as GLU gluUnProject but
-	 * does not rely on OpenGL. The viewport is assumed to span the whole screen and is fetched from [Window.getWidth]
-	 * and [Window.getHeight]. The x- and y-coordinate of [canvasCoords] are assumed to be in screen coordinates
-	 * (origin is the top left corner, y pointing down, x pointing to the right) as reported by the canvas coordinates
-	 * in input events. A z-coordinate of 0 will return a point on the near plane, a z-coordinate of 1 will return a
-	 * point on the far plane.
-	 * @param canvasCoords the point in screen coordinates
-	 */
-	fun canvasToGlobal(canvasCoords: Vector3): Vector3
-
-	/**
 	 * Translates a point given in screen coordinates to global space. It's the same as GLU gluUnProject, but
 	 * does not rely on OpenGL. The x- and y-coordinate of vec are assumed to be in screen coordinates (origin is the
 	 * top left corner, y pointing down, x pointing to the right) as reported by the canvas coordinates in
@@ -131,7 +140,7 @@ interface CameraRo {
 	 * of 1 will return a point on the far plane. This method allows you to specify the viewport position and
 	 * dimensions in the coordinate system expected by {@link GL20#glViewport(int, int, int, int)}, with the origin in
 	 * the top left corner of the screen.
-	 * @param canvasCoords the point in canvas coordinates (origin top left)
+	 * @param canvasCoords the point in canvas coordinates (origin top left). This will be mutated.
 	 * @param viewportX the coordinate of the bottom left corner of the viewport in glViewport coordinates.
 	 * @param viewportY the coordinate of the bottom left corner of the viewport in glViewport coordinates.
 	 * @param viewportWidth the width of the viewport in pixels
@@ -141,7 +150,7 @@ interface CameraRo {
 
 }
 
-interface Camera : CameraRo, Disposable {
+interface Camera : CameraRo {
 
 	/**
 	 * The position of the camera
@@ -177,17 +186,6 @@ interface Camera : CameraRo, Disposable {
 	 * The viewport height
 	 */
 	override var viewportHeight: Float
-
-	/**
-	 * If true (default) this camera will call [centerCamera] after the window has resized.
-	 */
-	var autoCenter: Boolean
-
-	/**
-	 * Centers the camera on the screen.
-	 * [update] must be called after this.
-	 */
-	fun centerCamera()
 
 	/**
 	 * Recalculates the projection and view matrix of this camera and the Frustum planes if <code>updateFrustum</code>
@@ -236,16 +234,19 @@ interface Camera : CameraRo, Disposable {
 	companion object : DKey<Camera>
 }
 
-abstract class CameraBase(private val window: Window) : Camera {
+abstract class CameraBase : Camera {
 
 	protected val _combined: Matrix4 = Matrix4()
 	override val combined: Matrix4Ro
 		get() = _combined
 
+	protected val _modTag = ModTagImpl()
+
 	/**
 	 * Incremented whenever something on this camera has changed.
 	 */
-	override val modTag: ModTagImpl = ModTagImpl()
+	override val modTag: ModTagRo
+		get() = _modTag
 
 	/**
 	 * The position of the camera
@@ -318,32 +319,11 @@ abstract class CameraBase(private val window: Window) : Camera {
 	override val invCombined: Matrix4Ro
 		get() = _invCombined
 
-	private var _autoCenter: Boolean = true
-
-	override var autoCenter: Boolean
-		get() = _autoCenter
-		set(value) {
-			if (_autoCenter == value) return
-			_autoCenter = value
-			if (value) window.sizeChanged.add(windowResizedHandler)
-			else window.sizeChanged.remove(windowResizedHandler)
-		}
-
 	//------------------------------------
 	// Temp storage
 	//------------------------------------
 
 	private val tmpVec = Vector3()
-
-	private val windowResizedHandler = {
-		newWidth: Float, newHeight: Float, isUserInteraction: Boolean ->
-		centerCamera()
-		update()
-	}
-
-	init {
-		window.sizeChanged.add(windowResizedHandler)
-	}
 
 	/**
 	 * Sets the camera's direction, keeping the up vector orthonormal.
@@ -401,7 +381,7 @@ abstract class CameraBase(private val window: Window) : Camera {
 	 * @param axis the axis to rotate around
 	 * @param radians the angle
 	 */
-	fun rotate(axis: Vector3, radians: Float) {
+	fun rotate(axis: Vector3Ro, radians: Float) {
 		direction.rotateRad(axis, radians)
 		up.rotateRad(axis, radians)
 	}
@@ -420,7 +400,7 @@ abstract class CameraBase(private val window: Window) : Camera {
 	 *
 	 * @param transform The rotation matrix
 	 */
-	fun rotate(transform: Matrix4) {
+	fun rotate(transform: Matrix4Ro) {
 		direction.rot(transform)
 		up.rot(transform)
 	}
@@ -431,7 +411,7 @@ abstract class CameraBase(private val window: Window) : Camera {
 	 *
 	 * @param quat The quaternion
 	 */
-	fun rotate(quat: Quaternion) {
+	fun rotate(quat: QuaternionRo) {
 		quat.transform(direction)
 		quat.transform(up)
 	}
@@ -444,7 +424,7 @@ abstract class CameraBase(private val window: Window) : Camera {
 	 * @param axis the axis to rotate around
 	 * @param radians the angle in radians
 	 */
-	fun rotateAround(point: Vector3, axis: Vector3, radians: Float) {
+	fun rotateAround(point: Vector3Ro, axis: Vector3Ro, radians: Float) {
 		tmpVec.set(point)
 		tmpVec.sub(position)
 		translate(tmpVec)
@@ -477,7 +457,7 @@ abstract class CameraBase(private val window: Window) : Camera {
 	 * Moves the camera by the given vector.
 	 * @param vec the displacement vector
 	 */
-	fun translate(vec: Vector3) {
+	fun translate(vec: Vector3Ro) {
 		position.add(vec)
 	}
 
@@ -485,13 +465,8 @@ abstract class CameraBase(private val window: Window) : Camera {
 	 * Moves the camera by the given vector.
 	 * @param vec the displacement vector
 	 */
-	fun translate(vec: Vector2) {
+	fun translate(vec: Vector2Ro) {
 		translate(vec.x, vec.y)
-	}
-
-	override fun canvasToGlobal(canvasCoords: Vector3): Vector3 {
-		canvasToGlobal(canvasCoords, 0f, 0f, window.width, window.height)
-		return canvasCoords
 	}
 
 	override fun canvasToGlobal(canvasCoords: Vector3, viewportX: Float, viewportY: Float, viewportWidth: Float, viewportHeight: Float): Vector3 {
@@ -502,50 +477,6 @@ abstract class CameraBase(private val window: Window) : Camera {
 		return canvasCoords
 	}
 
-	override fun project(globalCoords: Vector3): Vector3 {
-		project(globalCoords, 0f, 0f, window.width, window.height)
-		return globalCoords
-	}
-
-	/**
-	 * Projects the {@link Vector3} given in global space to screen coordinates. The screen coordinate system has its
-	 * origin in the top left, with the y-axis pointing downwards and the x-axis pointing to the right.
-	 *
-	 * @param viewportX the coordinate of the top left corner of the viewport in glViewport coordinates.
-	 * @param viewportY the coordinate of the top left corner of the viewport in glViewport coordinates.
-	 * @param viewportWidth the width of the viewport in pixels
-	 * @param viewportHeight the height of the viewport in pixels
-	 */
-	fun project(globalCoords: Vector3, viewportX: Float, viewportY: Float, viewportWidth: Float, viewportHeight: Float): Vector3 {
-		combined.prj(globalCoords)
-		globalCoords.x = viewportWidth * (globalCoords.x + 1f) * 0.5f + viewportX
-		globalCoords.y = viewportHeight * (-globalCoords.y + 1f) * 0.5f + viewportY
-		globalCoords.z = (globalCoords.z + 1f) * 0.5f;
-		return globalCoords
-	}
-
-	/**
-	 * Creates a picking {@link Ray} from the coordinates given in global coordinates. The global coordinates origin
-	 * is assumed to be in the top left corner, its y-axis pointing down, the x-axis  pointing to the right.
-	 *
-	 * @param viewportX the coordinate of the bottom left corner of the viewport in glViewport coordinates.
-	 * @param viewportY the coordinate of the bottom left corner of the viewport in glViewport coordinates.
-	 * @param viewportWidth the width of the viewport in pixels
-	 * @param viewportHeight the height of the viewport in pixels
-	 * @return The [out] parameter. The Ray will be in global coordinate space.
-	 */
-	fun getPickRay(canvasX: Float, canvasY: Float, viewportX: Float, viewportY: Float, viewportWidth: Float, viewportHeight: Float, out: Ray): Ray {
-		canvasToGlobal(out.origin.set(canvasX, canvasY, -1f), viewportX, viewportY, viewportWidth, viewportHeight)
-		canvasToGlobal(out.direction.set(canvasX, canvasY, 0f), viewportX, viewportY, viewportWidth, viewportHeight)
-		out.direction.sub(out.origin)
-		out.update()
-		return out
-	}
-
-	override fun getPickRay(canvasX: Float, canvasY: Float, out: Ray): Ray {
-		return getPickRay(canvasX, canvasY, 0f, 0f, window.width, window.height, out)
-	}
-
 	/**
 	 * Moves the position to the point where the camera is looking at the provided coordinates at a given distance.
 	 */
@@ -553,20 +484,31 @@ abstract class CameraBase(private val window: Window) : Camera {
 		tmpVec.set(direction).scl(distance) // Assumes direction is normalized
 		position.set(x, y, z).sub(tmpVec)
 	}
+}
 
-	/**
-	 * Centers the camera on the screen.
-	 * [update] must be called after this.
-	 */
-	override fun centerCamera() {
-		val width = maxOf(1f, window.width)
-		val height = maxOf(1f, window.height)
-		setViewport(width, height)
-		moveToLookAtRect(0f, 0f, width, height)
+fun Window.autoCenterCamera(camera: Camera): Disposable {
+	val windowResizedHandler = {
+		newWidth: Float, newHeight: Float, isUserInteraction: Boolean ->
+		centerCamera(camera)
+		camera.update()
 	}
-
-	override fun dispose() {
-		autoCenter = false
+	sizeChanged.add(windowResizedHandler)
+	centerCamera(camera)
+	camera.update()
+	return object : Disposable {
+		override fun dispose() {
+			sizeChanged.remove(windowResizedHandler)
+		}
 	}
+}
 
+/**
+ * Centers the camera to this window.
+ * [Camera.update] must be called after this.
+ */
+fun Window.centerCamera(camera: Camera) {
+	val width = maxOf(1f, width)
+	val height = maxOf(1f, height)
+	camera.setViewport(width, height)
+	camera.moveToLookAtRect(0f, 0f, width, height)
 }

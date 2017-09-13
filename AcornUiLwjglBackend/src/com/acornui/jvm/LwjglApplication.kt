@@ -39,6 +39,7 @@ import com.acornui.core.focus.fakeFocusMouse
 import com.acornui.core.graphics.Camera
 import com.acornui.core.graphics.OrthographicCamera
 import com.acornui.core.graphics.Window
+import com.acornui.core.graphics.autoCenterCamera
 import com.acornui.core.i18n.Locale
 import com.acornui.core.input.InteractivityManager
 import com.acornui.core.input.InteractivityManagerImpl
@@ -137,7 +138,7 @@ open class LwjglApplication(
 		if (buildVersion.exists()) {
 			config.version.build = buildVersion.readText().toInt()
 		}
-		Log.info("Build ${config.version}")
+		Log.info("Build ${config.version.toVersionString()}")
 		bootstrap[AppConfig] = config
 	}
 
@@ -265,7 +266,9 @@ open class LwjglApplication(
 
 	protected open fun initializeCamera() {
 		bootstrap.on(Window) {
-			bootstrap[Camera] = OrthographicCamera(bootstrap[Window])
+			val camera = OrthographicCamera()
+			bootstrap[Camera] = camera
+			bootstrap[Window].autoCenterCamera(camera)
 		}
 	}
 

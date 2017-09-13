@@ -20,7 +20,7 @@ class DirectionalLightCameraTest {
 	@Test fun testUpdate() {
 
 		val d = DirectionalLightCamera()
-		val viewCamera = PerspectiveCamera(window)
+		val viewCamera = PerspectiveCamera()
 
 		_testUpdate(d, Vector3(0f, 0f, 1f), viewCamera)
 		_testUpdate(d, Vector3(1f, 0f, 0f), viewCamera)
@@ -65,7 +65,7 @@ class DirectionalLightCameraTest {
 
 	@Test fun testClipSpace() {
 		val d = DirectionalLightCamera()
-		val viewCamera = OrthographicCamera(window)
+		val viewCamera = OrthographicCamera()
 		viewCamera.near = 1000f
 		viewCamera.far = 5000f
 		viewCamera.update(updateFrustum = true)

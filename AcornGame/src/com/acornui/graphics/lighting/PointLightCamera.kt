@@ -8,12 +8,11 @@ import com.acornui.math.Vector3
 /**
  * @author nbilyk
  */
-class PointLightCamera(window: Window, val resolution: Float) {
+class PointLightCamera(window: Window, resolution: Float) {
 
-	val camera = PerspectiveCamera(window)
+	val camera = PerspectiveCamera()
 
 	init {
-		camera.autoCenter = false
 		camera.fieldOfView = 90f * MathUtils.degRad
 		camera.viewportWidth = resolution
 		camera.viewportHeight = resolution

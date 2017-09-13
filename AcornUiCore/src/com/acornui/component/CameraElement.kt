@@ -20,6 +20,7 @@ import com.acornui.component.layout.Transformable
 import com.acornui.component.layout.TransformableRo
 import com.acornui.core.graphics.Camera
 import com.acornui.core.graphics.CameraRo
+import com.acornui.core.graphics.Window
 import com.acornui.math.Ray
 import com.acornui.math.Vector2
 import com.acornui.math.Vector3
@@ -31,22 +32,12 @@ interface CameraElementRo : TransformableRo {
 	 *
 	 * Note: This is a heavy operation as it performs a Matrix4 inversion.
 	 */
-	fun windowToLocal(windowCoord: Vector2): Vector2 {
-		val ray = Ray.obtain()
-		globalToLocal(camera.getPickRay(windowCoord.x, windowCoord.y, ray))
-		rayToPlane(ray, windowCoord)
-		ray.free()
-		return windowCoord
-	}
+	fun windowToLocal(windowCoord: Vector2): Vector2
 
 	/**
 	 * Converts a local coordinate to screen coordinates.
 	 */
-	fun localToWindow(localCoord: Vector3): Vector3 {
-		localToGlobal(localCoord)
-		camera.project(localCoord)
-		return localCoord
-	}
+	fun localToWindow(localCoord: Vector3): Vector3
 
 	/**
 	 * Returns the camera to be used for this component.

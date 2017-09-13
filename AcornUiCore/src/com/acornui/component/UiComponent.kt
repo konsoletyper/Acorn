@@ -65,13 +65,7 @@ interface UiComponentRo : LifecycleRo, ColorTransformableRo, InteractiveElementR
 	 * If there are multiple objects at this position, only the top-most object is returned. (by child index, not z
 	 * value)
 	 */
-	fun getChildUnderPoint(canvasX: Float, canvasY: Float, onlyInteractive: Boolean): UiComponentRo? {
-		val ray = Ray.obtain()
-		camera.getPickRay(canvasX, canvasY, ray)
-		val element = getChildUnderRay(ray, onlyInteractive)
-		ray.free()
-		return element
-	}
+	fun getChildUnderPoint(canvasX: Float, canvasY: Float, onlyInteractive: Boolean): UiComponentRo?
 
 	@Suppress("UNCHECKED_CAST") fun getChildUnderRay(globalRay: RayRo, onlyInteractive: Boolean): UiComponentRo? {
 		val tmpList = arrayListPool.obtain() as ArrayList<UiComponentRo>
@@ -89,13 +83,7 @@ interface UiComponentRo : LifecycleRo, ColorTransformableRo, InteractiveElementR
 	 * @param canvasY The y coordinate relative to the canvas.
 	 * @param out The array list to populate with elements.
 	 */
-	fun getChildrenUnderPoint(canvasX: Float, canvasY: Float, out: MutableList<UiComponentRo>, onlyInteractive: Boolean): MutableList<UiComponentRo> {
-		val ray = Ray.obtain()
-		camera.getPickRay(canvasX, canvasY, ray)
-		getChildrenUnderRay(ray, out, onlyInteractive)
-		ray.free()
-		return out
-	}
+	fun getChildrenUnderPoint(canvasX: Float, canvasY: Float, out: MutableList<UiComponentRo>, onlyInteractive: Boolean): MutableList<UiComponentRo>
 
 	/**
 	 * @param globalRay The ray in global coordinate space to check for intersections.
@@ -192,7 +180,7 @@ open class UiComponentImpl(
 	override val deactivated: Signal<(UiComponent) -> Unit>
 		get() = _deactivated
 	protected val _disposed = Signal1<UiComponent>()
-	override val disposed: Signal<(UiComponent)->Unit>
+	override val disposed: Signal<(UiComponent) -> Unit>
 		get() = _disposed
 
 	protected var _isDisposed: Boolean = false
@@ -337,6 +325,24 @@ open class UiComponentImpl(
 	}
 
 	//-----------------------------------------------
+	// CameraElement
+	//-----------------------------------------------
+
+	override fun windowToLocal(windowCoord: Vector2): Vector2 {
+		val ray = Ray.obtain()
+		globalToLocal(camera.getPickRay(windowCoord.x, windowCoord.y, 0f, 0f, window.width, window.height, ray))
+		rayToPlane(ray, windowCoord)
+		ray.free()
+		return windowCoord
+	}
+
+	override fun localToWindow(localCoord: Vector3): Vector3 {
+		localToGlobal(localCoord)
+		camera.project(localCoord, 0f, 0f, window.width, window.height)
+		return localCoord
+	}
+
+	//-----------------------------------------------
 	// UiComponent
 	//-----------------------------------------------
 
@@ -369,7 +375,7 @@ open class UiComponentImpl(
 	override fun containsCanvasPoint(canvasX: Float, canvasY: Float): Boolean {
 		if (!isActive) return false
 		val ray = Ray.obtain()
-		camera.getPickRay(canvasX, canvasY, ray)
+		camera.getPickRay(canvasX, canvasY, 0f, 0f, window.width, window.height, ray)
 		val b = intersectsGlobalRay(ray)
 		ray.free()
 		return b
@@ -695,6 +701,21 @@ open class UiComponentImpl(
 	// Interactivity utility methods
 	//-----------------------------------------------
 
+	override fun getChildrenUnderPoint(canvasX: Float, canvasY: Float, out: MutableList<UiComponentRo>, onlyInteractive: Boolean): MutableList<UiComponentRo> {
+		val ray = Ray.obtain()
+		camera.getPickRay(canvasX, canvasY, 0f, 0f, window.width, window.height, ray)
+		getChildrenUnderRay(ray, out, onlyInteractive)
+		ray.free()
+		return out
+	}
+
+	override fun getChildUnderPoint(canvasX: Float, canvasY: Float, onlyInteractive: Boolean): UiComponentRo? {
+		val ray = Ray.obtain()
+		camera.getPickRay(canvasX, canvasY, 0f, 0f, window.width, window.height, ray)
+		val element = getChildUnderRay(ray, onlyInteractive)
+		ray.free()
+		return element
+	}
 
 	override fun getChildrenUnderRay(globalRay: RayRo, out: MutableList<UiComponentRo>, onlyInteractive: Boolean, returnAll: Boolean) {
 		if (!_visible || (onlyInteractive && !interactivityEnabled)) return
