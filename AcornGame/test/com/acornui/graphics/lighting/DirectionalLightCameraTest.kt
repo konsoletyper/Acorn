@@ -15,8 +15,6 @@ import kotlin.test.fail
 
 class DirectionalLightCameraTest {
 
-	private var window: Window = mockWindow(400f, 300f)
-
 	@Test fun testUpdate() {
 
 		val d = DirectionalLightCamera()
@@ -67,6 +65,8 @@ class DirectionalLightCameraTest {
 		val viewCamera = OrthographicCamera()
 		viewCamera.near = 1000f
 		viewCamera.far = 5000f
+		viewCamera.setViewport(400f, 300f)
+		viewCamera.moveToLookAtRect(0f, 0f, 400f, 300f)
 
 		d.setClipSpaceFromWorld(100f, 300f, 150f, 0f, 2000f, 4000f, viewCamera)
 		println(d.clipSpace.joinToString())
@@ -74,12 +74,4 @@ class DirectionalLightCameraTest {
 				Vector3(-0.5f, 0.0f, -0.5f), Vector3(0.5f, 0.0f, -0.5f), Vector3(0.5f, 1.0f, -0.5f), Vector3(-0.5f, 1.0f, -0.5f), Vector3(-0.5f, 0.0f, 0.5f), Vector3(0.5f, 0.0f, 0.5f), Vector3(0.5f, 1.0f, 0.5f), Vector3(-0.5f, 1.0f, 0.5f)
 		), d.clipSpace)
 	}
-}
-
-private fun mockWindow(width: Float, height: Float): Window {
-	val w = Mockito.mock(Window::class.java)
-	Mockito.`when`(w.sizeChanged).thenReturn(Signal3<Float, Float, Boolean>())
-	Mockito.`when`(w.width).thenReturn(width)
-	Mockito.`when`(w.height).thenReturn(height)
-	return w
 }

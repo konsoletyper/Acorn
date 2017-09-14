@@ -29,17 +29,12 @@ open class Spacer(
 		initialSpacerHeight: Float = 0f
 ) : UiComponentImpl(owner) {
 
-	var spacerWidth: Float by validationProp(initialSpacerWidth, ValidationFlags.LAYOUT)
-	var spacerHeight: Float by validationProp(initialSpacerHeight, ValidationFlags.LAYOUT)
-
 	init {
+		defaultWidth = initialSpacerWidth
+		defaultHeight = initialSpacerHeight
 		interactivityMode = InteractivityMode.NONE
 	}
 
-	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
-		if (explicitWidth == null) out.width = spacerWidth
-		if (explicitHeight == null) out.height = spacerHeight
-	}
 }
 
 fun Owned.spacer(width: Float = 0f, height: Float = 0f, init: ComponentInit<Spacer> = {}): Spacer {

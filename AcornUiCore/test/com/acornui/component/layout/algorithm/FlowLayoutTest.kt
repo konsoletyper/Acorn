@@ -32,7 +32,7 @@ class FlowLayoutTest {
 	}
 
 	@Test
-	fun getNearestElementIndex() {
+	fun getElementInsertionIndex() {
 		val flowLayout = FlowLayout()
 		val elements = arrayListOf(
 				spacer("one", 40f, 10f),
@@ -67,8 +67,8 @@ class FlowLayoutTest {
 
 		assertEquals(8, flowLayout.getElementInsertionIndex(-1f, 160f, elements, style))
 		assertEquals(elements.lastIndex, flowLayout.getElementInsertionIndex(79f, 209f, elements, style))
-		assertEquals(elements.lastIndex, flowLayout.getElementInsertionIndex(0f, 210f, elements, style))
-		assertEquals(elements.lastIndex, flowLayout.getElementInsertionIndex(80f, 209f, elements, style))
+		assertEquals(elements.size, flowLayout.getElementInsertionIndex(0f, 210f, elements, style))
+		assertEquals(elements.size, flowLayout.getElementInsertionIndex(80f, 209f, elements, style))
 	}
 
 	fun spacer(name: String, width: Float, height: Float): LayoutElement {

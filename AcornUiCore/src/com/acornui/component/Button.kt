@@ -290,15 +290,23 @@ open class ButtonStyle : StyleBase() {
 	companion object : StyleType<ButtonStyle>
 }
 
+interface LabelableRo : UiComponentRo {
+	val label: String
+}
+
 /**
  * An interface for a skin part that can have a label assigned to it.
  */
-interface Labelable : UiComponent {
-	var label: String
+interface Labelable : LabelableRo, UiComponent {
+	override var label: String
 }
 
-interface Toggleable : UiComponent {
-	var toggled: Boolean
+interface ToggleableRo : UiComponentRo {
+	val toggled: Boolean
+}
+
+interface Toggleable : ToggleableRo, UiComponent {
+	override var toggled: Boolean
 }
 
 fun Owned.button(init: ComponentInit<Button> = {}): Button {

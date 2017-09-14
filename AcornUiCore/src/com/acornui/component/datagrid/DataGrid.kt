@@ -358,7 +358,7 @@ class DataGrid<E>(
 
 			for (i in 0..columnResizeHandles.elements.lastIndex) {
 				val resizeHandle = columnResizeHandles.elements[i] as Spacer
-				resizeHandle.spacerWidth = style.resizeHandleWidth
+				resizeHandle.defaultWidth = style.resizeHandleWidth
 			}
 
 			invalidateColumnWidths()

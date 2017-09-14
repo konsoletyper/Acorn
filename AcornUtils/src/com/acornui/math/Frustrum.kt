@@ -223,7 +223,7 @@ data class Frustum(
 
 	companion object {
 
-		val clipSpacePlanePoints = arrayOf(Vector3(-1f, -1f, -1f), Vector3(1f, -1f, -1f), Vector3(1f, 1f, -1f), Vector3(-1f, 1f, -1f), // near clip
+		val clipSpacePlanePoints: List<Vector3Ro> = listOf(Vector3(-1f, -1f, -1f), Vector3(1f, -1f, -1f), Vector3(1f, 1f, -1f), Vector3(-1f, 1f, -1f), // near clip
 				Vector3(-1f, -1f, 1f), Vector3(1f, -1f, 1f), Vector3(1f, 1f, 1f), Vector3(-1f, 1f, 1f)) // far clip
 
 	}

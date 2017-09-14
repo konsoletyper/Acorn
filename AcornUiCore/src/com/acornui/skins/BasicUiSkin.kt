@@ -78,6 +78,7 @@ open class BasicUiSkin(
 		dataGridStyle()
 		rowsStyle()
 		formStyle()
+		treeStyle()
 		stage.invalidateStyles()
 	}
 
@@ -527,6 +528,39 @@ open class BasicUiSkin(
 		val formStyle = GridLayoutStyle()
 		formStyle.verticalAlign = VAlign.TOP
 		target.addStyleRule(formStyle, FormContainer)
+	}
+
+	protected open fun treeStyle() {
+		val itemRendererStyle = DefaultTreeItemRendererStyle()
+		itemRendererStyle.openedFolderIcon = {
+			rect {
+				style.backgroundColor = Color.RED
+				defaultWidth = 40f
+				defaultHeight = 30f
+			}
+		}
+		itemRendererStyle.closedFolderIcon = {
+			rect {
+				style.backgroundColor = Color.BLUE
+				defaultWidth = 40f
+				defaultHeight = 30f
+			}
+		}
+		itemRendererStyle.leafIcon = {
+			rect {
+				style.backgroundColor = Color.GREEN
+				defaultWidth = 30f
+				defaultHeight = 40f
+			}
+		}
+		target.addStyleRule(itemRendererStyle, DefaultTreeItemRenderer)
+		val horizontalLayoutStyle = HorizontalLayoutStyle()
+		horizontalLayoutStyle.verticalAlign = VAlign.MIDDLE
+		target.addStyleRule(horizontalLayoutStyle, withParent(DefaultTreeItemRenderer))
+
+		val charStyle = CharStyle()
+		charStyle.selectable = false
+		target.addStyleRule(charStyle, withParent(DefaultTreeItemRenderer))
 	}
 
 }

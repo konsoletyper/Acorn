@@ -57,7 +57,7 @@ fun <T : ChildRo> T.nextSibling(): T? {
  * This means that when using recursion throughout the tree, all nodes can be considered to be a [ChildRo] of type B,
  * but it must be type checked against a [ParentRo] of type A before continuing the traversal.
  */
-interface ParentRo<out T : ChildRo> : ChildRo {
+interface ParentRo<out T> : ChildRo {
 
 	/**
 	 * Returns a read-only list of the children.
@@ -102,7 +102,7 @@ interface ParentRo<out T : ChildRo> : ChildRo {
 /**
  * An interface to Parent that allows write access.
  */
-interface Parent<T : ChildRo> : ParentRo<T> {
+interface Parent<T> : ParentRo<T> {
 
 	fun <S : T> addChild(child: S): S = addChild(children.size, child)
 
@@ -155,7 +155,7 @@ interface Parent<T : ChildRo> : ParentRo<T> {
 	 * Removes a child from this container.
 	 * @return true if the child was found and removed.
 	 */
-	fun removeChild(child: ChildRo?): Boolean {
+	fun removeChild(child: T?): Boolean {
 		if (child == null) return false
 		val index = children.indexOf(child)
 		if (index == -1) return false
@@ -185,7 +185,7 @@ interface Parent<T : ChildRo> : ParentRo<T> {
  */
 open class ParentBase<T : ParentBase<T>> : Parent<T>, ChildRo, Disposable {
 
-	override var parent: ParentRo<T>? = null
+	override var parent: ParentBase<T>? = null
 
 	protected open val _children: MutableList<T> = ArrayList()
 
@@ -520,7 +520,7 @@ fun <T : ChildRo> T.findCommonParent(other: T): ParentRo<T>? {
 @Suppress("UNCHECKED_CAST") fun <T : ChildRo> T.leftDescendant(): T {
 	if (this is ParentRo<*>) {
 		if (children.isEmpty()) return this
-		return children.first().leftDescendant() as T
+		return (children.first() as T).leftDescendant()
 	} else {
 		return this
 	}
@@ -532,7 +532,7 @@ fun <T : ChildRo> T.findCommonParent(other: T): ParentRo<T>? {
 @Suppress("UNCHECKED_CAST") fun <T : ChildRo> T.rightDescendant(): T {
 	if (this is ParentRo<*>) {
 		if (children.isEmpty()) return this
-		return children.last().rightDescendant() as T
+		return (children.last() as T).rightDescendant()
 	} else {
 		return this
 	}

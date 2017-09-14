@@ -23,7 +23,8 @@ import java.util.logging.Level
 
 class ClosureTest {
 
-	@Test fun testClosure() {
+//	@Test
+	fun testClosure() {
 		Compiler.setLoggingLevel(Level.INFO)
 		val compiler = Compiler()
 		val options = CompilerOptions()

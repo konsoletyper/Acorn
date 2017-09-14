@@ -147,6 +147,17 @@ interface UiComponent : UiComponentRo, Lifecycle, ColorTransformable, Interactiv
 	fun onAncestorVisibleChanged(uiComponent: UiComponent, value: Boolean)
 
 	/**
+	 * If set, when the layout is validated, if there was no explicit width,
+	 * this value will be used instead.
+	 */
+	var defaultWidth: Float?
+	/**
+	 * If set, when the layout is validated, if there was no explicit height,
+	 * this height will be used instead.
+	 */
+	var defaultHeight: Float?
+
+	/**
 	 * Updates this component, validating it and its children.
 	 */
 	fun update()
@@ -523,6 +534,18 @@ open class UiComponentImpl(
 	}
 
 	/**
+	 * If set, when the layout is validated, if there was no explicit width,
+	 * this value will be used instead.
+	 */
+	override var defaultWidth: Float? by validationProp(null, ValidationFlags.LAYOUT)
+
+	/**
+	 * If set, when the layout is validated, if there was no explicit height,
+	 * this height will be used instead.
+	 */
+	override var defaultHeight: Float? by validationProp(null, ValidationFlags.LAYOUT)
+
+	/**
 	 * Does the same thing as setting width and height individually.
 	 */
 	override fun setSize(width: Float?, height: Float?) {
@@ -553,8 +576,8 @@ open class UiComponentImpl(
 	 */
 	protected fun validateLayout() {
 		val sC = sizeConstraints
-		val w = sC.width.clamp(_explicitWidth)
-		val h = sC.height.clamp(_explicitHeight)
+		val w = sC.width.clamp(_explicitWidth ?: defaultWidth)
+		val h = sC.height.clamp(_explicitHeight ?: defaultHeight)
 		_bounds.set(w ?: 0f, h ?: 0f)
 		updateLayout(w, h, _bounds)
 		if (assertionsEnabled && (_bounds.width.isNaN() || _bounds.height.isNaN()))
