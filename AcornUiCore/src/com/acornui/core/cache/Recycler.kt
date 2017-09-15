@@ -18,7 +18,6 @@ package com.acornui.core.cache
 
 import com.acornui.collection.arrayListObtain
 import com.acornui.collection.arrayListPool
-import com.acornui.collection.pop
 import com.acornui.collection.removeFirst
 import com.acornui.component.ItemRendererRo
 

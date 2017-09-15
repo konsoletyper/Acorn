@@ -35,6 +35,7 @@ import com.acornui.core.di.Owned
 import com.acornui.core.di.own
 import com.acornui.core.input.interaction.click
 import com.acornui.math.Bounds
+import com.acornui.observe.Observable
 import com.acornui.signal.*
 
 /**
@@ -82,6 +83,7 @@ class Tree<E : ParentRo<E>>(owner: Owned, rootFactory: (tree: Tree<E>) -> TreeIt
 	 */
 	fun setNodeToggled(node: E, toggled: Boolean) {
 		val renderer = _root.findElement { it.data == node } ?: return
+		if (renderer.toggled == toggled) return
 		_nodeToggledChanging.dispatch(node, toggled, toggledChangeRequestedCancel.reset())
 		if (toggledChangeRequestedCancel.canceled()) return
 		renderer.toggled = toggled
@@ -135,10 +137,21 @@ open class DefaultTreeItemRenderer<E : ParentRo<E>>(owner: Owned, protected val 
 	override var data: E?
 		get() = _data
 		set(value) {
-			if (_data == value) return
+			val oldData = _data
+			if (oldData == value) return
+			if (oldData is Observable) {
+				oldData.changed.remove(this::dataChangedHandler)
+			}
 			_data = value
+			if (value is Observable) {
+				value.changed.add(this::dataChangedHandler)
+			}
 			invalidateProperties()
 		}
+
+	private fun dataChangedHandler(o: Observable) {
+		invalidateProperties()
+	}
 
 	val style = bind(DefaultTreeItemRendererStyle())
 
@@ -161,8 +174,9 @@ open class DefaultTreeItemRenderer<E : ParentRo<E>>(owner: Owned, protected val 
 		hGroup.cursor(StandardCursors.HAND)
 		hGroup.click().add {
 			val d = _data
-			if (d != null && !isLeaf)
-				tree.setNodeToggled(d, !toggled)
+			if (d != null) {
+				if (!isLeaf) tree.setNodeToggled(d, !toggled)
+			}
 		}
 
 		watch(style) {
@@ -239,6 +253,11 @@ open class DefaultTreeItemRenderer<E : ParentRo<E>>(owner: Owned, protected val 
 			out.set(hGroup.right, hGroup.bottom)
 	}
 
+	override fun dispose() {
+		super.dispose()
+		data = null
+	}
+
 	companion object : StyleTag
 }
 
@@ -274,7 +293,11 @@ fun <E : ParentRo<E>> Owned.tree(rootFactory: (tree: Tree<E>) -> TreeItemRendere
 /**
  * A simple data model representing the most rudimentary tree node.
  */
-class TreeNode(val label: String) : ParentBase<TreeNode>(), Parent<TreeNode> {
+open class TreeNode(label: String) : ParentBase<TreeNode>(), Parent<TreeNode>, Observable {
+
+	private val _changed = Signal1<TreeNode>()
+	override val changed: Signal<(Observable) -> Unit>
+		get() = _changed
 
 	/**
 	 * Syntax sugar for addChild.
@@ -283,6 +306,23 @@ class TreeNode(val label: String) : ParentBase<TreeNode>(), Parent<TreeNode> {
 		this@TreeNode.addChild(this@TreeNode.children.size, this)
 		return this
 	}
+
+	override fun <S> onChildAdded(index: Int, child: S) {
+		_changed.dispatch(this)
+	}
+
+	override fun <S> onChildRemoved(index: Int, child: S) {
+		_changed.dispatch(this)
+	}
+
+	private var _label: String = label
+	var label: String
+		get() = _label
+		set(value) {
+			if (value == _label) return
+			_label = value
+			_changed.dispatch(this)
+		}
 
 	/**
 	 * @see Tree.nodeToString

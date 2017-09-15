@@ -46,7 +46,7 @@ open class OptionsList<E : Any>(
 		owner: Owned,
 		val data: ObservableList<E>,
 		rendererFactory: LayoutDataProvider<VerticalLayoutData>.() -> ListItemRenderer<E>
-) : ElementContainerImpl(owner) {
+) : ContainerImpl(owner) {
 
 	/**
 	 * If true, search sorting and item selection will be case insensitive.
@@ -71,7 +71,7 @@ open class OptionsList<E : Any>(
 	 */
 	var formatter: StringFormatter<E> = ToStringFormatter
 
-	var selected: E?
+	var selectedItem: E?
 		get() = dataScroller.selection.selectedItem
 		set(value) {
 			dataScroller.selection.selectedItem = value
@@ -87,7 +87,7 @@ open class OptionsList<E : Any>(
 
 	@Suppress("UNCHECKED_CAST")
 	private fun elementClickedHandler(e: ClickInteraction) {
-		selected = (e.currentTarget as ListItemRenderer<E>).data
+		selectedItem = (e.currentTarget as ListItemRenderer<E>).data
 		close()
 	}
 
@@ -135,9 +135,9 @@ open class OptionsList<E : Any>(
 	init {
 		styleTags.add(OptionsList)
 		maxItems = 10
-		textInput = +textInput {
+		textInput = addChild(textInput {
 			input.add(this@OptionsList::onInput)
-		}
+		})
 
 		keyDown().add {
 			when (it.keyCode) {
@@ -167,12 +167,11 @@ open class OptionsList<E : Any>(
 		watch(style) {
 			downArrow?.dispose()
 			downArrow = it.downArrow(this)
-			addElement(downArrow!!)
+			addChild(downArrow!!)
 			downArrow!!.click().add {
 				toggleOpen()
 			}
 		}
-
 	}
 
 	private fun onInput() {
@@ -182,7 +181,7 @@ open class OptionsList<E : Any>(
 
 		isUserInput = true
 		val textLower = text.toLowerCase()
-		selected = data.firstOrNull { formatter.format(it).toLowerCase() == textLower }
+		selectedItem = data.firstOrNull { formatter.format(it).toLowerCase() == textLower }
 		isUserInput = false
 	}
 
@@ -199,7 +198,7 @@ open class OptionsList<E : Any>(
 	fun open() {
 		if (_isOpen) return
 		_isOpen = true
-		+listLift
+		addChild(listLift)
 		stage.mouseDown(isCapture = true).add(stageMouseDownHandler)
 		textInput.focus()
 	}
@@ -207,7 +206,7 @@ open class OptionsList<E : Any>(
 	fun close() {
 		if (!_isOpen) return
 		_isOpen = false
-		-listLift
+		removeChild(listLift)
 		stage.mouseDown(isCapture = true).remove(stageMouseDownHandler)
 	}
 
@@ -224,7 +223,7 @@ open class OptionsList<E : Any>(
 		get() {
 			return textInput.text
 		}
-		set(value: String) {
+		set(value) {
 			textInput.text = value
 		}
 

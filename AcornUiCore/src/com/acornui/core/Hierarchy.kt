@@ -202,8 +202,11 @@ open class ParentBase<T : ParentBase<T>> : Parent<T>, ChildRo, Disposable {
 		_assert(child.parent == null, "Remove the child before adding it again.")
 		_children.add(index, child)
 		child.parent = this
+		onChildAdded(index, child)
 		return child
 	}
+
+	protected open fun <S> onChildAdded(index: Int, child: S) {}
 
 	/**
 	 * Removes a child at the given index from this container.
@@ -213,8 +216,11 @@ open class ParentBase<T : ParentBase<T>> : Parent<T>, ChildRo, Disposable {
 	override fun removeChild(index: Int): T {
 		val child = _children.removeAt(index)
 		child.parent = null
+		onChildRemoved(index, child)
 		return child
 	}
+
+	protected open fun <S> onChildRemoved(index: Int, child: S) {}
 
 	/**
 	 * When the parent is disposed, dispose all the children.

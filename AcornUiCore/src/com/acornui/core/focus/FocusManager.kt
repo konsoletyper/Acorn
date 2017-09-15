@@ -118,7 +118,7 @@ interface FocusManager : Disposable {
 
 	fun highlightFocused()
 
-	companion object : DKey<FocusManager> {}
+	companion object : DKey<FocusManager>
 }
 
 enum class FocusChangeResult {

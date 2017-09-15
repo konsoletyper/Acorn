@@ -106,7 +106,7 @@ abstract class Selection<E> : Disposable {
 			if (cancel.canceled()) return
 		}
 		if (value)
-			_selectedMap[item] = value
+			_selectedMap[item] = true
 		else
 			_selectedMap.remove(item)
 		onItemSelectionChanged(item, value)
@@ -115,7 +115,7 @@ abstract class Selection<E> : Disposable {
 
 	abstract protected fun onItemSelectionChanged(item: E, selected: Boolean)
 
-	fun setSelectedItems(items: HashMap<E, Boolean>) {
+	fun setSelectedItems(items: Map<E, Boolean>) {
 		for (item in _selectedMap.keys) {
 			if (!items.containsKey(item) || items[item] == false) {
 				setItemIsSelected(item, false)
