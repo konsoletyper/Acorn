@@ -533,25 +533,13 @@ open class BasicUiSkin(
 	protected open fun treeStyle() {
 		val itemRendererStyle = DefaultTreeItemRendererStyle()
 		itemRendererStyle.openedFolderIcon = {
-			rect {
-				style.backgroundColor = Color.RED
-				defaultWidth = 40f
-				defaultHeight = 30f
-			}
+			atlas(theme.atlasPath, "folder-horizontal-open.png")
 		}
 		itemRendererStyle.closedFolderIcon = {
-			rect {
-				style.backgroundColor = Color.BLUE
-				defaultWidth = 40f
-				defaultHeight = 30f
-			}
+			atlas(theme.atlasPath, "folder-horizontal.png")
 		}
 		itemRendererStyle.leafIcon = {
-			rect {
-				style.backgroundColor = Color.GREEN
-				defaultWidth = 30f
-				defaultHeight = 40f
-			}
+			atlas(theme.atlasPath, "document.png")
 		}
 		target.addStyleRule(itemRendererStyle, DefaultTreeItemRenderer)
 		val horizontalLayoutStyle = HorizontalLayoutStyle()

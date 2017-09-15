@@ -19,6 +19,7 @@
 package com.acornui.component
 
 import com.acornui.assertionsEnabled
+import com.acornui.collection.arrayListObtain
 import com.acornui.collection.arrayListPool
 import com.acornui.component.layout.LayoutData
 import com.acornui.component.layout.SizeConstraints
@@ -67,8 +68,8 @@ interface UiComponentRo : LifecycleRo, ColorTransformableRo, InteractiveElementR
 	 */
 	fun getChildUnderPoint(canvasX: Float, canvasY: Float, onlyInteractive: Boolean): UiComponentRo?
 
-	@Suppress("UNCHECKED_CAST") fun getChildUnderRay(globalRay: RayRo, onlyInteractive: Boolean): UiComponentRo? {
-		val tmpList = arrayListPool.obtain() as ArrayList<UiComponentRo>
+	fun getChildUnderRay(globalRay: RayRo, onlyInteractive: Boolean): UiComponentRo? {
+		val tmpList = arrayListObtain<UiComponentRo>()
 		getChildrenUnderRay(globalRay, tmpList, onlyInteractive = onlyInteractive, returnAll = false)
 		val first = tmpList.firstOrNull()
 		arrayListPool.free(tmpList)

@@ -32,6 +32,7 @@
       <w>poolable</w>
       <w>premultiply</w>
       <w>rects</w>
+      <w>recycler</w>
       <w>renderable</w>
       <w>renderbuffer</w>
       <w>renderers</w>

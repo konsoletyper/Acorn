@@ -28,6 +28,7 @@ import com.acornui.component.text.text
 import com.acornui.core.Parent
 import com.acornui.core.ParentBase
 import com.acornui.core.ParentRo
+import com.acornui.core.cache.recycle
 import com.acornui.core.cursor.StandardCursors
 import com.acornui.core.cursor.cursor
 import com.acornui.core.di.Owned
@@ -116,20 +117,13 @@ class Tree<E : ParentRo<E>>(owner: Owned, rootFactory: (tree: Tree<E>) -> TreeIt
 	companion object : StyleTag
 }
 
-interface TreeItemRendererRo<out E : ParentRo<E>> : ToggleableRo {
-
-	val data: E?
+interface TreeItemRendererRo<out E : ParentRo<E>> : ItemRendererRo<E>, ToggleableRo {
 
 	val elements: List<TreeItemRendererRo<E>>
 
 }
 
-interface TreeItemRenderer<E : ParentRo<E>> : TreeItemRendererRo<E>, Toggleable {
-
-	/**
-	 * The data this item renderer represents.
-	 */
-	override var data: E?
+interface TreeItemRenderer<E : ParentRo<E>> : TreeItemRendererRo<E>, ItemRenderer<E>, Toggleable {
 
 	override val elements: List<TreeItemRenderer<E>>
 
@@ -215,24 +209,20 @@ open class DefaultTreeItemRenderer<E : ParentRo<E>>(owner: Owned, protected val 
 	}
 
 	protected open fun updateChildren() {
-		val newSize = _data?.children?.size ?: 0
-		val currentSize = _elements.size
-		for (i in currentSize - 1 downTo newSize) {
-			_elements.pop().dispose()
-		}
-		for (i in currentSize..newSize - 1) {
-			val newChild = createChild()
-			newChild.data = _data!!.children[i]
-			_elements.add(newChild)
-			childrenContainer.addElement(newChild)
-		}
-		for (i in 0..newSize - 1) {
-			_elements[i].data = _data!!.children[i]
-		}
+		recycle(_data?.children, _elements, this::createChildRenderer, {
+			element, item, index ->
+			if (item !== element.data) {
+				element.data = item
+				element.toggled = false
+			}
+			childrenContainer.addElement(index, element)
+		}, {
+			it.dispose()
+		})
 		childrenContainer.visible = toggled
 	}
 
-	protected open fun createChild(): TreeItemRenderer<E> {
+	protected open fun createChildRenderer(): TreeItemRenderer<E> {
 		return DefaultTreeItemRenderer(this, tree)
 	}
 
@@ -243,7 +233,10 @@ open class DefaultTreeItemRenderer<E : ParentRo<E>>(owner: Owned, protected val 
 				if (explicitHeight == null) null else explicitHeight - hGroup.height - style.verticalGap)
 
 		childrenContainer.setPosition(style.indent, hGroup.height + style.verticalGap)
-		out.set(hGroup.width, if (toggled && childrenContainer.elements.isNotEmpty()) childrenContainer.bottom else hGroup.height)
+		if (toggled && childrenContainer.elements.isNotEmpty())
+			out.set(maxOf(childrenContainer.right, hGroup.right), childrenContainer.bottom)
+		else
+			out.set(hGroup.right, hGroup.bottom)
 	}
 
 	companion object : StyleTag

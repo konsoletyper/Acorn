@@ -26,7 +26,7 @@ interface VirtualLayoutContainer<out T : LayoutData, out S : VirtualLayoutAlgori
 
 class DataScroller<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
 		owner: Owned,
-		rendererFactory: ItemRendererOwner<T>.() -> ItemRenderer<E>,
+		rendererFactory: ItemRendererOwner<T>.() -> ListItemRenderer<E>,
 		override val layoutAlgorithm: S,
 		val data: ObservableList<E> = ActiveList()
 ) : ContainerImpl(owner), VirtualLayoutContainer<T, S> {
@@ -100,7 +100,7 @@ class DataScroller<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
 	/**
 	 * If set, this is invoked when an item renderer has been obtained from the pool.
 	 */
-	var onRendererObtained: ((ItemRenderer<E>) -> Unit)?
+	var onRendererObtained: ((ListItemRenderer<E>) -> Unit)?
 		get() = contents.onRendererObtained
 		set(value) {
 			contents.onRendererObtained = value
@@ -110,7 +110,7 @@ class DataScroller<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
 	/**
 	 * If set, this is invoked when an item renderer has been returned to the pool.
 	 */
-	var onRendererFreed: ((ItemRenderer<E>) -> Unit)?
+	var onRendererFreed: ((ListItemRenderer<E>) -> Unit)?
 		get() = contents.onRendererFreed
 		set(value) {
 			contents.onRendererFreed = value
@@ -124,7 +124,7 @@ class DataScroller<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
 
 	private var background: UiComponent? = null
 
-	val activeRenderers: List<ItemRenderer<E>>
+	val activeRenderers: List<ListItemRenderer<E>>
 		get() = contents.activeRenderers
 
 	init {

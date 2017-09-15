@@ -1,14 +1,17 @@
 package com.acornui.component
 
-interface ItemRenderer<E> : Toggleable {
-
-	/**
-	 * The index of the data in the List this ItemRenderer represents.
-	 */
-	var index: Int
+interface ItemRendererRo<out E> {
 
 	/**
 	 * The data this item renderer represents.
 	 */
-	var data: E?
+	val data: E?
+}
+
+interface ItemRenderer<E> : ItemRendererRo<E> {
+
+	/**
+	 * The data this item renderer represents.
+	 */
+	override var data: E?
 }

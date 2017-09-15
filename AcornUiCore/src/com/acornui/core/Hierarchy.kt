@@ -208,7 +208,7 @@ open class ParentBase<T : ParentBase<T>> : Parent<T>, ChildRo, Disposable {
 	/**
 	 * Removes a child at the given index from this container.
 	 * This will throw an exception if this parent does not contain a child at the given index.
-	 * Use [numChildren] to ensure that the index is within bounds.
+	 * Use `children.size` to ensure that the index is within bounds.
 	 */
 	override fun removeChild(index: Int): T {
 		val child = _children.removeAt(index)
@@ -299,7 +299,7 @@ enum class TreeWalk {
  * @param callback The callback to invoke on each child.
  */
 @Suppress("UNCHECKED_CAST") inline fun <T : ChildRo> T.childWalkLevelOrder(callback: (T) -> TreeWalk, reversed: Boolean) {
-	val openList: CyclicList<T> = cyclicListPool.obtain() as CyclicList<T>
+	val openList = cyclicListObtain<T>()
 	openList.add(this)
 	loop@ while (openList.isNotEmpty()) {
 		val next = openList.shift()
@@ -364,8 +364,8 @@ inline fun <T : ChildRo> T.findLastChildLevelOrder(callback: (T) -> Boolean): T?
  *
  * @param callback The callback to invoke on each child.
  */
-@Suppress("UNCHECKED_CAST") inline fun <T : ChildRo> T.childWalkPreOrder(callback: (T) -> TreeWalk, reversed: Boolean) {
-	val openList = cyclicListPool.obtain() as CyclicList<T>
+inline fun <T : ChildRo> T.childWalkPreOrder(callback: (T) -> TreeWalk, reversed: Boolean) {
+	val openList = cyclicListObtain<T>()
 	openList.add(this)
 	loop@ while (openList.isNotEmpty()) {
 		val next = openList.pop()
@@ -379,6 +379,7 @@ inline fun <T : ChildRo> T.findLastChildLevelOrder(callback: (T) -> Boolean): T?
 			else -> {
 			}
 		}
+		@Suppress("UNCHECKED_CAST")
 		(next as? ParentRo<T>)?.iterateChildren({
 			openList.add(it)
 			true

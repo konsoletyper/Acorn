@@ -18,6 +18,7 @@ package com.acornui.component
 
 import com.acornui.collection.ListView
 import com.acornui.collection.ObservableList
+import com.acornui.component.layout.ListItemRenderer
 import com.acornui.component.layout.algorithm.LayoutDataProvider
 import com.acornui.component.layout.algorithm.VerticalLayoutData
 import com.acornui.component.layout.algorithm.virtual.vDataScroller
@@ -44,7 +45,7 @@ import com.acornui.signal.Signal
 open class OptionsList<E : Any>(
 		owner: Owned,
 		val data: ObservableList<E>,
-		rendererFactory: LayoutDataProvider<VerticalLayoutData>.() -> ItemRenderer<E>
+		rendererFactory: LayoutDataProvider<VerticalLayoutData>.() -> ListItemRenderer<E>
 ) : ElementContainerImpl(owner) {
 
 	/**
@@ -86,7 +87,7 @@ open class OptionsList<E : Any>(
 
 	@Suppress("UNCHECKED_CAST")
 	private fun elementClickedHandler(e: ClickInteraction) {
-		selected = (e.currentTarget as ItemRenderer<E>).data
+		selected = (e.currentTarget as ListItemRenderer<E>).data
 		close()
 	}
 
@@ -282,7 +283,7 @@ class OptionsListStyle : StyleBase() {
 
 fun <E : Any> Owned.optionsList(
 		data: ObservableList<E>,
-		rendererFactory: LayoutDataProvider<VerticalLayoutData>.() -> ItemRenderer<E> = { simpleItemRenderer() },
+		rendererFactory: LayoutDataProvider<VerticalLayoutData>.() -> ListItemRenderer<E> = { simpleItemRenderer() },
 		init: ComponentInit<OptionsList<E>> = {}): OptionsList<E> {
 	val t = OptionsList(this, data, rendererFactory)
 	t.init()

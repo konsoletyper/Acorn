@@ -19,6 +19,7 @@ package com.acornui.js.html
 import com.acornui.action.BasicAction
 import com.acornui.action.QueueAction
 import com.acornui.collection.CyclicList
+import com.acornui.collection.cyclicListObtain
 import com.acornui.collection.cyclicListPool
 import com.acornui.component.InteractiveElement
 import com.acornui.component.InteractiveElementRo
@@ -171,8 +172,7 @@ fun Node.walkChildrenLo(callback: (Node) -> TreeWalk) {
  * Does a level order walk on the child nodes of this node.
  */
 fun Node.walkChildrenLo(callback: (Node) -> TreeWalk, reversed: Boolean) {
-	@Suppress("unchecked_cast")
-	val openList = cyclicListPool.obtain() as CyclicList<Node>
+	val openList = cyclicListObtain<Node>()
 	openList.add(this)
 	loop@ while (openList.isNotEmpty()) {
 		val next = openList.shift()

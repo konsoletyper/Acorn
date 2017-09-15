@@ -1,5 +1,6 @@
 package com.acornui.component
 
+import com.acornui.component.layout.ListItemRenderer
 import com.acornui.component.layout.SizeConstraints
 import com.acornui.component.layout.setSize
 import com.acornui.component.style.StyleTag
@@ -11,12 +12,12 @@ import com.acornui.core.text.ToStringFormatter
 import com.acornui.math.Bounds
 
 /**
- * A SimpleItemRenderer is an [ItemRenderer] implementation that displays data as text using a formatter.
+ * A SimpleItemRenderer is a [ListItemRenderer] implementation that displays data as text using a formatter.
  */
 class SimpleItemRenderer<E : Any>(
 		owner: Owned,
 		private val formatter: StringFormatter<E>
-) : ElementContainerImpl(owner), ItemRenderer<E>, Focusable {
+) : ElementContainerImpl(owner), ListItemRenderer<E>, Focusable {
 
 	override var focusEnabled: Boolean = true
 	override var focusOrder: Float = 0f

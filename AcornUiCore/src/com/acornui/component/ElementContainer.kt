@@ -43,7 +43,12 @@ interface ElementParent<T> : ElementParentRo<T> {
 		return addElement(index, child)
 	}
 
+	/**
+	 * Adds an element to this container. Unlike children, adding element to an [ElementContainer] where the element
+	 * has already been added, the element will be removed.
+	 */
 	fun <S : T> addElement(index: Int, element: S): S
+
 	fun removeElement(element: T?): Boolean {
 		if (element == null) return false
 		val index = elements.indexOf(element)
@@ -106,10 +111,11 @@ open class ElementContainerImpl(
 		var newIndex = index
 		val oldIndex = elements.indexOf(element)
 		if (oldIndex != -1) {
+			if (newIndex == oldIndex) return element // Element was added in the same spot it previously was.
 			// Handle the case where after the element is removed, the new index needs to decrement to compensate.
-			if (newIndex == oldIndex) return element
 			if (oldIndex < newIndex)
 				newIndex--
+			removeElement(oldIndex)
 		}
 		_elements.add(newIndex, element)
 		element.disposed.add(this::elementDisposedHandler)

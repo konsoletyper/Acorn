@@ -19,6 +19,7 @@ package com.acornui.gl.component.drawing
 import com.acornui._assert
 import com.acornui.assertionsEnabled
 import com.acornui.collection.Clearable
+import com.acornui.collection.arrayListObtain
 import com.acornui.collection.arrayListPool
 import com.acornui.component.ComponentInit
 import com.acornui.component.UiComponentImpl
@@ -56,7 +57,7 @@ open class DynamicMeshComponent(
 	private val glState = inject(GlState)
 
 	private var globalPrimitivesAreValid = false
-	private val _globalPrimitives = ArrayList<ArrayList<Vertex>>()
+	private val _globalPrimitives = ArrayList<MutableList<Vertex>>()
 	private val globalPrimitives: List<List<Vertex>>
 		get() {
 			if (!globalPrimitivesAreValid) {
@@ -64,8 +65,7 @@ open class DynamicMeshComponent(
 				clearGlobalPrimitives()
 				data.childWalkPreOrder {
 					primitive ->
-					@Suppress("unchecked_cast")
-					val globalPrimitive = arrayListPool.obtain() as ArrayList<Vertex>
+					val globalPrimitive = arrayListObtain<Vertex>()
 					for (j in 0..primitive.vertices.lastIndex) {
 						val localVertex = primitive.vertices[j]
 						val globalVertex = Vertex.obtain()

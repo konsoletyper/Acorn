@@ -16,7 +16,7 @@ import com.acornui.math.MathUtils
  */
 class VirtualList<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
 		owner: Owned,
-		rendererFactory: ItemRendererOwner<T>.() -> ItemRenderer<E>,
+		rendererFactory: ItemRendererOwner<T>.() -> ListItemRenderer<E>,
 		val layoutAlgorithm: S,
 		val data: ObservableList<E>
 ) : ContainerImpl(owner), FocusContainer, ItemRendererOwner<T> {
@@ -133,7 +133,7 @@ class VirtualList<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
 	/**
 	 * If set, this is invoked when an item renderer has been obtained from the pool.
 	 */
-	var onRendererObtained: ((ItemRenderer<E>) -> Unit)?
+	var onRendererObtained: ((ListItemRenderer<E>) -> Unit)?
 		get() = pool.onObtained
 		set(value) {
 			pool.onObtained = value
@@ -142,7 +142,7 @@ class VirtualList<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
 	/**
 	 * If set, this is invoked when an item renderer has been returned to the pool.
 	 */
-	var onRendererFreed: ((ItemRenderer<E>) -> Unit)?
+	var onRendererFreed: ((ListItemRenderer<E>) -> Unit)?
 		get() = pool.onFreed
 		set(value) {
 			pool.onFreed = value
@@ -153,13 +153,13 @@ class VirtualList<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
 	// Children
 	//---------------------------------------------------
 
-	private val _activeRenderers = ArrayList<ItemRenderer<E>>()
+	private val _activeRenderers = ArrayList<ListItemRenderer<E>>()
 
 	/**
 	 * Returns a list of currently active renderers. There will be renderers in this list beyond the visible bounds,
 	 * but within the buffer.
 	 */
-	val activeRenderers: List<ItemRenderer<E>>
+	val activeRenderers: List<ListItemRenderer<E>>
 		get() = _activeRenderers
 
 	val selection: Selection<E> = VirtualListSelection(data, _activeRenderers)
@@ -201,7 +201,7 @@ class VirtualList<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
 		data.reset.add(dataResetHandler)
 	}
 
-	private val laidOutRenderers = ArrayList<ItemRenderer<E>>()
+	private val laidOutRenderers = ArrayList<ListItemRenderer<E>>()
 
 	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
 		// Clear the cached visible position and visible bottom position.
@@ -252,7 +252,7 @@ class VirtualList<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
 	 *
 	 * @return
 	 */
-	private fun renderItems(explicitWidth: Float?, explicitHeight: Float?, currentIndex: Int, startIndex: Float, isReversed: Boolean, previousElement: LayoutElement?, laidOutRenderers: MutableList<ItemRenderer<E>>) {
+	private fun renderItems(explicitWidth: Float?, explicitHeight: Float?, currentIndex: Int, startIndex: Float, isReversed: Boolean, previousElement: LayoutElement?, laidOutRenderers: MutableList<ListItemRenderer<E>>) {
 		val n = data.size
 		var skipped = 0
 		val d = if (isReversed) -1 else 1
@@ -317,14 +317,14 @@ class VirtualList<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
  * A layer between the creation and the pool that first seeks items from the same index, thus reducing the frequency
  * of changes to the data and index properties on the item renderers.
  */
-private class SmartCache<E>(private val pool: Pool<ItemRenderer<E>>) {
+private class SmartCache<E>(private val pool: Pool<ListItemRenderer<E>>) {
 
 	var enabled: Boolean = true
 
-	private val cache = HashMap<Int, ItemRenderer<E>>()
+	private val cache = HashMap<Int, ListItemRenderer<E>>()
 	private val indices = ArrayList<Int>()
 
-	fun obtain(index: Int, isReversed: Boolean): ItemRenderer<E> {
+	fun obtain(index: Int, isReversed: Boolean): ListItemRenderer<E> {
 		if (!enabled) return pool.obtain()
 		val existing = cache[index]
 		if (existing == null) {
@@ -343,7 +343,7 @@ private class SmartCache<E>(private val pool: Pool<ItemRenderer<E>>) {
 		}
 	}
 
-	fun hold(elements: List<ItemRenderer<E>>) {
+	fun hold(elements: List<ListItemRenderer<E>>) {
 		for (i in 0..elements.lastIndex) {
 			hold(elements[i])
 		}
@@ -352,7 +352,7 @@ private class SmartCache<E>(private val pool: Pool<ItemRenderer<E>>) {
 	/**
 	 * Holds onto the element until the next [flush]
 	 */
-	fun hold(element: ItemRenderer<E>) {
+	fun hold(element: ListItemRenderer<E>) {
 		val i = element.index
 		cache[i] = element
 		indices.add(i)
@@ -361,7 +361,7 @@ private class SmartCache<E>(private val pool: Pool<ItemRenderer<E>>) {
 	/**
 	 * Iterates over each held item in the cache.
 	 */
-	fun forEach(callback: (renderer: ItemRenderer<E>) -> Unit) {
+	fun forEach(callback: (renderer: ListItemRenderer<E>) -> Unit) {
 		for (i in 0..indices.lastIndex) {
 			val index = indices[i]
 			val element = cache[index]
@@ -392,7 +392,7 @@ private class SmartCache<E>(private val pool: Pool<ItemRenderer<E>>) {
 }
 
 fun <E, T : LayoutData, S : VirtualLayoutAlgorithm<T>> Owned.virtualList(
-		rendererFactory: ItemRendererOwner<T>.() -> ItemRenderer<E>,
+		rendererFactory: ItemRendererOwner<T>.() -> ListItemRenderer<E>,
 		layoutAlgorithm: S,
 		data: ObservableList<E>, init: ComponentInit<VirtualList<E, T, S>> = {}): VirtualList<E, T, S> {
 	val c = VirtualList(this, rendererFactory, layoutAlgorithm, data)
@@ -400,7 +400,7 @@ fun <E, T : LayoutData, S : VirtualLayoutAlgorithm<T>> Owned.virtualList(
 	return c
 }
 
-class VirtualListSelection<E>(private val data: List<E>, private val activeRenderers: List<ItemRenderer<E>>) : Selection<E>() {
+class VirtualListSelection<E>(private val data: List<E>, private val activeRenderers: List<ListItemRenderer<E>>) : Selection<E>() {
 	override fun walkSelectableItems(callback: (E) -> Unit) {
 		for (i in 0..data.lastIndex) {
 			callback(data[i])
@@ -418,26 +418,35 @@ class VirtualListSelection<E>(private val data: List<E>, private val activeRende
 	}
 }
 
-private class VirtualListPool<E>(factory: () -> ItemRenderer<E>) : ObjectPool<ItemRenderer<E>>(8, factory) {
+private class VirtualListPool<E>(factory: () -> ListItemRenderer<E>) : ObjectPool<ListItemRenderer<E>>(8, factory) {
 
 	/**
 	 * If set, this is invoked when an object has been obtained from the pool.
 	 */
-	var onObtained: ((ItemRenderer<E>) -> Unit)? = null
+	var onObtained: ((ListItemRenderer<E>) -> Unit)? = null
 
 	/**
 	 * If set, this is invoked when an object has been returned to the pool.
 	 */
-	var onFreed: ((ItemRenderer<E>) -> Unit)? = null
+	var onFreed: ((ListItemRenderer<E>) -> Unit)? = null
 
-	override fun obtain(): ItemRenderer<E> {
+	override fun obtain(): ListItemRenderer<E> {
 		val obj = super.obtain()
 		onObtained?.invoke(obj)
 		return obj
 	}
 
-	override fun free(obj: ItemRenderer<E>) {
+	override fun free(obj: ListItemRenderer<E>) {
 		onFreed?.invoke(obj)
 		super.free(obj)
 	}
+}
+
+interface ListItemRenderer<E> : ItemRenderer<E>, Toggleable {
+
+	/**
+	 * The index of the data in the List this ItemRenderer represents.
+	 */
+	var index: Int
+
 }

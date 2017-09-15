@@ -17,6 +17,7 @@
 package com.acornui.core.input
 
 import com.acornui._assert
+import com.acornui.collection.arrayListObtain
 import com.acornui.collection.arrayListPool
 import com.acornui.component.InteractiveElement
 import com.acornui.component.InteractiveElementRo
@@ -218,8 +219,7 @@ open class InteractivityManagerImpl(
 	 * a bubbling event up to the stage.
 	 */
 	override fun dispatch(target: InteractiveElementRo, event: InteractionEvent, useCapture: Boolean, useBubble: Boolean) {
-		@Suppress("UNCHECKED_CAST")
-		val rawAncestry = arrayListPool.obtain() as ArrayList<InteractiveElementRo>
+		val rawAncestry = arrayListObtain<InteractiveElementRo>()
 		event.target = target
 		if (!useCapture && !useBubble) {
 			// Dispatch only for current target.

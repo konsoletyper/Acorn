@@ -392,6 +392,14 @@ val arrayListPool = object : ObjectPool<MutableList<*>>(8, { ArrayList<Any?>() }
 	}
 }
 
+/**
+ * Obtains a mutable list from the [arrayListPool]. Be sure to call `arrayListPool.free(v)` when it's no longer used.
+ */
+fun <E> arrayListObtain(): MutableList<E> {
+	@Suppress("UNCHECKED_CAST")
+	return arrayListPool.obtain() as MutableList<E>
+}
+
 fun <E> MutableList<E>.addOrSet(i: Int, value: E) {
 	if (i == size) add(value)
 	else set(i, value)
@@ -539,9 +547,8 @@ inline fun <T> List<T>.count2(startIndex: Int = 0, lastIndex: Int = this.lastInd
 }
 
 
-inline fun <T> MutableList<T>.removeFirst(predicate: (T) -> Boolean): Boolean {
+inline fun <T> MutableList<T>.removeFirst(predicate: (T) -> Boolean): T? {
 	val index = indexOfFirst2(0, lastIndex, predicate)
-	if (index == -1) return false
-	removeAt(index)
-	return true
+	if (index == -1) return null
+	return removeAt(index)
 }

@@ -90,7 +90,7 @@ open class ContainerImpl(
 	}
 
 	/**
-	 * Adds a child after the provided element.
+	 * Adds a child after the [after] child.
 	 */
 	protected fun addChildAfter(child: UiComponent, after: UiComponent): Int {
 		val index = _children.indexOf(after)
@@ -100,7 +100,7 @@ open class ContainerImpl(
 	}
 
 	/**
-	 * Adds a child after the provided element.
+	 * Adds a child before the [before] child.
 	 */
 	protected fun addChildBefore(child: UiComponent, before: UiComponent): Int {
 		val index = _children.indexOf(before)

@@ -17,6 +17,7 @@
 package com.acornui.js.dom
 
 import com.acornui._assert
+import com.acornui.collection.arrayListObtain
 import com.acornui.collection.arrayListPool
 import com.acornui.component.InteractiveElementRo
 import com.acornui.component.UiComponentRo
@@ -364,7 +365,7 @@ open class DomInteractivityManager : InteractivityManager {
 	 * a bubbling event up to the stage.
 	 */
 	override fun dispatch(target: InteractiveElementRo, event: InteractionEvent, useCapture: Boolean, useBubble: Boolean) {
-		val rawAncestry = arrayListPool.obtain() as ArrayList<InteractiveElementRo>
+		val rawAncestry = arrayListObtain<InteractiveElementRo>()
 		event.target = target
 		if (!useCapture && !useBubble) {
 			// Dispatch only for current target.

@@ -21,11 +21,9 @@ import com.acornui.component.ElementContainer
 import com.acornui.component.UiComponent
 
 /**
- * Used tracker tracks a list of used elements, so that they
- *
- * Similar to [IndexedCache], to use this class, make a series of [markUsed] calls to grab recycled elements, call
- * [forEach] to iterate over the elements that were marked last set, but weren't marked this set, then call [flip] to
- * set the used elements as unused for the next set.
+ * Similar to [IndexedCache], to use this class, make a series of [markUsed] calls to indicate that an element was ued,
+ * then call [forEach] to iterate over the elements that were marked last set, but weren't marked this set, then call
+ * [flip] to set the used elements as unused for the next set.
  */
 class UsedTracker<E> {
 
@@ -52,6 +50,9 @@ class UsedTracker<E> {
 		elements.remove(element)
 	}
 
+	/**
+	 * Iterates over the unused items.
+	 */
 	fun forEach(callback: (element: E) -> Unit) {
 		for (i in 0..elements.lastIndex) {
 			val element = elements[i]

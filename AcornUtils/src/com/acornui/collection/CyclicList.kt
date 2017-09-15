@@ -160,3 +160,12 @@ class CyclicList<E>(initialCapacity: Int = 16) : Clearable, ListBase<E>() {
 }
 
 val cyclicListPool = ClearableObjectPool<CyclicList<*>> { CyclicList<Any>() }
+
+/**
+ * Obtains a cyclic list from [cyclicListPool]. Be sure to call `cyclicListPool.free(v)` when the list is no longer
+ * used.
+ */
+fun <E> cyclicListObtain(): CyclicList<E> {
+	@Suppress("UNCHECKED_CAST")
+	return cyclicListPool.obtain() as CyclicList<E>
+}

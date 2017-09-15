@@ -19,9 +19,9 @@ package com.acornui.component.layout.algorithm.virtual
 import com.acornui.collection.ActiveList
 import com.acornui.collection.ObservableList
 import com.acornui.component.ComponentInit
-import com.acornui.component.ItemRenderer
-import com.acornui.component.layout.LayoutElement
 import com.acornui.component.layout.DataScroller
+import com.acornui.component.layout.LayoutElement
+import com.acornui.component.layout.ListItemRenderer
 import com.acornui.component.layout.VAlign
 import com.acornui.component.layout.algorithm.HorizontalLayoutData
 import com.acornui.component.layout.algorithm.LayoutDataProvider
@@ -124,7 +124,7 @@ class VirtualHorizontalLayout : VirtualLayoutAlgorithm<HorizontalLayoutData> {
  * Creates a virtualized data scroller with a horizontal layout.
  */
 fun <E> Owned.hDataScroller(
-		rendererFactory: LayoutDataProvider<HorizontalLayoutData>.() -> ItemRenderer<E>,
+		rendererFactory: LayoutDataProvider<HorizontalLayoutData>.() -> ListItemRenderer<E>,
 		data: ObservableList<E> = ActiveList(ArrayList()),
 		init: ComponentInit<DataScroller<E, HorizontalLayoutData, VirtualHorizontalLayout>> = {}
 ): DataScroller<E, HorizontalLayoutData, VirtualHorizontalLayout> {

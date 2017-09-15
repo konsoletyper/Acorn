@@ -1,5 +1,6 @@
 package com.acornui.core.input.interaction
 
+import com.acornui.collection.arrayListObtain
 import com.acornui.collection.arrayListPool
 import com.acornui.component.Stage
 import com.acornui.component.UiComponent
@@ -29,7 +30,7 @@ open class ClickDispatcher(
 
 	var multiClickSpeed: Int = 400
 
-	private val downButtons: Array<ArrayList<UiComponentRo>?> = Array(6, { null }) // TODO: Kotlin bug: Enum.values.size not working.
+	private val downButtons: Array<MutableList<UiComponentRo>?> = Array(6, { null }) // TODO: Kotlin bug: Enum.values.size not working.
 	private val clickEvent = ClickInteraction()
 
 	private var lastTarget: UiComponentRo? = null
@@ -63,7 +64,7 @@ open class ClickDispatcher(
 			currentCount = 1
 		}
 		@Suppress("UNCHECKED_CAST")
-		val ancestry = arrayListPool.obtain() as ArrayList<UiComponentRo>
+		val ancestry = arrayListObtain<UiComponentRo>()
 		downElement.ancestry(ancestry)
 		downButtons[ordinal] = ancestry
 	}
