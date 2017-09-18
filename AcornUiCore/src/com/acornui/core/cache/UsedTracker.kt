@@ -82,7 +82,7 @@ class UsedTracker<E> {
 /**
  * Removes all unused cache instances from the given container before flipping.
  */
-fun <E : UiComponent> UsedTracker<E>.removeAndFlip(parent: ElementContainer) {
+fun <E : UiComponent> UsedTracker<E>.removeAndFlip(parent: ElementContainer<UiComponent>) {
 	forEach {
 		parent.removeElement(it)
 	}

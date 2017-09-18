@@ -26,7 +26,7 @@ import com.acornui.core.di.inject
 import com.acornui.core.focus.Focusable
 import com.acornui.math.Bounds
 
-interface LayoutContainer<S, out T : LayoutData> : LayoutDataProvider<T>, ElementContainer {
+interface LayoutContainer<S, out T : LayoutData> : LayoutDataProvider<T>, ElementContainer<UiComponent> {
 
 	val layoutAlgorithm: LayoutAlgorithm<S, T>
 

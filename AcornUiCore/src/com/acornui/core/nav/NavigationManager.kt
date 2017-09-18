@@ -4,10 +4,7 @@ import com.acornui.browser.decodeUriComponent2
 import com.acornui.browser.encodeUriComponent2
 import com.acornui.collection.Clearable
 import com.acornui.collection.equalsArray
-import com.acornui.component.Button
-import com.acornui.component.ElementContainer
-import com.acornui.component.UiComponent
-import com.acornui.component.showAssetLoadingBar
+import com.acornui.component.*
 import com.acornui.core.ChildRo
 import com.acornui.core.Disposable
 import com.acornui.core.Lifecycle
@@ -388,12 +385,12 @@ fun NavBindable.navBinding(defaultPath: String): NavBinding {
 	return NavBinding(this, defaultPath)
 }
 
-fun ElementContainer.navAddElement(nav: NavBinding, path: String?, component: UiComponent) {
+fun ElementContainer<UiComponent>.navAddElement(nav: NavBinding, path: String?, component: UiComponent) {
 	nav.bindPathEnter(path) { addElement(component) }
 	nav.bindPathExit(path) { removeElement(component) }
 }
 
-fun ElementContainer.navAddElement(nav: NavBinding, path: String?, showPreloader: Boolean = true, disposeOnRemove: Boolean = false, factory: Owned.() -> UiComponent) {
+fun ElementContainer<UiComponent>.navAddElement(nav: NavBinding, path: String?, showPreloader: Boolean = true, disposeOnRemove: Boolean = false, factory: Owned.() -> UiComponent) {
 	val lazy = LazyInstance(this, factory)
 	val c = this
 	nav.bindPathEnter(path) {

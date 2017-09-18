@@ -82,14 +82,15 @@ interface ElementParent<T> : ElementParentRo<T> {
 	}
 }
 
-interface ElementContainerRo<out T> : ContainerRo, ElementParentRo<T>
+interface ElementContainerRo<out T : UiComponentRo> : ContainerRo, ElementParentRo<T>
+
 
 /**
  * An ElementContainer is a container that can be provided a list of components as part of its external API.
  * It is up to this element container how to treat added elements. It may add them as children, it may provide the
  * element to a child element container.
  */
-interface ElementContainer : ElementContainerRo<UiComponent>, ElementParent<UiComponent>, UiComponent
+interface ElementContainer<T : UiComponent> : ElementContainerRo<T>, ElementParent<T>, UiComponent
 
 /**
  * @author nbilyk
@@ -97,7 +98,7 @@ interface ElementContainer : ElementContainerRo<UiComponent>, ElementParent<UiCo
 open class ElementContainerImpl(
 		owner: Owned,
 		override val native: NativeContainer = owner.inject(NativeContainer.FACTORY_KEY)(owner)
-) : ContainerImpl(owner, native), ElementContainer, Container {
+) : ContainerImpl(owner, native), ElementContainer<UiComponent>, Container {
 
 	//-------------------------------------------------------------------------------------------------
 	// Element methods.
@@ -211,7 +212,7 @@ open class ElementContainerImpl(
  * Given a factory method that produces a new element [T], if this element container already
  * contains an
  */
-inline fun <reified T : UiComponent> ElementContainer.createOrReuseContents(factory: Owned.() -> T): T {
+inline fun <reified T : UiComponent> ElementContainer<UiComponent>.createOrReuseContents(factory: Owned.() -> T): T {
 	_assert(elements.size <= 1, "createOrReuseContents should not be used on element containers with more than one child.")
 	val existing: T
 	val contents = elements.getOrNull(0)

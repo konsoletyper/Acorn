@@ -29,7 +29,7 @@ import com.acornui.graphics.ColorRo
 
 interface StageRo : ContainerRo, Focusable
 
-interface Stage : ElementContainer, StageRo, FocusContainer {
+interface Stage : ElementContainer<UiComponent>, StageRo, FocusContainer {
 
 	val style: StageStyle
 

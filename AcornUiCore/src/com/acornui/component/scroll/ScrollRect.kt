@@ -18,6 +18,7 @@ package com.acornui.component.scroll
 
 import com.acornui.component.ComponentInit
 import com.acornui.component.ElementContainer
+import com.acornui.component.UiComponent
 import com.acornui.core.di.DKey
 import com.acornui.core.di.DependencyKeyImpl
 import com.acornui.core.di.Owned
@@ -25,7 +26,7 @@ import com.acornui.math.BoundsRo
 import com.acornui.math.CornersRo
 import com.acornui.math.RectangleRo
 
-interface ScrollRect : ElementContainer {
+interface ScrollRect : ElementContainer<UiComponent> {
 
 	var borderRadius: CornersRo
 

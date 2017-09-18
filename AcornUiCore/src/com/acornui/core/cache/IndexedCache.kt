@@ -165,7 +165,7 @@ fun <E : Disposable> IndexedCache<E>.disposeAndClear() {
 /**
  * Removes all unused cache instances from the given container before flipping.
  */
-fun <E : UiComponent> IndexedCache<E>.removeAndFlip(parent: ElementContainer) {
+fun <E : UiComponent> IndexedCache<E>.removeAndFlip(parent: ElementContainer<UiComponent>) {
 	forEach {
 		parent.removeElement(it)
 	}

@@ -10,7 +10,7 @@ class IconButton(
 ) : Button(owner) {
 
 	private var _contents: UiComponent? = null
-	private var _currentContentsContainer: ElementContainer? = null
+	private var _currentContentsContainer: ElementContainer<UiComponent>? = null
 
 	init {
 		styleTags.add(IconButton)
@@ -19,7 +19,8 @@ class IconButton(
 	override fun onElementAdded(index: Int, element: UiComponent) {
 		if (_contents != null) throw Exception("Icon buttons can only have one child.")
 		_contents = element
-		_currentContentsContainer = currentSkinPart as? ElementContainer
+		@Suppress("UNCHECKED_CAST")
+		_currentContentsContainer = currentSkinPart as? ElementContainer<UiComponent>
 		_currentContentsContainer?.addElement(element)
 	}
 
