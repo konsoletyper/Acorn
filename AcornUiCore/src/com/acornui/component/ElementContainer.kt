@@ -85,7 +85,7 @@ interface ElementContainerRo<out T : UiComponentRo> : ContainerRo, ElementParent
 
 
 /**
- * An ElementContainer is a container that can be provided a list of components as part of its external API.
+ * An ElementContainer is a component that can be provided a list of components as part of its external API.
  * It is up to this element container how to treat added elements. It may add them as children, it may provide the
  * element to a child element container.
  */
