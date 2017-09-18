@@ -32,7 +32,7 @@ import kotlin.properties.ReadWriteProperty
 class DomScrollArea(
 		owner: Owned,
 		override val native: DomContainer = DomContainer()
-) : ElementContainerImpl(owner, native), ScrollArea {
+) : ElementContainerImpl<UiComponent>(owner, native), ScrollArea {
 
 	override val style = bind(ScrollAreaStyle())
 

@@ -29,7 +29,7 @@ import com.acornui.signal.Signal2
 
 open class Panel(
 		owner: Owned
-) : ElementContainerImpl(owner), Closeable, LayoutDataProvider<StackLayoutData> {
+) : ElementContainerImpl<UiComponent>(owner), Closeable, LayoutDataProvider<StackLayoutData> {
 
 	override val closing = own(Signal2<Closeable, Cancel>())
 	override val closed = own(Signal1<Closeable>())

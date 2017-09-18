@@ -17,7 +17,7 @@ import com.acornui.math.Bounds
 class SimpleItemRenderer<E : Any>(
 		owner: Owned,
 		private val formatter: StringFormatter<E>
-) : ElementContainerImpl(owner), ListItemRenderer<E>, Focusable {
+) : ElementContainerImpl<UiComponent>(owner), ListItemRenderer<E>, Focusable {
 
 	override var focusEnabled: Boolean = true
 	override var focusOrder: Float = 0f

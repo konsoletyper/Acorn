@@ -768,7 +768,7 @@ open class LabelButtonSkinPart(
 		val texture: UiComponent,
 		val textField: TextField = owner.text(),
 		val padding: Pad = Pad(5f, 5f, 5f, 5f)
-) : ElementContainerImpl(owner), Labelable {
+) : ElementContainerImpl<UiComponent>(owner), Labelable {
 
 	init {
 		textField.selectable = false
@@ -815,7 +815,7 @@ open class IconButtonSkinPart(
 		 * The vertical alignment between the icon and the label.
 		 */
 		val vAlign: VAlign = VAlign.MIDDLE
-) : ElementContainerImpl(owner), Labelable {
+) : ElementContainerImpl<UiComponent>(owner), Labelable {
 
 	private val icon: Image
 	private val textField: TextField

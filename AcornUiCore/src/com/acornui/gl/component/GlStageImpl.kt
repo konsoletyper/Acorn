@@ -31,7 +31,7 @@ import com.acornui.math.Vector3
 /**
  * @author nbilyk
  */
-open class GlStageImpl(owner: Owned) : Stage, ElementContainerImpl(owner), FocusContainer, Focusable {
+open class GlStageImpl(owner: Owned) : Stage, ElementContainerImpl<UiComponent>(owner), FocusContainer, Focusable {
 
 	override final val style = bind(StageStyle())
 

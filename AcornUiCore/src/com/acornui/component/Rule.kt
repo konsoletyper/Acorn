@@ -6,7 +6,7 @@ import com.acornui.core.di.Owned
 import com.acornui.math.Bounds
 import com.acornui.serialization.*
 
-class Rule(owned: Owned, private val isVertical: Boolean) : ElementContainerImpl(owned) {
+class Rule(owned: Owned, private val isVertical: Boolean) : ElementContainerImpl<UiComponent>(owned) {
 
 	private val rect: Rect = +rect()
 

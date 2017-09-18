@@ -17,10 +17,10 @@
 package com.acornui.js.dom.component
 
 import com.acornui.component.ElementContainerImpl
+import com.acornui.component.UiComponent
 import com.acornui.component.invalidateLayout
 import com.acornui.component.scroll.ScrollRect
 import com.acornui.core.di.Owned
-import com.acornui.graphics.Color
 import com.acornui.math.*
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
@@ -29,7 +29,7 @@ import kotlin.browser.document
 class DomScrollRect(
 		owner: Owned,
 		private val element: HTMLElement = document.createElement("div") as HTMLDivElement
-) : ElementContainerImpl(owner, DomContainer(element)), ScrollRect {
+) : ElementContainerImpl<UiComponent>(owner, DomContainer(element)), ScrollRect {
 
 	private val _maskBounds = Bounds()
 	private val _contentBounds = Rectangle()

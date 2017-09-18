@@ -23,7 +23,7 @@ import com.acornui.core.di.Owned
 import com.acornui.math.Bounds
 import com.acornui.math.Pad
 
-open class HeadingGroup(owner: Owned) : ElementContainerImpl(owner), Labelable, LayoutDataProvider<StackLayoutData> {
+open class HeadingGroup(owner: Owned) : ElementContainerImpl<UiComponent>(owner), Labelable, LayoutDataProvider<StackLayoutData> {
 
 	val style = bind(HeadingGroupStyle())
 

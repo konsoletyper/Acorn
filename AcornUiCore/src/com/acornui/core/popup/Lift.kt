@@ -29,7 +29,7 @@ import com.acornui.math.Vector3
  * The Lift component will place its elements as children in the pop up layer, automatically transforming the children
  * to match transformation as if they were part of this component's display hierarchy.
  */
-class Lift(owner: Owned) : ElementContainerImpl(owner), LayoutContainer<StackLayoutStyle, StackLayoutData>, Focusable {
+class Lift(owner: Owned) : ElementContainerImpl<UiComponent>(owner), LayoutContainer<StackLayoutStyle, StackLayoutData>, Focusable {
 
 	override fun createLayoutData(): StackLayoutData = StackLayoutData()
 

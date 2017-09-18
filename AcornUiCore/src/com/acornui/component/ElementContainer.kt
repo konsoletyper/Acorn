@@ -3,7 +3,6 @@
 package com.acornui.component
 
 import com.acornui._assert
-import com.acornui.core.Disposable
 import com.acornui.core.di.Owned
 import com.acornui.core.di.inject
 import com.acornui.math.Bounds
@@ -95,20 +94,20 @@ interface ElementContainer<T : UiComponent> : ElementContainerRo<T>, ElementPare
 /**
  * @author nbilyk
  */
-open class ElementContainerImpl(
+open class ElementContainerImpl<T : UiComponent>(
 		owner: Owned,
 		override val native: NativeContainer = owner.inject(NativeContainer.FACTORY_KEY)(owner)
-) : ContainerImpl(owner, native), ElementContainer<UiComponent>, Container {
+) : ContainerImpl(owner, native), ElementContainer<T>, Container {
 
 	//-------------------------------------------------------------------------------------------------
 	// Element methods.
 	//-------------------------------------------------------------------------------------------------
 
-	protected val _elements = ArrayList<UiComponent>()
-	override val elements: List<UiComponent>
+	protected val _elements = ArrayList<T>()
+	override val elements: List<T>
 		get() = _elements
 
-	override fun <S : UiComponent> addElement(index: Int, element: S): S {
+	override fun <S : T> addElement(index: Int, element: S): S {
 		var newIndex = index
 		val oldIndex = elements.indexOf(element)
 		if (oldIndex != -1) {
@@ -124,8 +123,9 @@ open class ElementContainerImpl(
 		return element
 	}
 
-	private fun elementDisposedHandler(element: Disposable) {
-		removeElement(element as UiComponent)
+	private fun elementDisposedHandler(element: UiComponent) {
+		@Suppress("UNCHECKED_CAST")
+		removeElement(element as T)
 	}
 
 	/**
@@ -136,10 +136,10 @@ open class ElementContainerImpl(
 	 *
 	 * private val otherContainer = addChild(container())
 	 *
-	 * override fun onElementAdded(index: Int, child: UiComponent) { otherContainer.addElement(child) }
-	 * override fun onElementRemoved(index: Int, child: UiComponent) { otherContainer.removeElement(child) }
+	 * override fun onElementAdded(index: Int, child: T) { otherContainer.addElement(child) }
+	 * override fun onElementRemoved(index: Int, child: T) { otherContainer.removeElement(child) }
 	 */
-	protected open fun onElementAdded(index: Int, element: UiComponent) {
+	protected open fun onElementAdded(index: Int, element: T) {
 		if (index == elements.size - 1) {
 			addChild(element)
 		} else if (index == 0) {
@@ -151,7 +151,7 @@ open class ElementContainerImpl(
 		}
 	}
 
-	override fun removeElement(index: Int): UiComponent {
+	override fun removeElement(index: Int): T {
 		val element = _elements.removeAt(index)
 		element.disposed.remove(this::elementDisposedHandler)
 		onElementRemoved(index, element)
@@ -159,7 +159,7 @@ open class ElementContainerImpl(
 		return element
 	}
 
-	protected open fun onElementRemoved(index: Int, element: UiComponent) {
+	protected open fun onElementRemoved(index: Int, element: T) {
 		removeChild(element)
 	}
 
@@ -189,13 +189,6 @@ open class ElementContainerImpl(
 				}
 			}
 		}
-	}
-
-	@Deprecated("use component?.dispose()", ReplaceWith("component?.dispose()"))
-	override fun dispose(component: UiComponent?) {
-		if (component == null) return
-		removeElement(component)
-		component.dispose()
 	}
 
 	/**

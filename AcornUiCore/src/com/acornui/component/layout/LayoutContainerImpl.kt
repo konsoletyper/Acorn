@@ -40,7 +40,7 @@ open class LayoutContainerImpl<S : Style, out U : LayoutData>(
 		override val layoutAlgorithm: LayoutAlgorithm<S, U>,
 		style: S,
 		native: NativeContainer = owner.inject(NativeContainer.FACTORY_KEY).invoke(owner)
-) : ElementContainerImpl(owner, native), LayoutContainer<S, U>, Focusable {
+) : ElementContainerImpl<UiComponent>(owner, native), LayoutContainer<S, U>, Focusable {
 
 	override var focusEnabled: Boolean = false // Layout containers by default are not focusable.
 	override var focusOrder: Float = 0f

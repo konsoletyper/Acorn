@@ -28,7 +28,7 @@ import com.acornui.math.Bounds
  */
 open class GlScrollArea(
 		owner: Owned
-) : ElementContainerImpl(owner), ScrollArea {
+) : ElementContainerImpl<UiComponent>(owner), ScrollArea {
 
 	override final val style = bind(ScrollAreaStyle())
 

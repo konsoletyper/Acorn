@@ -72,7 +72,7 @@ object StencilUtil {
 
 class GlScrollRect(
 		owner: Owned
-) : ElementContainerImpl(owner), ScrollRect {
+) : ElementContainerImpl<UiComponent>(owner), ScrollRect {
 
 	private val contents = addChild(container())
 	private val maskClip = addChild(rect { style.backgroundColor = Color.WHITE })

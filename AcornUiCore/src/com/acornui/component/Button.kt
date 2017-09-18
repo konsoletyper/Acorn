@@ -39,7 +39,7 @@ import com.acornui.signal.Signal1
  */
 open class Button(
 		owner: Owned
-) : ElementContainerImpl(owner), Labelable, Toggleable, Focusable {
+) : ElementContainerImpl<UiComponent>(owner), Labelable, Toggleable, Focusable {
 
 	val style = bind(ButtonStyle())
 

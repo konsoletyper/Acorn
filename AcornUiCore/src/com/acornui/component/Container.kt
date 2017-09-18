@@ -362,8 +362,8 @@ object NativeContainerDummy : NativeContainer {
 
 }
 
-fun Owned.container(init: ComponentInit<ElementContainerImpl> = {}): ElementContainerImpl {
-	val c = ElementContainerImpl(this)
+fun Owned.container(init: ComponentInit<ElementContainerImpl<UiComponent>> = {}): ElementContainerImpl<UiComponent> {
+	val c = ElementContainerImpl<UiComponent>(this)
 	c.init()
 	return c
 }

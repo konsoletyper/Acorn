@@ -30,7 +30,7 @@ import com.acornui.math.MathUtils
 import com.acornui.math.Vector2
 import com.acornui.math.maxOf4
 
-open class HDivider(owner: Owned) : ElementContainerImpl(owner) {
+open class HDivider(owner: Owned) : ElementContainerImpl<UiComponent>(owner) {
 
 	val style = bind(DividerStyle())
 

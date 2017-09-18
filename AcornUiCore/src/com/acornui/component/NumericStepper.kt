@@ -18,7 +18,7 @@ import com.acornui.signal.Cancel
 import com.acornui.signal.Signal3
 import com.acornui.signal.Signal4
 
-class NumericStepper(owner: Owned) : ElementContainerImpl(owner) {
+class NumericStepper(owner: Owned) : ElementContainerImpl<UiComponent>(owner) {
 
 	val style = bind(NumericStepperStyle())
 

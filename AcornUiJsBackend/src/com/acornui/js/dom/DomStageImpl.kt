@@ -33,7 +33,7 @@ import org.w3c.dom.HTMLElement
  * @author nbilyk
  */
 @Suppress("LeakingThis")
-open class DomStageImpl(owner: Owned, root: HTMLElement) : Stage, ElementContainerImpl(owner, StageContainer(root)), Focusable {
+open class DomStageImpl(owner: Owned, root: HTMLElement) : Stage, ElementContainerImpl<UiComponent>(owner, StageContainer(root)), Focusable {
 
 	override final val style = bind(StageStyle())
 
