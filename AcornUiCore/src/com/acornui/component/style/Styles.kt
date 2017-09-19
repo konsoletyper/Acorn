@@ -113,10 +113,11 @@ class StylesImpl(private val host: Styleable) : Disposable {
 			out.addAll(entries)
 	}
 
-	fun <T : Style> bind(style: T, calculator: StyleCalculator) {
+	fun <T : Style> bind(style: T, calculator: StyleCalculator = CascadingStyleCalculator): T {
 		style.changed.add(this::styleChangedHandler)
 		styleValidators.add(StyleValidator(style, calculator))
 		host.invalidateStyles()
+		return style
 	}
 
 	fun unbind(style: StyleRo) {

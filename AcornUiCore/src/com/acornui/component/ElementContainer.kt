@@ -166,7 +166,7 @@ open class ElementContainerImpl<T : UiComponent>(
 	override fun clearElements(dispose: Boolean) {
 		val c = elements
 		while (c.isNotEmpty()) {
-			val element = removeElement(elements.size - 1)
+			val element = removeElement(c.lastIndex)
 			if (dispose) element.dispose()
 		}
 	}
