@@ -16,14 +16,14 @@
 
 package com.acornui.gl.component.text
 
-import com.acornui._assert
 import com.acornui.collection.*
 import com.acornui.component.*
 import com.acornui.component.layout.algorithm.FlowHAlign
 import com.acornui.component.layout.algorithm.FlowVAlign
 import com.acornui.component.layout.algorithm.LineInfo
 import com.acornui.component.layout.algorithm.LineInfoRo
-import com.acornui.component.style.*
+import com.acornui.component.style.StyleableRo
+import com.acornui.component.style.addStyleRule
 import com.acornui.component.text.CharStyle
 import com.acornui.component.text.TextField
 import com.acornui.component.text.TextFlowStyle
@@ -43,13 +43,9 @@ import com.acornui.gl.core.GlState
 import com.acornui.gl.core.pushQuadIndices
 import com.acornui.graphics.Color
 import com.acornui.graphics.ColorRo
-import com.acornui.math.Bounds
+import com.acornui.math.*
 import com.acornui.math.MathUtils.floor
 import com.acornui.math.MathUtils.round
-import com.acornui.math.Matrix4Ro
-import com.acornui.math.Vector3
-import com.acornui.math.ceil
-import com.acornui.observe.bind
 import com.acornui.string.isBreaking
 
 /**
@@ -195,7 +191,6 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 
 object TextValidationFlags {
 	const val SELECTION = 1 shl 16
-	const val VERTICES = 1 shl 17
 }
 
 class TfCharStyle {
@@ -206,9 +201,7 @@ class TfCharStyle {
 	val backgroundColor: Color = Color()
 }
 
-interface TextSpanElementRo<out T : TextElementRo> : ElementParentRo<T>, StyleableRo {
-
-	val parent: TextNodeRo?
+interface TextSpanElementRo<out T : TextElementRo> : ElementParentRo<T>, UiComponentRo {
 
 	/**
 	 * The height of the text line.
@@ -226,57 +219,35 @@ interface TextSpanElementRo<out T : TextElementRo> : ElementParentRo<T>, Styleab
 	 */
 	val spaceSize: Float
 
-	fun validateStyles()
-
 }
 
-interface TextSpanElement : TextSpanElementRo<TextElement> {
+interface TextSpanElement : TextSpanElementRo<TextElement>, UiComponent
 
-	override var parent: TextNodeRo?
-	fun setColorTint(concatenatedColorTint: ColorRo)
-}
-
-class TextSpanElementImpl : TextSpanElement, ElementParent<TextElement>, Styleable {
-
-	private val _styleTags = ActiveList<StyleTag>()
-	override val styleTags: MutableList<StyleTag>
-		get() = _styleTags
-	private val _styleRules = ActiveList<StyleRule<*>>()
-	override val styleRules: MutableList<StyleRule<*>>
-		get() = _styleRules
-
-	override fun <T : StyleRo> getRulesByType(type: StyleType<T>, out: MutableList<StyleRule<T>>) {
-		out.clear()
-		@Suppress("UNCHECKED_CAST")
-		(styleRules as Iterable<StyleRule<T>>).filterTo(out, { it.style.type == type })
-	}
-
-	override var parent: TextNodeRo? = null
-
-	override val styleParent: StyleableRo?
-		get() = parent
-
-	override fun invalidateStyles() {
-		parent?.invalidateStyles()
-	}
+open class TextSpanElementImpl(owner: Owned) : UiComponentImpl(owner), TextSpanElement, ElementParent<TextElement> {
 
 	private val _elements = ArrayList<TextElement>()
+
 	override val elements: List<TextElement>
 		get() = _elements
 
-	val charStyle = CharStyle()
+	val charStyle = bind(CharStyle())
 
 	private val tfCharStyle = TfCharStyle()
 
-	private val bubblingFlags = ValidationFlags.HIERARCHY_ASCENDING or ValidationFlags.LAYOUT
-
 	init {
-		_styleTags.bind(this::invalidateStyles)
-		_styleRules.bind(this::invalidateStyles)
+		validation.addNode(TF_STYLE, ValidationFlags.CONCATENATED_COLOR_TRANSFORM or ValidationFlags.STYLES, 0, this::updateTfCharStyle)
+	}
+
+	override fun updateStyles() {
+		super.updateStyles()
+		tfCharStyle.font = BitmapFontRegistry.getFont(charStyle)
 	}
 
 	private val font: BitmapFont?
-		get() = tfCharStyle.font
+		get() {
+			validate(ValidationFlags.STYLES)
+			return tfCharStyle.font
+		}
 
 	override val lineHeight: Float
 		get() = (font?.data?.lineHeight?.toFloat() ?: 0f)
@@ -288,7 +259,6 @@ class TextSpanElementImpl : TextSpanElement, ElementParent<TextElement>, Styleab
 		get() {
 			val font = font ?: return 6f
 			return (font.data.glyphs[' ']?.advanceX?.toFloat() ?: 6f)
-
 		}
 
 	operator fun Char?.unaryPlus() {
@@ -296,17 +266,21 @@ class TextSpanElementImpl : TextSpanElement, ElementParent<TextElement>, Styleab
 		addElement(char(this))
 	}
 
+	protected var bubblingFlags =
+			ValidationFlags.HIERARCHY_ASCENDING or
+					ValidationFlags.LAYOUT
+
 	override fun <S : TextElement> addElement(index: Int, element: S): S {
 		element.parent = this
 		_elements.add(index, element)
-		parent?.invalidate(bubblingFlags)
+		invalidate(bubblingFlags)
 		return element
 	}
 
 	override fun removeElement(index: Int): TextElement {
 		val element = _elements.removeAt(index)
 		element.parent = null
-		parent?.invalidate(bubblingFlags)
+		invalidate(bubblingFlags)
 		return element
 	}
 
@@ -322,19 +296,7 @@ class TextSpanElementImpl : TextSpanElement, ElementParent<TextElement>, Styleab
 				e.dispose()
 		}
 		_elements.clear()
-		parent?.invalidate(bubblingFlags)
-	}
-
-	override fun validateStyles() {
-		CascadingStyleCalculator.calculate(charStyle, this)
-		tfCharStyle.font = BitmapFontRegistry.getFont(charStyle)
-	}
-
-	override fun setColorTint(concatenatedColorTint: ColorRo) {
-		tfCharStyle.selectedTextColorTint.set(concatenatedColorTint).mul(charStyle.selectedColorTint)
-		tfCharStyle.selectedBackgroundColor.set(concatenatedColorTint).mul(charStyle.selectedBackgroundColor)
-		tfCharStyle.textColorTint.set(concatenatedColorTint).mul(charStyle.colorTint)
-		tfCharStyle.backgroundColor.set(concatenatedColorTint).mul(charStyle.backgroundColor)
+		invalidate(bubblingFlags)
 	}
 
 	fun char(char: Char): TextElement {
@@ -368,7 +330,19 @@ class TextSpanElementImpl : TextSpanElement, ElementParent<TextElement>, Styleab
 			clearElements(true)
 			+value
 		}
+
+	protected open fun updateTfCharStyle() {
+		tfCharStyle.selectedTextColorTint.set(_concatenatedColorTint).mul(charStyle.selectedColorTint)
+		tfCharStyle.selectedBackgroundColor.set(_concatenatedColorTint).mul(charStyle.selectedBackgroundColor)
+		tfCharStyle.textColorTint.set(_concatenatedColorTint).mul(charStyle.colorTint)
+		tfCharStyle.backgroundColor.set(_concatenatedColorTint).mul(charStyle.backgroundColor)
+	}
+
+	companion object {
+		private const val TF_STYLE = 1 shl 16
+	}
 }
+
 
 
 /**
@@ -461,8 +435,8 @@ interface TextElement : TextElementRo, Disposable {
 
 }
 
-fun span(init: ComponentInit<TextSpanElement> = {}): TextSpanElementImpl {
-	val s = TextSpanElementImpl()
+fun Owned.span(init: ComponentInit<TextSpanElement> = {}): TextSpanElementImpl {
+	val s = TextSpanElementImpl(this)
 	s.init()
 	return s
 }
@@ -504,17 +478,9 @@ interface TextNodeComponent : TextNode, UiComponent
 /**
  * A TextFlow component is a container of styleable text spans, to be used inside of a TextField.
  */
-class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, ElementParent<TextSpanElement> {
+class TextFlow(owner: Owned) : ElementContainerImpl<TextSpanElement>(owner), TextNodeComponent {
 
 	val flowStyle = bind(TextFlowStyle())
-
-	init {
-		validation.addNode(TextValidationFlags.VERTICES, ValidationFlags.LAYOUT or ValidationFlags.CONCATENATED_TRANSFORM or ValidationFlags.STYLES, 0, this::updateVertices)
-	}
-
-	private val _elements = ArrayList<TextSpanElement>()
-	override val elements: List<TextSpanElement>
-		get() = _elements
 
 	private val _lines = ArrayList<LineInfo>()
 
@@ -532,27 +498,8 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, ElementP
 			return _textElements.size
 		}
 
-	@Suppress("FINAL_UPPER_BOUND")
-	override fun <S : TextSpanElement> addElement(index: Int, element: S): S {
-		_assert(element.styleParent == null)
-		_elements.add(index, element)
-		element.parent = this
-		invalidate(bubblingFlags)
-		return element
-	}
-
-	override fun removeElement(index: Int): TextSpanElement {
-		val element = _elements.removeAt(index)
-		element.parent = null
-		invalidate(bubblingFlags)
-		return element
-	}
-
-	override fun clearElements(dispose: Boolean) {
-		val c = _elements
-		while (c.isNotEmpty()) {
-			removeElement(_elements.lastIndex)
-		}
+	init {
+		validation.addNode(VERTICES, ValidationFlags.LAYOUT or ValidationFlags.CONCATENATED_TRANSFORM or ValidationFlags.STYLES, 0, this::updateVertices)
 	}
 
 	override fun updateHierarchyAscending() {
@@ -563,14 +510,11 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, ElementP
 		}
 	}
 
-	override fun updateStyles() {
-		super.updateStyles()
-		for (i in 0.._elements.lastIndex) {
-			_elements[i].validateStyles()
-		}
-	}
-
 	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
+		for (i in 0.._elements.lastIndex) {
+			_elements[i].setSize(explicitWidth, explicitHeight)
+		}
+
 		val padding = flowStyle.padding
 		val availableWidth: Float? = padding.reduceWidth(explicitWidth)
 
@@ -714,17 +658,6 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, ElementP
 	private val TextElementRo.baseline: Float
 		get() = (parent?.baseline ?: 0f)
 
-	private fun updateVertices() {
-		val padding = flowStyle.padding
-		val leftClip = padding.left
-		val topClip = padding.top
-		val rightClip = (explicitWidth ?: Float.MAX_VALUE) - padding.right
-		val bottomClip = (explicitHeight ?: Float.MAX_VALUE) - padding.bottom
-		for (i in 0.._textElements.lastIndex) {
-			_textElements[i].validateVertices(concatenatedTransform, leftClip, topClip, rightClip, bottomClip)
-		}
-	}
-
 	override fun getSelectionIndex(x: Float, y: Float): Int {
 		if (_lines.isEmpty()) return 0
 		if (y < _lines.first().y) return 0
@@ -740,29 +673,23 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, ElementP
 		}, line.startIndex, line.endIndex)
 	}
 
+	private fun updateVertices() {
+		val padding = flowStyle.padding
+		val leftClip = padding.left
+		val topClip = padding.top
+		val rightClip = (explicitWidth ?: Float.MAX_VALUE) - padding.right
+		val bottomClip = (explicitHeight ?: Float.MAX_VALUE) - padding.bottom
+		for (i in 0.._textElements.lastIndex) {
+			_textElements[i].validateVertices(concatenatedTransform, leftClip, topClip, rightClip, bottomClip)
+		}
+	}
+
 	override fun setSelection(rangeStart: Int, selection: List<SelectionRange>) {
 		validate(ValidationFlags.HIERARCHY_ASCENDING)
 		for (i in 0.._textElements.lastIndex) {
 			val selected = selection.indexOfFirst2 { it.contains(i + rangeStart) } != -1
 			_textElements[i].setSelected(selected)
 		}
-	}
-
-	override fun updateConcatenatedColorTransform() {
-		super.updateConcatenatedColorTransform()
-		for (i in 0.._elements.lastIndex) {
-			_elements[i].setColorTint(_concatenatedColorTint)
-		}
-	}
-
-	private val glState = inject(GlState)
-
-	override fun draw() {
-		glState.camera(camera)
-		for (i in 0.._textElements.lastIndex) {
-			_textElements[i].render(glState)
-		}
-		super.draw()
 	}
 
 	override fun toString(builder: StringBuilder) {
@@ -774,8 +701,18 @@ class TextFlow(owner: Owned) : ContainerImpl(owner), TextNodeComponent, ElementP
 		}
 	}
 
+	private val glState = inject(GlState)
+
+	override fun draw() {
+		for (i in 0.._textElements.lastIndex) {
+			_textElements[i].render(glState)
+		}
+	}
+
 	companion object {
 		private val linesPool = ClearableObjectPool { LineInfo() }
+
+		private const val VERTICES = 1 shl 16
 	}
 }
 
@@ -829,8 +766,10 @@ class TfChar private constructor() : TextElement, Clearable {
 
 	private val backgroundVertices: Array<Vector3> = arrayOf(Vector3(), Vector3(), Vector3(), Vector3())
 
-	private var fontColor = Color.BLACK
-	private var backgroundColor = Color.CLEAR
+	// By reference
+	private var fontColor: ColorRo = Color.BLACK
+	// By reference
+	private var backgroundColor: ColorRo = Color.CLEAR
 
 	override val clearsLine: Boolean
 		get() = char == '\n'

@@ -139,7 +139,9 @@ class Pad(
 		return result
 	}
 
-
+	companion object {
+		val EMPTY_PAD: PadRo = Pad()
+	}
 }
 
 object PadSerializer : To<PadRo>, From<Pad> {

@@ -203,7 +203,8 @@ open class ElementContainerImpl<T : UiComponent>(
 
 /**
  * Given a factory method that produces a new element [T], if this element container already
- * contains an
+ * contains an element of that type, it will be reused. Otherwise, the previous contents will be disposed and
+ * the factory will generate new contents.
  */
 inline fun <reified T : UiComponent> ElementContainer<UiComponent>.createOrReuseContents(factory: Owned.() -> T): T {
 	_assert(elements.size <= 1, "createOrReuseContents should not be used on element containers with more than one child.")
