@@ -15,14 +15,20 @@
  */
 
 /**
- * newProject.kts Will copy a folder, and will do a series of filename and token replacements to
+ * newProject.kts Will copy a folder, and will do a series of filename and token replacements to create a renamed
+ * project.
  */
 
 
 import java.io.File
+import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 import kotlin.text.Regex
 
+val TXT_EXTENSIONS = arrayOf("name", "txt", "xml", "kt", "kts", "java", "json", "iml", "js", "html", "php", "css")
+
+println("Rename project ${args.joinToString(", ")}")
 if (args.size != 2) error("Usage: path/sourceFolder path/destFolder")
 
 val source = args[0]
@@ -32,8 +38,7 @@ val destinationDir = File(destination)
 
 if (!sourceDir.exists()) error("source '$source' does not exist.")
 if (destinationDir.exists()) error("Destination already exists.")
-println("Destination ${destinationDir.absolutePath}")
-sourceDir.copyRecursively(destinationDir)
+println("Copying to destination: ${destinationDir.absolutePath}")
 
 val templateName = sourceDir.name
 val newProjectName = destinationDir.name
@@ -45,21 +50,38 @@ replacements.add(Pair(templateName.toUnderscoreCase(), newProjectName.toUndersco
 replacements.add(Pair(templateName.toUnderscoreCase().toUpperCase(), newProjectName.toUnderscoreCase().toUpperCase()))
 replacements.add(Pair(templateName.toFirstLowerCase(), newProjectName.toFirstLowerCase()))
 
-val txtExtensions = arrayOf("name", "txt", "xml", "kt", "kts", "java", "json", "iml", "js", "html", "php", "css")
-val excludes = arrayOf("dist", "out", "www", "wwwDist", "workspace.xml", ".git", ".svn")
+val ignoredFiles = HashMap<File, Boolean>()
+ignoredFiles[File(sourceDir, ".git")] = true
+for (line in "git status --ignored -s".runCommand(sourceDir)!!.lines()) {
+	if (line.startsWith("!! "))
+		ignoredFiles[File(sourceDir, line.substring(3))] = true // Cut off the preceding "!! "
+}
 
-for (i in destinationDir.walkBottomUp()) {
-	if (excludes.contains(i.name)) {
-		i.deleteRecursively()
+val openList = ArrayList<String>()
+openList.add("")
+while (openList.isNotEmpty()) {
+	val next = openList.removeAt(0)
+	val src = File(sourceDir, next)
+	if (ignoredFiles.contains(src))
 		continue
+
+	if (src.isDirectory) {
+		for (child in src.listFiles()) {
+			openList.add(child.toRelativeString(sourceDir))
+		}
+	} else {
+		val newName = next.replaceList(replacements)
+		val newFile = File(destination, newName)
+		newFile.parentFile.mkdirs()
+
+		if (TXT_EXTENSIONS.contains(src.extension.toLowerCase())) {
+			val text = src.readText()
+			val newText = text.replaceList(replacements)
+			newFile.writeText(newText)
+		} else {
+			src.copyTo(newFile)
+		}
 	}
-	if (txtExtensions.contains(i.extension.toLowerCase())) {
-		val text = i.readText()
-		val newText = text.replaceList(replacements)
-		i.writeText(newText)
-	}
-	val newName = i.name.replaceList(replacements)
-	i.renameTo(File(i.parentFile, newName))
 }
 
 fun String.toUnderscoreCase(): String {
@@ -81,4 +103,21 @@ fun String.replaceList(replacements: ArrayList<Pair<String, String>>): String {
 fun error(msg: String) {
 	println(msg)
 	System.exit(-1)
+}
+
+fun String.runCommand(workingDir: File = File(".")): String? {
+	try {
+		val parts = this.split("\\s".toRegex())
+		val proc = ProcessBuilder(*parts.toTypedArray())
+				.directory(workingDir)
+				.redirectOutput(ProcessBuilder.Redirect.PIPE)
+				.redirectError(ProcessBuilder.Redirect.PIPE)
+				.start()
+
+		proc.waitFor(60, TimeUnit.MINUTES)
+		return proc.inputStream.bufferedReader().readText()
+	} catch(e: IOException) {
+		e.printStackTrace()
+		return null
+	}
 }
