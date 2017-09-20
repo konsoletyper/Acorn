@@ -149,6 +149,7 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 
 		var x = 0f
 		val padLeft = props.padding.left
+		val padTop = props.padding.top
 		for (j in line.startIndex..line.endIndex - 1) {
 			val element = elements[j]
 
@@ -160,7 +161,7 @@ class FlowLayout : LayoutAlgorithm<FlowLayoutStyle, FlowLayoutData>, SequencedLa
 				FlowVAlign.BASELINE -> (line.baseline - (layoutData?.baseline ?: element.height))
 			}
 
-			element.moveTo(x + padLeft + xOffset, line.y + yOffset)
+			element.moveTo(x + padLeft + xOffset, padTop + line.y + yOffset)
 			x += element.width + hGap
 		}
 	}
