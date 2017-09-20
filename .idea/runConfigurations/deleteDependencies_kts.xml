@@ -1,14 +1,16 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="deleteDependencies.kts" type="KotlinStandaloneScriptRunConfigurationType" factoryName="Kotlin script" nameIsGenerated="true">
     <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
-    <option name="filePath" value="$PROJECT_DIR$/deleteDependencies.kts" />
+    <option name="filePath" value="$PROJECT_DIR$/scripts/deleteDependencies.kts" />
     <option name="vmParameters" value="" />
     <option name="alternativeJrePath" value="" />
     <option name="programParameters" value="" />
     <option name="passParentEnvs" value="true" />
     <option name="workingDirectory" value="" />
     <option name="isAlternativeJrePathEnabled" value="false" />
-    <envs />
+    <envs>
+      <env name="ACORNUI_HOME" value="C:/Projects/AcornUi" />
+    </envs>
     <method />
   </configuration>
 </component>

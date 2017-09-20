@@ -40,6 +40,7 @@ class ArgumentMap(private val args: Array<String>) {
 		if (exists(name)) return get(name, default)
 		return get(alias, default)
 	}
+
 	fun get(name: String, default: String): String {
 		val str = "-" + name.toLowerCase() + "="
 		val index = args.indexOfFirst { it.toLowerCase().startsWith(str) }

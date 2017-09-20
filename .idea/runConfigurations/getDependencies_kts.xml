@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="getDependencies.kts" type="KotlinStandaloneScriptRunConfigurationType" factoryName="Kotlin script" nameIsGenerated="true">
     <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
-    <option name="filePath" value="$PROJECT_DIR$/getDependencies.kts" />
+    <option name="filePath" value="$PROJECT_DIR$/scripts/getDependencies.kts" />
     <option name="vmParameters" value="" />
     <option name="alternativeJrePath" value="" />
     <option name="programParameters" value="" />
