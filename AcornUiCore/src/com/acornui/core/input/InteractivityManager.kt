@@ -17,9 +17,7 @@
 package com.acornui.core.input
 
 import com.acornui.collection.Clearable
-import com.acornui.component.InteractiveElement
 import com.acornui.component.InteractiveElementRo
-import com.acornui.component.UiComponent
 import com.acornui.component.UiComponentRo
 import com.acornui.core.Disposable
 import com.acornui.core.di.DKey

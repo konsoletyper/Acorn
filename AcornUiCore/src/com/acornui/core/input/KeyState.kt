@@ -22,7 +22,6 @@ import com.acornui.core.input.interaction.CharInteraction
 import com.acornui.core.input.interaction.KeyInteraction
 import com.acornui.core.input.interaction.KeyLocation
 import com.acornui.signal.Signal
-import com.acornui.signal.Signal1
 
 /**
  * @author nbilyk

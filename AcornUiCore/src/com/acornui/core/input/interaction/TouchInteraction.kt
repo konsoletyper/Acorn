@@ -1,8 +1,7 @@
 package com.acornui.core.input.interaction
 
-import com.acornui.collection.ClearableObjectPool
 import com.acornui.collection.Clearable
-import com.acornui.component.InteractiveElement
+import com.acornui.collection.ClearableObjectPool
 import com.acornui.component.InteractiveElementRo
 import com.acornui.core.input.InteractionEventBase
 import com.acornui.core.input.InteractionType

@@ -57,6 +57,8 @@ class JsMouseInput(private val root: HTMLElement) : MouseInput {
 	var linePixelSize = 24f
 	var pagePixelSize = 24f * 200f
 
+	private val downMap = HashMap<WhichButton, Boolean>()
+
 	override fun canvasX(): Float {
 		return _canvasX
 	}
@@ -139,6 +141,7 @@ class JsMouseInput(private val root: HTMLElement) : MouseInput {
 		jsEvent: Event ->
 		populateMouseEvent(jsEvent as MouseEvent)
 
+		downMap[mouseEvent.button] = true
 		mouseDown.dispatch(mouseEvent)
 		if (jsEvent.cancelable && mouseEvent.defaultPrevented())
 			jsEvent.preventDefault()
@@ -148,6 +151,7 @@ class JsMouseInput(private val root: HTMLElement) : MouseInput {
 		jsEvent: Event ->
 		populateMouseEvent(jsEvent as MouseEvent)
 
+		downMap[mouseEvent.button] = false
 		mouseUp.dispatch(mouseEvent)
 		if (jsEvent.cancelable && mouseEvent.defaultPrevented())
 			jsEvent.preventDefault()
@@ -266,6 +270,10 @@ class JsMouseInput(private val root: HTMLElement) : MouseInput {
 		window.removeEventListener("mousedown", mouseDownHandler, true)
 		window.removeEventListener("mouseup", mouseUpHandler, true)
 		root.removeEventListener("wheel", mouseWheelHandler, true)
+	}
+
+	override fun mouseIsDown(button: WhichButton): Boolean {
+		return downMap[button] == true
 	}
 
 	companion object {

@@ -52,8 +52,6 @@ interface MouseState : Disposable {
 	 */
 	fun canvasY(): Float
 
-
-
 	/**
 	 * Sets the [out] vector to the current canvas position.
 	 * @return Returns the [out] vector.
@@ -62,6 +60,8 @@ interface MouseState : Disposable {
 		out.set(canvasX(), canvasY())
 		return out
 	}
+
+	fun mouseIsDown(button: WhichButton): Boolean
 
 	companion object : DKey<MouseState>
 

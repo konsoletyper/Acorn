@@ -17,10 +17,10 @@
 package com.acornui.jvm.input
 
 import com.acornui.core.input.MouseInput
-import com.acornui.core.input.interaction.MouseInteraction
-import com.acornui.core.input.interaction.WheelInteraction
 import com.acornui.core.input.WhichButton
+import com.acornui.core.input.interaction.MouseInteraction
 import com.acornui.core.input.interaction.TouchInteraction
+import com.acornui.core.input.interaction.WheelInteraction
 import com.acornui.core.time.time
 import com.acornui.signal.Signal1
 import org.lwjgl.glfw.*
@@ -48,6 +48,8 @@ class JvmMouseInput(private val window: Long) : MouseInput {
 	private var _canvasY: Float = 0f
 	private var _overCanvas: Boolean = false
 
+	private val downMap = HashMap<WhichButton, Boolean>()
+
 	val scrollSpeed = 24f
 
 	override fun canvasX(): Float {
@@ -69,9 +71,17 @@ class JvmMouseInput(private val window: Long) : MouseInput {
 			mouseEvent.canvasY = _canvasY
 			mouseEvent.button = getWhichButton(button)
 			mouseEvent.timestamp = time.nowMs()
-			when (action) {
-				GLFW.GLFW_PRESS -> mouseDown.dispatch(mouseEvent)
-				GLFW.GLFW_RELEASE -> mouseUp.dispatch(mouseEvent)
+			if (mouseEvent.button != WhichButton.UNKNOWN) {
+				when (action) {
+					GLFW.GLFW_PRESS -> {
+						downMap[mouseEvent.button] = true
+						mouseDown.dispatch(mouseEvent)
+					}
+					GLFW.GLFW_RELEASE -> {
+						downMap[mouseEvent.button] = false
+						mouseUp.dispatch(mouseEvent)
+					}
+				}
 			}
 		}
 	}
@@ -115,6 +125,10 @@ class JvmMouseInput(private val window: Long) : MouseInput {
 		GLFW.glfwSetCursorPosCallback(window, cursorPosCallback)
 		GLFW.glfwSetCursorEnterCallback(window, cursorEnterCallback)
 		GLFW.glfwSetScrollCallback(window, mouseWheelCallback)
+	}
+
+	override fun mouseIsDown(button: WhichButton): Boolean {
+		return downMap[button] == true
 	}
 
 	override fun dispose() {

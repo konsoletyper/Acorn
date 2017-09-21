@@ -71,7 +71,7 @@ open class ClickDispatcher(
 
 	private var preventMouseTimer: Timer? = null
 
-	private fun  rootTouchEndHandler(event: TouchInteraction) {
+	private fun rootTouchEndHandler(event: TouchInteraction) {
 		val first = event.changedTouches.first()
 		release(WhichButton.LEFT, first.canvasX, first.canvasY, event.timestamp)
 		touchMode = true
