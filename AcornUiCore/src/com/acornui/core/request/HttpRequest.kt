@@ -20,6 +20,8 @@ import com.acornui.action.LoadableRo
 import com.acornui.action.Loadable
 import com.acornui.browser.UrlParams
 import com.acornui.core.browser.MultipartFormData
+import com.acornui.core.di.Injector
+import com.acornui.core.di.Scoped
 import com.acornui.io.NativeBuffer
 
 
@@ -73,7 +75,7 @@ enum class ResponseType {
 
 interface RestServiceFactory {
 
-	fun create(): MutableHttpRequest
+	fun create(injector: Injector): MutableHttpRequest
 
 	companion object {
 		lateinit var instance: RestServiceFactory
@@ -110,8 +112,8 @@ interface HttpRequest : LoadableRo<Any> {
 
 interface MutableHttpRequest : HttpRequest, Loadable<Any>
 
-fun createRequest(): MutableHttpRequest {
-	return RestServiceFactory.instance.create()
+fun Scoped.createRequest(): MutableHttpRequest {
+	return RestServiceFactory.instance.create(injector)
 }
 
 data class HttpResponse(

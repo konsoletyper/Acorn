@@ -26,7 +26,8 @@ import com.acornui.component.text.EditableTextField
 import com.acornui.component.text.TextArea
 import com.acornui.component.text.TextField
 import com.acornui.component.text.TextInput
-import com.acornui.core.*
+import com.acornui.core.AppConfig
+import com.acornui.core.UserInfo
 import com.acornui.core.assets.AssetManager
 import com.acornui.core.assets.AssetManagerImpl
 import com.acornui.core.assets.AssetTypes
@@ -50,13 +51,15 @@ import com.acornui.core.io.BufferFactory
 import com.acornui.core.io.JSON_KEY
 import com.acornui.core.io.file.Files
 import com.acornui.core.io.file.FilesImpl
-import com.acornui.core.text.NumberFormatter
+import com.acornui.core.lineSeparator
 import com.acornui.core.persistance.Persistence
 import com.acornui.core.popup.PopUpManager
 import com.acornui.core.popup.PopUpManagerImpl
+import com.acornui.core.request.RestServiceFactory
 import com.acornui.core.selection.SelectionManager
 import com.acornui.core.selection.SelectionManagerImpl
 import com.acornui.core.text.DateTimeFormatter
+import com.acornui.core.text.NumberFormatter
 import com.acornui.core.time.TimeDriver
 import com.acornui.core.time.TimeDriverImpl
 import com.acornui.core.time.time
@@ -65,6 +68,7 @@ import com.acornui.gl.component.text.*
 import com.acornui.gl.core.Gl20
 import com.acornui.gl.core.GlState
 import com.acornui.io.file.FilesManifestSerializer
+import com.acornui.js.io.JvmHttpRequest
 import com.acornui.jvm.audio.NoAudioException
 import com.acornui.jvm.audio.OpenAlAudioManager
 import com.acornui.jvm.audio.OpenAlMusicLoader
@@ -78,9 +82,9 @@ import com.acornui.jvm.input.JvmMouseInput
 import com.acornui.jvm.input.LwjglKeyInput
 import com.acornui.jvm.io.JvmBufferFactory
 import com.acornui.jvm.loader.JvmTextLoader
-import com.acornui.jvm.text.NumberFormatterImpl
 import com.acornui.jvm.persistance.LwjglPersistence
 import com.acornui.jvm.text.DateTimeFormatterImpl
+import com.acornui.jvm.text.NumberFormatterImpl
 import com.acornui.jvm.time.TimeProviderImpl
 import com.acornui.logging.ILogger
 import com.acornui.logging.Log
@@ -166,6 +170,7 @@ open class LwjglApplication(
 		initializeKeyInput()
 		initializeCamera()
 		initializeFiles()
+		initializeRequest()
 		initializeTimeDriver()
 		initializeAssetManager()
 		initializeTextures()
@@ -279,6 +284,10 @@ open class LwjglApplication(
 		val jsonStr = reader.readText()
 		val files = FilesImpl(JsonSerializer.read(jsonStr, FilesManifestSerializer))
 		bootstrap[Files] = files
+	}
+
+	protected open fun initializeRequest() {
+		RestServiceFactory.instance = JvmHttpRequest
 	}
 
 	protected open fun initializeFocusManager() {

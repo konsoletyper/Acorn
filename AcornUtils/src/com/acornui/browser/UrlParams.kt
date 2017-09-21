@@ -20,14 +20,21 @@ interface UrlParams {
 
 	fun contains(name: String): Boolean
 
-	val entries: Iterator<Pair<String, String>>
+	val items: List<Pair<String, String>>
 
 	fun toQueryString(): String {
-		val strs = ArrayList<String>()
-		for (item in entries) {
-			strs.add("${item.first}=${encodeUriComponent2(item.second)}")
+		val result = StringBuilder()
+		for ((key, value) in items) {
+			result.append(encodeUriComponent2(key))
+			result.append("=")
+			result.append(encodeUriComponent2(value))
+			result.append("&")
 		}
-		return strs.joinToString("&")
+		val resultString = result.toString()
+		return if (resultString.isNotEmpty())
+			resultString.substring(0, resultString.length - 1)
+		else
+			resultString
 	}
 }
 
@@ -46,7 +53,7 @@ class UrlParamsImpl : Clearable, UrlParams {
 
 	private val _items = ArrayList<Pair<String, String>>()
 
-	val items: List<Pair<String, String>>
+	override val items: List<Pair<String, String>>
 		get() = _items
 
 	fun append(name: String, value: String) {
@@ -94,9 +101,6 @@ class UrlParamsImpl : Clearable, UrlParams {
 	override fun clear() {
 		_items.clear()
 	}
-
-	override val entries: Iterator<Pair<String, String>>
-		get() = _items.iterator()
 
 }
 

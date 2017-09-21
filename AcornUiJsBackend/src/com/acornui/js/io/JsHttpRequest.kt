@@ -4,6 +4,7 @@ import com.acornui.action.BasicAction
 import com.acornui.core.UserInfo
 import com.acornui.core.browser.ByteArrayFormItem
 import com.acornui.core.browser.StringFormItem
+import com.acornui.core.di.Injector
 import com.acornui.core.request.*
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
@@ -42,7 +43,7 @@ class JsHttpRequest : BasicAction(), MutableHttpRequest {
 			return httpRequest.response as ArrayBuffer
 		}
 
-	private val httpRequest: XMLHttpRequest = XMLHttpRequest()
+	private val httpRequest = XMLHttpRequest()
 
 	init {
 		httpRequest.onprogress = {
@@ -105,7 +106,7 @@ class JsHttpRequest : BasicAction(), MutableHttpRequest {
 	}
 
 	companion object : RestServiceFactory {
-		override fun create(): MutableHttpRequest {
+		override fun create(injector: Injector): MutableHttpRequest {
 			return JsHttpRequest()
 		}
 	}
