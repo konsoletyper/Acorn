@@ -40,7 +40,7 @@ interface Serializer<T> {
 	 * Returns the data the Serializer produced.
 	 */
 	fun <E> write(value: E, to: To<E>): T {
-		return write() {
+		return write {
 			it.obj(true) {
 				to.write2(value, it)
 			}

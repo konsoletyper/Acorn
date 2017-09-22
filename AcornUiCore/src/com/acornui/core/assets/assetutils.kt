@@ -41,6 +41,7 @@ fun <T> Scoped.loadJson(path:String, factory: From<T>, onSuccess: (T) -> Unit, o
 	}, onFail)
 }
 
+@Deprecated("Deprecated")
 fun <T> AssetManager.loadJson(path:String, factory: From<T>, onSuccess: (T) -> Unit, onFail: ((Throwable?) -> Unit)? = null) {
 	load(path, AssetTypes.TEXT, {
 		val instance = JsonSerializer.read(it, factory)

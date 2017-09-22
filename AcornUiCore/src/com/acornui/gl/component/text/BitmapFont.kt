@@ -21,10 +21,7 @@ import com.acornui.action.onSuccess
 import com.acornui.collection.Clearable
 import com.acornui.component.text.CharStyle
 import com.acornui.core.Disposable
-import com.acornui.core.assets.AssetManager
-import com.acornui.core.assets.AssetTypes
-import com.acornui.core.assets.loadDecorated
-import com.acornui.core.assets.loadJson
+import com.acornui.core.assets.*
 import com.acornui.core.di.Owned
 import com.acornui.core.di.Scoped
 import com.acornui.core.di.inject
@@ -229,7 +226,7 @@ fun Scoped.loadFontFromAtlas(fntPath: String, atlasPath: String, onSuccess: ((fo
 	val bitmapFontDataLoader = loadDecorated(fntPath, AssetTypes.TEXT, AngelCodeParser)
 	bitmapFontDataLoader.onSuccess {
 		val bitmapFontData = it.result
-		val atlasDataLoader = loadJson(atlasPath, TextureAtlasDataSerializer)
+		val atlasDataLoader = loadAndCacheJson(atlasPath, TextureAtlasDataSerializer)
 		atlasDataLoader.onFailed(onFailed)
 		atlasDataLoader.onSuccess {
 			val atlasData = it.result

@@ -1,14 +1,17 @@
-package com.acornui.js.io
+package com.acornui.jvm.io
 
 import com.acornui.action.BasicAction
 import com.acornui.core.UserInfo
 import com.acornui.core.di.Injector
 import com.acornui.core.request.*
 import com.acornui.core.time.TimeDriver
+import com.acornui.io.toByteArray
 import com.acornui.jvm.async
+import com.acornui.logging.Log
 import java.io.DataOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.*
 import java.util.concurrent.ExecutorService
 
 
@@ -39,59 +42,53 @@ class JvmHttpRequest(injector: Injector) : BasicAction(), MutableHttpRequest {
 
 	private var executor: ExecutorService? = null
 
-	init {
-//		httpRequest.onprogress = {
-//			event ->
-//			_bytesLoaded = event.loaded
-//			_bytesTotal = event.total
-//		}
-//
-//		httpRequest.onreadystatechange = {
-//			if (httpRequest.readyState == XMLHttpRequestReadyState.DONE) {
-//				if (httpRequest.status == 200 || httpRequest.status == 304) {
-//					_result = when (responseType) {
-//						ResponseType.TEXT -> httpRequest.response!! as String
-//						ResponseType.BINARY -> JsByteBuffer(Uint8Array(httpRequest.response!! as ArrayBuffer))
-//					}
-//					success()
-//				} else {
-//					fail(ResponseException(httpRequest.status, httpRequest.statusText, httpRequest.response as? String ?: ""))
-//				}
-//			}
-//		}
-	}
-
 	override fun onInvocation() {
 		_responseType = requestData.responseType
 
-		// TODO: requestData.user
-		// TODO: requestData.password
 		// TODO: cookies
 
-		val url = URL(requestData.url)
+		val urlStr = if (requestData.method == UrlRequestMethod.GET && requestData.variables != null)
+			requestData.url + "?" + requestData.variables!!.toQueryString() else requestData.url
+		val url = URL(urlStr)
 		val con = url.openConnection() as HttpURLConnection
+		if (requestData.user.isNotEmpty()) {
+			val userPass = "${requestData.user}:${requestData.password}"
+			val basicAuth = "Basic " + Base64.getEncoder().encodeToString(userPass.toByteArray())
+			con.setRequestProperty("Authorization", basicAuth)
+		}
 		con.requestMethod = requestData.method
 		con.connectTimeout = requestData.timeout.toInt()
 		for ((key, value) in requestData.headers) {
 			con.setRequestProperty(key, value)
 		}
-		if (requestData.variables != null) {
-			con.doOutput = true
-			val out = DataOutputStream(con.outputStream)
-			out.writeBytes(requestData.variables!!.toQueryString())
-			out.flush()
-			out.close()
-		} else if (requestData.formData != null) {
-			TODO()
-//			for (item in requestData.formData!!.items) {
-//
-//			}
-		} else if (requestData.body != null) {
-			con.doOutput = true
-			val out = DataOutputStream(con.outputStream)
-			out.writeBytes(requestData.body!!)
-			out.flush()
-			out.close()
+
+		if (requestData.method != UrlRequestMethod.GET) {
+			if (requestData.variables != null) {
+				con.doOutput = true
+				con.outputStream.writeTextAndClose(requestData.variables!!.toQueryString())
+			} else if (requestData.formData != null) {
+				con.doOutput = true
+				val out = DataOutputStream(con.outputStream)
+				val items = requestData.formData!!.items
+				for (i in 0..items.lastIndex) {
+					val item = items[i]
+					if (i != 0) out.writeBytes("&")
+					out.writeBytes("$item.name=")
+					if (item is ByteArrayFormItem) {
+						out.write(item.value.toByteArray())
+					} else if (item is StringFormItem) {
+						out.writeBytes(item.value)
+					} else {
+						Log.warn("Unknown form item type $item")
+					}
+				}
+
+				out.flush()
+				out.close()
+			} else if (requestData.body != null) {
+				con.doOutput = true
+				con.outputStream.writeTextAndClose(requestData.body!!)
+			}
 		}
 		doWork({
 			var error: Throwable? = null
@@ -100,9 +97,12 @@ class JvmHttpRequest(injector: Injector) : BasicAction(), MutableHttpRequest {
 				con.connect()
 				val status = con.responseCode
 				if (status == 200 || status == 304) {
-					result = con.inputStream.bufferedReader().use { it.readText() }
+					result = when (responseType) {
+						ResponseType.TEXT -> con.inputStream.readTextAndClose()
+						ResponseType.BINARY -> TODO() //JvmByteBuffer(Uint8Array(httpRequest.response!! as ArrayBuffer))
+					}
 				} else {
-					val errorMsg = con.errorStream.bufferedReader().use { it.readText() }
+					val errorMsg = con.errorStream.readTextAndClose()
 					error = ResponseException(status, "", errorMsg)
 				}
 			} catch (e: Exception) {
@@ -116,9 +116,6 @@ class JvmHttpRequest(injector: Injector) : BasicAction(), MutableHttpRequest {
 			_result = it
 			success()
 		})
-
-
-
 	}
 
 	override fun onAborted() {
@@ -135,3 +132,4 @@ class JvmHttpRequest(injector: Injector) : BasicAction(), MutableHttpRequest {
 		}
 	}
 }
+

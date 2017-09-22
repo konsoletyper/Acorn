@@ -342,3 +342,13 @@ fun ReadBuffer<Float>.toFloatArray(): FloatArray {
 	reset()
 	return floats
 }
+
+fun ReadBuffer<Byte>.toByteArray(): ByteArray {
+	mark()
+	val bytes = ByteArray(limit - position)
+	var i = 0
+	while (hasRemaining)
+		bytes[i++] = get()
+	reset()
+	return bytes
+}

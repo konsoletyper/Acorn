@@ -25,7 +25,12 @@ fun <R> Scoped.jsonBinding(factory: From<R>, onFailed: () -> Unit = {}, onChange
 	return assetBinding(AssetTypes.TEXT, jsonDecorator(factory), onFailed, onChanged)
 }
 
+@Deprecated("use loadAndCacheJson", ReplaceWith("loadAndCacheJson(path, factory)"), DeprecationLevel.ERROR)
 fun <R> Scoped.loadJson(path: String, factory: From<R>): LoadableRo<R> {
+	return loadAndCacheJson(path, factory)
+}
+
+fun <R> Scoped.loadAndCacheJson(path: String, factory: From<R>): LoadableRo<R> {
 	return loadDecorated(path, AssetTypes.TEXT, jsonDecorator(factory))
 }
 

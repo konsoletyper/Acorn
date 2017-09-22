@@ -68,7 +68,7 @@ import com.acornui.gl.component.text.*
 import com.acornui.gl.core.Gl20
 import com.acornui.gl.core.GlState
 import com.acornui.io.file.FilesManifestSerializer
-import com.acornui.js.io.JvmHttpRequest
+import com.acornui.jvm.io.JvmHttpRequest
 import com.acornui.jvm.audio.NoAudioException
 import com.acornui.jvm.audio.OpenAlAudioManager
 import com.acornui.jvm.audio.OpenAlMusicLoader
@@ -107,7 +107,7 @@ open class LwjglApplication(
 		onReady: Owned.(stage: Stage) -> Unit
 ) {
 
-	private val bootstrap = Bootstrap()
+	val bootstrap = Bootstrap()
 
 	// If accessing the window id, use bootstrap.on(Window) { }
 	protected var windowId: Long = -1

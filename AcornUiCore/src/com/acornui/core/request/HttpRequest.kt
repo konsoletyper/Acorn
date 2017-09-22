@@ -19,7 +19,7 @@ package com.acornui.core.request
 import com.acornui.action.LoadableRo
 import com.acornui.action.Loadable
 import com.acornui.browser.UrlParams
-import com.acornui.core.browser.MultipartFormData
+import com.acornui.collection.Clearable
 import com.acornui.core.di.Injector
 import com.acornui.core.di.Scoped
 import com.acornui.io.NativeBuffer
@@ -112,6 +112,45 @@ interface HttpRequest : LoadableRo<Any> {
 
 interface MutableHttpRequest : HttpRequest, Loadable<Any>
 
+/**
+ * Creates an Http Request.
+ *
+ * 	val r = createRequest()
+ *	r.requestData.url = "https://httpbin.org/post"
+ *	r.requestData.method = UrlRequestMethod.POST
+ *	r.requestData.headers["Content-type"] = "application/json"
+ *	r.requestData.body = """{"pnyrId":"kartik","vbkiId":"matrix","upuId":"underlog pizza"}"""
+ *	r.succeeded.add {
+ *		println("Request completed")
+ *		println("Result: ${r.result}")
+ *	}
+ *	r.failed.add {
+ *		action, status, error ->
+ *		println("Request failed ${r.responseError}")
+ *	}
+ *	r.invoke()
+ *
+ * ------------------------------------------------------
+ *
+ *  val r = createRequest()
+ *	r.requestData.url = "https://httpbin.org/post"
+ *	r.requestData.method = UrlRequestMethod.POST
+ *	r.requestData.variables = UrlParamsImpl().apply {
+ *		append("foo", "1")
+ *		append("bar", "2")
+ *	}
+ *	r.succeeded.add {
+ *		println("Request completed")
+ *		println("Result: ${r.result}")
+ *	}
+ *	r.failed.add {
+ *		action, status, error ->
+ *		println("Request failed ${r.responseError}")
+ *	}
+ *	r.invoke()
+ *
+ *
+ */
 fun Scoped.createRequest(): MutableHttpRequest {
 	return RestServiceFactory.instance.create(injector)
 }
@@ -127,3 +166,40 @@ open class ResponseException(val status: Int, message: String, val detail: Strin
 		return "ResponseException(status=$status, message=$message)"
 	}
 }
+
+class MultipartFormData : Clearable {
+
+	private val _items = ArrayList<FormDataItem>()
+	val items: List<FormDataItem>
+		get() = _items
+
+	fun append(name: String, value: NativeBuffer<Byte>, filename: String? = null) {
+		_items.add(ByteArrayFormItem(name, value, filename))
+	}
+
+	fun append(name: String, value: String) {
+		_items.add(StringFormItem(name, value))
+	}
+
+	override fun clear() {
+		_items.clear()
+	}
+}
+
+/**
+ * A marker interface for items that can be in the list of [MultipartFormData.items]
+ */
+interface FormDataItem {
+	val name: String
+}
+
+class ByteArrayFormItem(
+		override val name: String,
+		val value: NativeBuffer<Byte>,
+		val filename: String?
+) : FormDataItem
+
+class StringFormItem(
+		override val name: String,
+		val value: String
+) : FormDataItem

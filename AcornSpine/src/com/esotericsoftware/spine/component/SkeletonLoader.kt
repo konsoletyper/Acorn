@@ -69,8 +69,8 @@ class SkeletonLoader(
 	override val result: LoadedSkeleton
 		get() = _result ?: throw Exception("Skeleton is not loaded yet.")
 
-	private var skeletonDataLoader = loadJson(skeletonDataPath, SkeletonDataSerializer)
-	private var textureAtlasLoader = loadJson(textureAtlasPath, TextureAtlasDataSerializer)
+	private var skeletonDataLoader = loadAndCacheJson(skeletonDataPath, SkeletonDataSerializer)
+	private var textureAtlasLoader = loadAndCacheJson(textureAtlasPath, TextureAtlasDataSerializer)
 
 	private val skinLoaders: HashMap<SkinData, SkeletonSkinLoader> = HashMap()
 

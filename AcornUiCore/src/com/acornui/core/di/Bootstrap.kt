@@ -41,7 +41,7 @@ class Bootstrap(
 	fun waitFor(vararg dependencies: DKey<*>) = dependencyGraph.waitFor(*dependencies)
 
 	/**
-	 * When there are no more
+	 * When there are no more pending dependencies.
 	 */
 	fun then(callback: () -> Unit) = dependencyGraph.then(callback)
 

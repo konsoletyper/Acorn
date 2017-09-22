@@ -2,10 +2,9 @@ package com.acornui.js.io
 
 import com.acornui.action.BasicAction
 import com.acornui.core.UserInfo
-import com.acornui.core.browser.ByteArrayFormItem
-import com.acornui.core.browser.StringFormItem
 import com.acornui.core.di.Injector
 import com.acornui.core.request.*
+import com.acornui.logging.Log
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Uint8Array
 import org.w3c.files.Blob
@@ -71,7 +70,9 @@ class JsHttpRequest : BasicAction(), MutableHttpRequest {
 		_responseType = requestData.responseType
 
 		val async = true
-		httpRequest.open(requestData.method, requestData.url, async, requestData.user, requestData.password)
+		val url = if (requestData.method == UrlRequestMethod.GET && requestData.variables != null)
+			requestData.url + "?" + requestData.variables!!.toQueryString() else requestData.url
+		httpRequest.open(requestData.method, url, async, requestData.user, requestData.password)
 		httpRequest.responseType = when (responseType) {
 			ResponseType.TEXT -> XMLHttpRequestResponseType.TEXT
 			ResponseType.BINARY -> XMLHttpRequestResponseType.ARRAY_BUFFER
@@ -80,24 +81,29 @@ class JsHttpRequest : BasicAction(), MutableHttpRequest {
 		for ((key, value) in requestData.headers) {
 			httpRequest.setRequestHeader(key, value)
 		}
-
-		if (requestData.variables != null) {
-			val data = requestData.variables!!.toQueryString()
-			httpRequest.send(data)
-		} else if (requestData.formData != null) {
-			val formData = FormData()
-			for (item in requestData.formData!!.items) {
-				if (item is ByteArrayFormItem) {
-					formData.append(item.name, Blob(arrayOf(item.value.native)))
-				} else if (item is StringFormItem) {
-					formData.append(item.name, item.value)
-				}
-			}
-			httpRequest.send(formData)
-		} else if (requestData.body != null) {
-			httpRequest.send(requestData.body!!)
-		} else {
+		if (requestData.method == UrlRequestMethod.GET) {
 			httpRequest.send()
+		} else {
+			if (requestData.variables != null) {
+				val data = requestData.variables!!.toQueryString()
+				httpRequest.send(data)
+			} else if (requestData.formData != null) {
+				val formData = FormData()
+				for (item in requestData.formData!!.items) {
+					if (item is ByteArrayFormItem) {
+						formData.append(item.name, Blob(arrayOf(item.value.native)))
+					} else if (item is StringFormItem) {
+						formData.append(item.name, item.value)
+					} else {
+						Log.warn("Unknown form item type $item")
+					}
+				}
+				httpRequest.send(formData)
+			} else if (requestData.body != null) {
+				httpRequest.send(requestData.body!!)
+			} else {
+				httpRequest.send()
+			}
 		}
 	}
 

@@ -25,18 +25,6 @@ interface Disposable {
 	fun dispose()
 }
 
-/**
- * Calls the inner function using the receiver.
- */
-@Deprecated("Use apply", ReplaceWith("apply(f)"))
-inline fun <T> T.with(f: T.() -> Unit): T { f(); return this }
-
-/**
- * Similar to [apply] but the return value is the return of the callback.
- */
-@Deprecated("Deprecated")
-inline fun <T, R> T.use(f: T.() -> R): R { return f() }
-
 fun <A : Comparable<A>> A?.compareTo(other: A?): Int {
 	if (this == null && other == null) return 0
 	if (this == null) return -1

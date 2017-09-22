@@ -337,6 +337,8 @@ class NavBinding(
 			if (event.newPath == path)
 				callback()
 		})
+		if (this.path == path)
+			callback()
 	}
 
 	/**

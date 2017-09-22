@@ -17,7 +17,7 @@ dependency("$repo/com/google/javascript/closure-compiler/v20170626/closure-compi
 
 
 val natives = arrayOf("windows", "macos", "linux")
-val extensions = arrayOf("glfw", "jemalloc", "opengl", "openal", "stb")
+val extensions = arrayOf("glfw", "jemalloc", "opengl", "openal", "stb", "nfd")
 for (native in natives) {
 	runtimeDependency("$repo/org/lwjgl/lwjgl/$lwjglVersion/lwjgl-$lwjglVersion-natives-$native", "AcornUiLwjglBackend")
 	for (extension in extensions) {
