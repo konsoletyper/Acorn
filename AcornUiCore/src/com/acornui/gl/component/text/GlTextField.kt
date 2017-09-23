@@ -788,6 +788,7 @@ class TextFlow(owner: Owned) : UiComponentImpl(owner), TextNodeComponent, Elemen
 	private val glState = inject(GlState)
 
 	override fun draw() {
+		glState.camera(camera)
 		for (i in 0.._textElements.lastIndex) {
 			_textElements[i].render(glState)
 		}
