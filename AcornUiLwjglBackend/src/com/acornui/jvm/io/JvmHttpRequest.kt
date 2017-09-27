@@ -61,36 +61,36 @@ class JvmHttpRequest(injector: Injector) : BasicAction(), MutableHttpRequest {
 		for ((key, value) in requestData.headers) {
 			con.setRequestProperty(key, value)
 		}
-
-		if (requestData.method != UrlRequestMethod.GET) {
-			if (requestData.variables != null) {
-				con.doOutput = true
-				con.outputStream.writeTextAndClose(requestData.variables!!.toQueryString())
-			} else if (requestData.formData != null) {
-				con.doOutput = true
-				val out = DataOutputStream(con.outputStream)
-				val items = requestData.formData!!.items
-				for (i in 0..items.lastIndex) {
-					val item = items[i]
-					if (i != 0) out.writeBytes("&")
-					out.writeBytes("$item.name=")
-					if (item is ByteArrayFormItem) {
-						out.write(item.value.toByteArray())
-					} else if (item is StringFormItem) {
-						out.writeBytes(item.value)
-					} else {
-						Log.warn("Unknown form item type $item")
-					}
-				}
-
-				out.flush()
-				out.close()
-			} else if (requestData.body != null) {
-				con.doOutput = true
-				con.outputStream.writeTextAndClose(requestData.body!!)
-			}
-		}
 		doWork({
+			if (requestData.method != UrlRequestMethod.GET) {
+				if (requestData.variables != null) {
+					con.doOutput = true
+					con.outputStream.writeTextAndClose(requestData.variables!!.toQueryString())
+				} else if (requestData.formData != null) {
+					con.doOutput = true
+					val out = DataOutputStream(con.outputStream)
+					val items = requestData.formData!!.items
+					for (i in 0..items.lastIndex) {
+						val item = items[i]
+						if (i != 0) out.writeBytes("&")
+						out.writeBytes("$item.name=")
+						if (item is ByteArrayFormItem) {
+							out.write(item.value.toByteArray())
+						} else if (item is StringFormItem) {
+							out.writeBytes(item.value)
+						} else {
+							Log.warn("Unknown form item type $item")
+						}
+					}
+
+					out.flush()
+					out.close()
+				} else if (requestData.body != null) {
+					con.doOutput = true
+					con.outputStream.writeTextAndClose(requestData.body!!)
+				}
+			}
+
 			var error: Throwable? = null
 			var result: Any? = null
 			try {
@@ -102,7 +102,7 @@ class JvmHttpRequest(injector: Injector) : BasicAction(), MutableHttpRequest {
 						ResponseType.BINARY -> TODO() //JvmByteBuffer(Uint8Array(httpRequest.response!! as ArrayBuffer))
 					}
 				} else {
-					val errorMsg = con.errorStream.readTextAndClose()
+					val errorMsg = con.errorStream?.readTextAndClose() ?: ""
 					error = ResponseException(status, "", errorMsg)
 				}
 			} catch (e: Exception) {

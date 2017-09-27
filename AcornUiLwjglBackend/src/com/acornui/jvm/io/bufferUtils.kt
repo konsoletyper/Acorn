@@ -9,5 +9,5 @@ fun InputStream.readTextAndClose(charset: Charset = Charsets.UTF_8): String {
 }
 
 fun OutputStream.writeTextAndClose(string: String, charset: Charset = Charsets.UTF_8) {
-	bufferedWriter(charset).use { it.write(string) }
+	bufferedWriter(charset).use { it.write(string); it.flush() }
 }

@@ -17,7 +17,6 @@
 package com.acornui.serialization
 
 import com.acornui.collection.ArrayIterator
-import com.acornui.math.MathUtils
 
 
 interface Serializer<T> {
