@@ -128,6 +128,11 @@ open class BasicUiSkin(
 		val textInputFlowStyle = TextFlowStyle()
 		textInputFlowStyle.multiline = false
 		target.addStyleRule(textInputFlowStyle, withAncestor(TextInput))
+//		target.addStyleRule(textInputFlowStyle, withAncestor(TextInput) and not(withAncestor(TextArea)))
+
+		val textAreaStyle = TextFlowStyle()
+		textAreaStyle.multiline = true
+		target.addStyleRule(textAreaStyle, withAncestor(TextArea))
 	}
 
 	protected open fun Scoped.loadBitmapFonts() {
