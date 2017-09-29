@@ -575,10 +575,9 @@ fun populateButtonStyle(buttonStyle: ButtonStyle, skinPartFactory: (ButtonState)
 	return buttonStyle
 }
 
-fun iconButtonSkin(buttonState: ButtonState, icon: String, borderRadius: Corners, borderThickness: Pad, padding: Pad = Pad(5f)): Owned.() -> UiComponent = {
+fun iconButtonSkin(buttonState: ButtonState, icon: String, borderRadius: Corners, borderThickness: PadRo, padding: PadRo = Pad(5f)): Owned.() -> UiComponent = {
 	val texture = buttonTexture(buttonState, borderRadius, borderThickness)
-	val skinPart = IconButtonSkinPart(this, texture)
-	skinPart.padding.set(padding)
+	val skinPart = IconButtonSkinPart(this, texture, padding)
 	val theme = inject(Theme)
 	skinPart.contentsAtlas(theme.atlasPath, icon)
 	skinPart
@@ -804,88 +803,6 @@ open class LabelButtonSkinPart(
 		if (explicitHeight != null && explicitHeight > h) h = explicitHeight
 		texture.setSize(w, h)
 		out.set(texture.bounds)
-	}
-}
-
-/**
- * A typical implementation of a skin part for an icon button state.
- */
-open class IconButtonSkinPart(
-		owner: Owned,
-		val texture: UiComponent,
-		val padding: Pad = Pad(5f, 5f, 5f, 5f),
-		val hGap: Float = 5f,
-
-		/**
-		 * The vertical alignment between the icon and the label.
-		 */
-		val vAlign: VAlign = VAlign.MIDDLE
-) : ElementContainerImpl<UiComponent>(owner), Labelable {
-
-	private val icon: Image
-	private val textField: TextField
-
-	init {
-		addChild(texture)
-		icon = addChild(image())
-		textField = addChild(text())
-	}
-
-	override var label: String
-		get() = textField.text
-		set(value) {
-			textField.text = value
-		}
-
-	override fun onElementAdded(index: Int, element: UiComponent) {
-		icon.addElement(index, element)
-	}
-
-	override fun onElementRemoved(index: Int, element: UiComponent) {
-		icon.removeElement(element)
-	}
-
-	override fun updateSizeConstraints(out: SizeConstraints) {
-		out.width.min = icon.width + padding.left + padding.right
-		out.height.min = icon.height + padding.top + padding.bottom
-	}
-
-	override fun updateLayout(explicitWidth: Float?, explicitHeight: Float?, out: Bounds) {
-		val childAvailableWidth = padding.reduceWidth(explicitWidth)
-		val childAvailableHeight = padding.reduceHeight(explicitHeight)
-		val textWidth = if (childAvailableWidth == null) null else childAvailableWidth - icon.width - hGap
-		textField.setSize(textWidth, childAvailableHeight)
-		val contentWidth = if (label == "") icon.width else icon.width + hGap + textField.width
-		val contentHeight = if (label == "") icon.height else maxOf(textField.height, icon.height)
-		val w = maxOf(contentWidth + padding.left + padding.right, explicitWidth ?: 4f)
-		val h = maxOf(contentHeight + padding.top + padding.bottom, explicitHeight ?: 4f)
-
-		texture.setSize(w, h)
-		out.set(w, h)
-
-		if (childAvailableWidth != null) {
-			icon.x = ((childAvailableWidth - contentWidth) * 0.5f + padding.left)
-		} else {
-			icon.x = (padding.left)
-		}
-		textField.x = (icon.x + icon.width + hGap)
-
-		val yOffset = if (childAvailableHeight == null) padding.top else (childAvailableHeight - contentHeight) * 0.5f + padding.top
-
-		when (vAlign) {
-			VAlign.TOP -> {
-				icon.y = yOffset
-				textField.y = yOffset
-			}
-			VAlign.MIDDLE -> {
-				icon.y = yOffset + (contentHeight - icon.height) * 0.5f
-				textField.y = yOffset + (contentHeight - textField.height) * 0.5f
-			}
-			VAlign.BOTTOM -> {
-				icon.y = yOffset + (contentHeight - icon.height)
-				textField.y = yOffset + (contentHeight - textField.height)
-			}
-		}
 	}
 }
 

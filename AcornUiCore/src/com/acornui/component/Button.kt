@@ -178,29 +178,27 @@ open class Button(
 	}
 
 	protected open fun calculateButtonState(): ButtonState {
-		val newState: ButtonState
-		if (_disabled) {
-			newState = ButtonState.DISABLED
+		return if (_disabled) {
+			ButtonState.DISABLED
 		} else {
 			if (_toggled) {
 				if (_mouseIsDown) {
-					newState = ButtonState.TOGGLED_DOWN
+					ButtonState.TOGGLED_DOWN
 				} else if (_mouseIsOver) {
-					newState = ButtonState.TOGGLED_OVER
+					ButtonState.TOGGLED_OVER
 				} else {
-					newState = ButtonState.TOGGLED_UP
+					ButtonState.TOGGLED_UP
 				}
 			} else {
 				if (_mouseIsDown) {
-					newState = ButtonState.DOWN
+					ButtonState.DOWN
 				} else if (_mouseIsOver) {
-					newState = ButtonState.OVER
+					ButtonState.OVER
 				} else {
-					newState = ButtonState.UP
+					ButtonState.UP
 				}
 			}
 		}
-		return newState
 	}
 
 	protected val currentSkinPart: UiComponent?
