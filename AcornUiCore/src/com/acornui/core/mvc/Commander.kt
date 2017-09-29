@@ -20,6 +20,7 @@ class Commander(
 	 */
 	fun <T : Command> onCommandInvoked(type: CommandType<T>, callback: (command: T) -> Unit): Disposable {
 		return onCommandInvoked {
+			@Suppress("UNCHECKED_CAST")
 			if (it.type == type)
 				callback(it as T)
 		}

@@ -79,7 +79,7 @@ class Tree<E : ParentRo<E>>(owner: Owned, rootFactory: (tree: Tree<E>) -> TreeIt
 	}
 
 	/**
-	 * Requests that a node be toggled.
+	 * Requests that a node be toggled. A toggled node will be expanded and its children shown.
 	 */
 	fun setNodeToggled(node: E, toggled: Boolean) {
 		val renderer = _root.findElement { it.data == node } ?: return

@@ -83,7 +83,7 @@ class JsStandardCursor(
 	}
 
 	override fun onActivated() {
-		canvas.style.cursor = "$identifier"
+		canvas.style.cursor = identifier
 	}
 
 	override fun onDeactivated() {

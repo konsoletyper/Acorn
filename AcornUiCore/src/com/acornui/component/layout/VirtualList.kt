@@ -5,7 +5,9 @@ import com.acornui.component.*
 import com.acornui.component.layout.algorithm.virtual.ItemRendererOwner
 import com.acornui.component.layout.algorithm.virtual.VirtualLayoutAlgorithm
 import com.acornui.core.behavior.Selection
+import com.acornui.core.behavior.SelectionBase
 import com.acornui.core.di.Owned
+import com.acornui.core.di.own
 import com.acornui.core.focus.FocusContainer
 import com.acornui.math.Bounds
 import com.acornui.math.MathUtils
@@ -162,7 +164,9 @@ class VirtualList<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
 	val activeRenderers: List<ListItemRenderer<E>>
 		get() = _activeRenderers
 
-	val selection: Selection<E> = VirtualListSelection(data, _activeRenderers)
+	private val _selection: SelectionBase<E> = own(VirtualListSelection(data, _activeRenderers))
+	val selection: Selection<E>
+		get() = _selection
 
 	private val layoutAlgorithmChangedHandler = {
 		invalidate(ValidationFlags.SIZE_CONSTRAINTS)
@@ -304,7 +308,6 @@ class VirtualList<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
 		data.removed.remove(dataRemovedHandler)
 		data.changed.remove(dataChangedHandler)
 		data.reset.remove(dataResetHandler)
-		selection.dispose()
 		pool.disposeAndClear()
 	}
 
@@ -400,7 +403,7 @@ fun <E, T : LayoutData, S : VirtualLayoutAlgorithm<T>> Owned.virtualList(
 	return c
 }
 
-class VirtualListSelection<E>(private val data: List<E>, private val activeRenderers: List<ListItemRenderer<E>>) : Selection<E>() {
+class VirtualListSelection<E>(private val data: List<E>, private val activeRenderers: List<ListItemRenderer<E>>) : SelectionBase<E>() {
 	override fun walkSelectableItems(callback: (E) -> Unit) {
 		for (i in 0..data.lastIndex) {
 			callback(data[i])

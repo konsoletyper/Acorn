@@ -27,9 +27,9 @@ interface CursorManager {
 
 	/**
 	 * Adds a cursor at the given index in the stack. (Only the last cursor will be displayed.)
-	 * @param cursor The cursor to add. Use [createCursor] to create the cursor object.
-	 * @param index The index in the stack to insert the cursor.
-	 * @return Returns the index of the cursor added.
+	 * @param cursor The cursor to add. Use [StandardCursors] to grab a cursor object.
+	 * @param priority The priority of the cursor. Use [CursorPriority] to get useful default priorities.
+	 * @return Returns the cursor reference of the cursor added, this can be used to remove the cursor.
 	 */
 	fun addCursor(cursor: Cursor, priority: Float = 0f): CursorReference
 
@@ -40,13 +40,24 @@ interface CursorManager {
 
 interface Cursor : Lifecycle
 
-class CursorReference : Clearable, Comparable<CursorReference> {
+interface CursorReference : Comparable<CursorReference> {
+
+	val priority: Float
+
+	/**
+	 * A convenience function to remove this cursor from the same manager to which it was added.
+	 */
+	fun remove()
+}
+
+private class CursorReferenceImpl : Clearable, CursorReference {
+
 	var cursor: Cursor? = null
-	var priority: Float = 0f
+	override var priority: Float = 0f
 
 	var manager: CursorManager? = null
 
-	fun remove() {
+	override fun remove() {
 		manager!!.removeCursor(this)
 		manager = null
 	}
@@ -57,24 +68,10 @@ class CursorReference : Clearable, Comparable<CursorReference> {
 		priority = 0f
 	}
 
-	fun free() {
-		pool.free(this)
-	}
-
 	override fun compareTo(other: CursorReference): Int {
 		return priority.compareTo(other.priority)
 	}
 
-	companion object {
-		private val pool = ClearableObjectPool { CursorReference() }
-
-		fun obtain(cursor: Cursor, priority: Float): CursorReference {
-			val r = pool.obtain()
-			r.cursor = cursor
-			r.priority = priority
-			return r
-		}
-	}
 }
 
 /**
@@ -82,12 +79,12 @@ class CursorReference : Clearable, Comparable<CursorReference> {
  */
 abstract class CursorManagerBase : CursorManager {
 
-	private val cursorStack = ArrayList<CursorReference>()
+	private val cursorStack = ArrayList<CursorReferenceImpl>()
 
-	private var _currentCursor: CursorReference? = null
+	private var _currentCursor: CursorReferenceImpl? = null
 
 	override fun addCursor(cursor: Cursor, priority: Float): CursorReference {
-		val cursorReference = CursorReference.obtain(cursor, priority)
+		val cursorReference = obtainCursor(cursor, priority)
 		cursorReference.manager = this
 		val index = cursorStack.sortedInsertionIndex(cursorReference)
 		cursorStack.add(index, cursorReference)
@@ -96,12 +93,14 @@ abstract class CursorManagerBase : CursorManager {
 	}
 
 	override fun removeCursor(cursorReference: CursorReference) {
-		cursorStack.remove(cursorReference)
+		val index = cursorStack.indexOf(cursorReference)
+		if (index == -1) return
+		val removed = cursorStack.removeAt(index)
 		currentCursor(cursorStack.lastOrNull())
-		cursorReference.free()
+		cursorReferencePool.free(removed)
 	}
 
-	private fun currentCursor(value: CursorReference?) {
+	private fun currentCursor(value: CursorReferenceImpl?) {
 		if (_currentCursor == value) return
 		if (_currentCursor?.cursor?.isActive ?: false) {
 			_currentCursor?.cursor?.deactivate()
@@ -112,6 +111,16 @@ abstract class CursorManagerBase : CursorManager {
 		}
 	}
 
+	companion object {
+		private val cursorReferencePool = ClearableObjectPool { CursorReferenceImpl() }
+
+		private fun obtainCursor(cursor: Cursor, priority: Float): CursorReferenceImpl {
+			val r = cursorReferencePool.obtain()
+			r.cursor = cursor
+			r.priority = priority
+			return r
+		}
+	}
 }
 
 /**

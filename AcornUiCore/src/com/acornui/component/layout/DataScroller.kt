@@ -9,6 +9,7 @@ import com.acornui.component.layout.algorithm.virtual.ItemRendererOwner
 import com.acornui.component.scroll.*
 import com.acornui.component.style.*
 import com.acornui.core.behavior.Selection
+import com.acornui.core.behavior.SelectionBase
 import com.acornui.core.di.Owned
 import com.acornui.core.focus.Focusable
 import com.acornui.core.di.own
@@ -43,9 +44,12 @@ class DataScroller<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
 		interactivityMode = InteractivityMode.NONE
 	})
 
-	val contents = virtualList(rendererFactory, layoutAlgorithm, data)
+	private val contents = virtualList(rendererFactory, layoutAlgorithm, data)
 
-	val selection: Selection<E> = DataScrollerSelection(data, contents, bottomContents)
+	private val _selection: SelectionBase<E> = own(DataScrollerSelection(data, contents, bottomContents))
+
+	val selection: Selection<E>
+		get() = _selection
 
 	//---------------------------------------------------
 	// Scrolling
@@ -214,11 +218,6 @@ class DataScroller<E, out T : LayoutData, out S : VirtualLayoutAlgorithm<T>>(
 		highlight?.setSize(out)
 	}
 
-	override fun dispose() {
-		super.dispose()
-		selection.dispose()
-	}
-
 	companion object : StyleTag
 }
 
@@ -231,7 +230,7 @@ class DataScrollerStyle : StyleBase() {
 	companion object : StyleType<DataScrollerStyle>
 }
 
-class DataScrollerSelection<E>(private val data: List<E>, private val listA: VirtualList<E, *, *>, private val listB: VirtualList<E, *, *>) : Selection<E>() {
+class DataScrollerSelection<E>(private val data: List<E>, private val listA: VirtualList<E, *, *>, private val listB: VirtualList<E, *, *>) : SelectionBase<E>() {
 	override fun walkSelectableItems(callback: (E) -> Unit) {
 		for (i in 0..data.lastIndex) {
 			callback(data[i])
