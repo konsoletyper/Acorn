@@ -56,7 +56,7 @@ open class Button(
 	protected var _mouseIsOver = false
 	protected var _mouseIsDown = false
 	protected var _disabled = false
-	protected var _selected = false
+	protected var _toggled = false
 
 	protected var _label: String = ""
 
@@ -137,9 +137,9 @@ open class Button(
 			_stateSkinMap[ButtonState.UP] = LazyInstance(this, it.upState)
 			_stateSkinMap[ButtonState.OVER] = LazyInstance(this, it.overState)
 			_stateSkinMap[ButtonState.DOWN] = LazyInstance(this, it.downState)
-			_stateSkinMap[ButtonState.SELECTED_UP] = LazyInstance(this, it.selectedUpState)
-			_stateSkinMap[ButtonState.SELECTED_OVER] = LazyInstance(this, it.selectedOverState)
-			_stateSkinMap[ButtonState.SELECTED_DOWN] = LazyInstance(this, it.selectedDownState)
+			_stateSkinMap[ButtonState.TOGGLED_UP] = LazyInstance(this, it.toggledUpState)
+			_stateSkinMap[ButtonState.TOGGLED_OVER] = LazyInstance(this, it.toggledOverState)
+			_stateSkinMap[ButtonState.TOGGLED_DOWN] = LazyInstance(this, it.toggledDownState)
 			_stateSkinMap[ButtonState.DISABLED] = LazyInstance(this, it.disabledState)
 			refreshState()
 			// Dispose the old state instances after we refresh state so that onCurrentStateChanged overrides have a
@@ -164,11 +164,11 @@ open class Button(
 
 	override var toggled: Boolean
 		get() {
-			return _selected
+			return _toggled
 		}
 		set(value) {
-			if (_selected == value) return
-			_selected = value
+			if (_toggled == value) return
+			_toggled = value
 			refreshState()
 			toggledChanged.dispatch(this)
 		}
@@ -182,13 +182,13 @@ open class Button(
 		if (_disabled) {
 			newState = ButtonState.DISABLED
 		} else {
-			if (_selected) {
+			if (_toggled) {
 				if (_mouseIsDown) {
-					newState = ButtonState.SELECTED_DOWN
+					newState = ButtonState.TOGGLED_DOWN
 				} else if (_mouseIsOver) {
-					newState = ButtonState.SELECTED_OVER
+					newState = ButtonState.TOGGLED_OVER
 				} else {
-					newState = ButtonState.SELECTED_UP
+					newState = ButtonState.TOGGLED_UP
 				}
 			} else {
 				if (_mouseIsDown) {
@@ -265,13 +265,13 @@ open class Button(
 
 }
 
-enum class ButtonState(val selected: Boolean) {
+enum class ButtonState(val toggled: Boolean) {
 	UP(false),
 	OVER(false),
 	DOWN(false),
-	SELECTED_UP(true),
-	SELECTED_OVER(true),
-	SELECTED_DOWN(true),
+	TOGGLED_UP(true),
+	TOGGLED_OVER(true),
+	TOGGLED_DOWN(true),
 	DISABLED(false);
 }
 
@@ -282,9 +282,9 @@ open class ButtonStyle : StyleBase() {
 	var upState by prop(noSkin)
 	var overState by prop(noSkin)
 	var downState by prop(noSkin)
-	var selectedUpState by prop(noSkin)
-	var selectedOverState by prop(noSkin)
-	var selectedDownState by prop(noSkin)
+	var toggledUpState by prop(noSkin)
+	var toggledOverState by prop(noSkin)
+	var toggledDownState by prop(noSkin)
 	var disabledState by prop(noSkin)
 
 	companion object : StyleType<ButtonStyle>

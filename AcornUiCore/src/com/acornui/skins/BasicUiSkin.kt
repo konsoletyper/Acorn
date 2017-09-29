@@ -568,9 +568,9 @@ fun populateButtonStyle(buttonStyle: ButtonStyle, skinPartFactory: (ButtonState)
 	buttonStyle.upState = skinPartFactory(ButtonState.UP)
 	buttonStyle.overState = skinPartFactory(ButtonState.OVER)
 	buttonStyle.downState = skinPartFactory(ButtonState.DOWN)
-	buttonStyle.selectedUpState = skinPartFactory(ButtonState.SELECTED_UP)
-	buttonStyle.selectedOverState = skinPartFactory(ButtonState.SELECTED_OVER)
-	buttonStyle.selectedDownState = skinPartFactory(ButtonState.SELECTED_DOWN)
+	buttonStyle.toggledUpState = skinPartFactory(ButtonState.TOGGLED_UP)
+	buttonStyle.toggledOverState = skinPartFactory(ButtonState.TOGGLED_OVER)
+	buttonStyle.toggledDownState = skinPartFactory(ButtonState.TOGGLED_DOWN)
 	buttonStyle.disabledState = skinPartFactory(ButtonState.DISABLED)
 	return buttonStyle
 }
@@ -616,7 +616,7 @@ fun checkboxNoLabelSkin(theme: Theme, buttonState: ButtonState): Owned.() -> Che
  */
 fun checkboxSkin(theme: Theme, buttonState: ButtonState): Owned.() -> CheckboxSkinPart = {
 	val box = buttonTexture(buttonState, borderRadius = Corners(), borderThickness = Pad(theme.strokeThickness))
-	if (buttonState.selected) {
+	if (buttonState.toggled) {
 		val checkMark = scaleBox {
 			+atlas(theme.atlasPath, "CheckMark") layout {
 				horizontalAlign = HAlign.CENTER
@@ -644,7 +644,7 @@ fun checkboxSkin(theme: Theme, buttonState: ButtonState): Owned.() -> CheckboxSk
  * A checkbox skin part.
  */
 fun collapseButtonSkin(theme: Theme, buttonState: ButtonState): Owned.() -> CheckboxSkinPart = {
-	val box = atlas(theme.atlasPath, if (buttonState.selected) "CollapseSelected" else "CollapseUnselected")
+	val box = atlas(theme.atlasPath, if (buttonState.toggled) "CollapseSelected" else "CollapseUnselected")
 	CheckboxSkinPart(
 			this,
 			box
@@ -656,7 +656,7 @@ fun collapseButtonSkin(theme: Theme, buttonState: ButtonState): Owned.() -> Chec
  */
 fun radioButtonSkin(theme: Theme, buttonState: ButtonState): Owned.() -> CheckboxSkinPart = {
 	val radio = buttonTexture(buttonState, borderRadius = Corners(1000f), borderThickness = Pad(theme.strokeThickness))
-	if (buttonState.selected) {
+	if (buttonState.toggled) {
 		val filledCircle = rect {
 			style.margin = Pad(4f)
 			style.borderRadius = Corners(1000f)
@@ -686,7 +686,7 @@ fun Owned.buttonTexture(buttonState: ButtonState, borderRadius: CornersRo, borde
 			backgroundColor = getButtonFillColor(buttonState)
 			borderColor = BorderColors(getButtonStrokeColor(buttonState))
 			val bT = borderThickness.copy()
-			if (isTab && buttonState.selected) {
+			if (isTab && buttonState.toggled) {
 				bT.bottom = 0f
 			}
 			this.borderThickness = bT
@@ -696,8 +696,8 @@ fun Owned.buttonTexture(buttonState: ButtonState, borderRadius: CornersRo, borde
 	when (buttonState) {
 		ButtonState.UP,
 		ButtonState.OVER,
-		ButtonState.SELECTED_UP,
-		ButtonState.SELECTED_OVER -> {
+		ButtonState.TOGGLED_UP,
+		ButtonState.TOGGLED_OVER -> {
 			+rect {
 				style.apply {
 					margin = Pad(top = borderThickness.top, right = borderThickness.right, bottom = 0f, left = borderThickness.left)
@@ -894,11 +894,11 @@ fun Owned.getButtonFillColor(buttonState: ButtonState): Color {
 	return when (buttonState) {
 		ButtonState.UP,
 		ButtonState.DOWN,
-		ButtonState.SELECTED_UP,
-		ButtonState.SELECTED_DOWN -> theme.fill
+		ButtonState.TOGGLED_UP,
+		ButtonState.TOGGLED_DOWN -> theme.fill
 
 		ButtonState.OVER,
-		ButtonState.SELECTED_OVER -> theme.fillHighlight
+		ButtonState.TOGGLED_OVER -> theme.fillHighlight
 
 		ButtonState.DISABLED -> theme.fillDisabled
 	}
@@ -913,10 +913,10 @@ fun Owned.getButtonStrokeColor(buttonState: ButtonState): Color {
 
 		ButtonState.OVER -> theme.strokeHighlight
 
-		ButtonState.SELECTED_UP,
-		ButtonState.SELECTED_DOWN -> theme.strokeSelected
+		ButtonState.TOGGLED_UP,
+		ButtonState.TOGGLED_DOWN -> theme.strokeSelected
 
-		ButtonState.SELECTED_OVER -> theme.strokeSelectedHighlight
+		ButtonState.TOGGLED_OVER -> theme.strokeSelectedHighlight
 
 		ButtonState.DISABLED -> theme.strokeDisabled
 	}
