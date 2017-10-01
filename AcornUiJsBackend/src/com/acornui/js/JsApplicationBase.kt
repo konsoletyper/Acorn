@@ -280,7 +280,7 @@ abstract class JsApplicationBase(
 	}
 
 	protected open fun initializeAssetManager() {
-		bootstrap.on(Files, AudioManager) {
+		bootstrap.on(Files) {
 			val assetManager = AssetManagerImpl(config.rootPath, bootstrap[Files], appendVersion = true)
 			assetManager.setLoaderFactory(AssetTypes.TEXT, { JsTextLoader() })
 			this[AssetManager] = assetManager

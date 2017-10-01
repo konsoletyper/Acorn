@@ -19,14 +19,12 @@ package com.acornui.js.gl
 import com.acornui.gl.core.Gl20
 import com.acornui.gl.core.GlState
 import com.acornui.gl.core.GlTextureBase
-import org.khronos.webgl.ArrayBuffer
-import org.khronos.webgl.ArrayBufferView
-import org.khronos.webgl.Uint8ClampedArray
 import org.w3c.dom.HTMLImageElement
 import org.w3c.dom.url.URL
 import org.w3c.files.Blob
 import kotlin.browser.document
 
+// todo: https://stackoverflow.com/questions/13626606/read-pixels-from-a-webgl-texture
 /**
  * @author nbilyk
  */
@@ -35,19 +33,14 @@ class WebGlTexture(
 		glState: GlState
 ) : GlTextureBase(gl, glState) {
 
-	val image: HTMLImageElement
+	val image: HTMLImageElement = document.createElement("img") as HTMLImageElement
 
 	var onLoad: (() -> Unit)? = null
 
 	private var _objectUrl: String? = null
 
 	init {
-		image = document.createElement("img") as HTMLImageElement
-		image.onload = {
-			if (onLoad != null) {
-				onLoad!!()
-			}
-		}
+		image.onload = { onLoad?.invoke() }
 	}
 
 	override val width: Int
@@ -59,14 +52,6 @@ class WebGlTexture(
 		get() {
 			return image.naturalHeight
 		}
-
-	fun arrayBuffer(value: ArrayBuffer) {
-		arrayBufferView(Uint8ClampedArray(value))
-	}
-
-	fun arrayBufferView(value: ArrayBufferView) {
-		blob(Blob(arrayOf(value)))
-	}
 
 	fun src(value: String) {
 		clear()
