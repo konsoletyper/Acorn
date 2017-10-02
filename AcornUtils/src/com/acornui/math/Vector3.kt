@@ -23,6 +23,7 @@ import com.acornui.collection.Clearable
 import com.acornui.serialization.Reader
 import com.acornui.serialization.Writer
 import com.acornui.serialization.floatArray
+import kotlin.math.acos
 
 /*******************************************************************************
  * Copyright 2011 See AUTHORS file.
@@ -562,7 +563,7 @@ class Vector3 (
 		if (dot > 0.9995f || dot < -0.9995f) return lerp(target, alpha)
 
 		// theta0 = angle between input vectors
-		val theta0 = Math.acos(dot.toDouble()).toFloat()
+		val theta0 = acos(dot.toDouble()).toFloat()
 		// theta = angle between this vector and result
 		val theta = theta0 * alpha
 

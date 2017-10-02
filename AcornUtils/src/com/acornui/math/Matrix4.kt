@@ -19,6 +19,7 @@
 package com.acornui.math
 
 import com.acornui.collection.ArrayList
+import kotlin.math.sqrt
 
 interface Matrix4Ro {
 
@@ -728,7 +729,7 @@ data class Matrix4(
 		return if ((MathUtils.isZero(values[4]) && MathUtils.isZero(values[8])))
 			MathUtils.abs(values[0])
 		else
-			Math.sqrt(getScaleXSquared().toDouble()).toFloat()
+			sqrt(getScaleXSquared().toDouble()).toFloat()
 	}
 
 	/**
@@ -738,7 +739,7 @@ data class Matrix4(
 		return if ((MathUtils.isZero(values[1]) && MathUtils.isZero(values[9])))
 			MathUtils.abs(values[5])
 		else
-			Math.sqrt(getScaleYSquared().toDouble()).toFloat()
+			sqrt(getScaleYSquared().toDouble()).toFloat()
 	}
 
 	/**
@@ -748,7 +749,7 @@ data class Matrix4(
 		return if ((MathUtils.isZero(values[2]) && MathUtils.isZero(values[6])))
 			MathUtils.abs(values[10])
 		else
-			Math.sqrt(getScaleZSquared().toDouble()).toFloat()
+			sqrt(getScaleZSquared().toDouble()).toFloat()
 	}
 
 	/**

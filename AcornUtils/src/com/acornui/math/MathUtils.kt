@@ -20,6 +20,8 @@
 
 package com.acornui.math
 
+import kotlin.math.*
+
 const val PI: Float = 3.1415927f
 const val PI2: Float = PI * 2f
 const val E: Float = 2.7182818f
@@ -40,12 +42,12 @@ internal object TrigLookup {
 	init {
 
 		for (i in 1..SIN_COUNT - 1) {
-			table[i] = Math.sin(((i.toFloat() + 0.5f) / SIN_COUNT.toFloat() * radFull).toDouble()).toFloat()
+			table[i] = sin(((i.toFloat() + 0.5f) / SIN_COUNT.toFloat() * radFull).toDouble()).toFloat()
 		}
 
 		for (i in 0..16) {
 			val theta = i * PI2 / 16
-			table[(theta * radToIndex).toInt() and SIN_MASK] = Math.sin(theta.toDouble()).toFloat()
+			table[(theta * radToIndex).toInt() and SIN_MASK] = sin(theta.toDouble()).toFloat()
 		}
 	}
 
@@ -77,7 +79,7 @@ internal object Atan2 {
 	private val ATAN2_BITS2 = ATAN2_BITS shl 1
 	private val ATAN2_MASK = (-1 shl ATAN2_BITS2).inv()
 	private val ATAN2_COUNT = ATAN2_MASK + 1
-	private val ATAN2_DIM = Math.sqrt(ATAN2_COUNT.toDouble()).toInt()
+	private val ATAN2_DIM = sqrt(ATAN2_COUNT.toDouble()).toInt()
 	private val INV_ATAN2_DIM_MINUS_1 = 1f / (ATAN2_DIM.toFloat() - 1f)
 
 	internal val table = FloatArray(ATAN2_COUNT)
@@ -87,7 +89,7 @@ internal object Atan2 {
 			for (j in 0..ATAN2_DIM - 1) {
 				val x0 = i.toFloat() / ATAN2_DIM.toFloat()
 				val y0 = j.toFloat() / ATAN2_DIM.toFloat()
-				table[j * ATAN2_DIM + i] = Math.atan2(y0.toDouble(), x0.toDouble()).toFloat()
+				table[j * ATAN2_DIM + i] = atan2(y0.toDouble(), x0.toDouble()).toFloat()
 			}
 		}
 	}
@@ -374,7 +376,7 @@ object MathUtils {
 	 * @return the logarithm of x with base a
 	 */
 	fun log(x: Float, base: Float): Float {
-		return (Math.log(x.toDouble()) / Math.log(base.toDouble())).toFloat()
+		return (ln(x.toDouble()) / ln(base.toDouble())).toFloat()
 	}
 
 	/**
@@ -421,31 +423,31 @@ object MathUtils {
 	}
 
 	inline fun ceil(v: Float): Int {
-		return Math.ceil(v.toDouble()).toInt()
+		return ceil(v.toDouble()).toInt()
 	}
 
 	inline fun floor(v: Float): Int {
-		return Math.floor(v.toDouble()).toInt()
+		return floor(v.toDouble()).toInt()
 	}
 
 	inline fun round(v: Float): Int {
-		return Math.round(v.toDouble()).toInt()
+		return round(v.toDouble()).toInt()
 	}
 
 	inline fun sqrt(v: Float): Float {
-		return Math.sqrt(v.toDouble()).toFloat()
+		return sqrt(v.toDouble()).toFloat()
 	}
 
 	inline fun pow(a: Float, b: Float): Float {
-		return Math.pow(a.toDouble(), b.toDouble()).toFloat()
+		return a.toDouble().pow(b.toDouble()).toFloat()
 	}
 
 	inline fun acos(v: Float): Float {
-		return Math.acos(v.toDouble()).toFloat()
+		return acos(v.toDouble()).toFloat()
 	}
 
 	inline fun asin(v: Float): Float {
-		return Math.asin(v.toDouble()).toFloat()
+		return asin(v.toDouble()).toFloat()
 	}
 
 	/**

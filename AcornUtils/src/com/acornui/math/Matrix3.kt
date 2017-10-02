@@ -18,6 +18,9 @@
 
 package com.acornui.math
 
+import kotlin.math.atan2
+import kotlin.math.sqrt
+
 interface Matrix3Ro {
 
 	val values: List<Float>
@@ -307,17 +310,17 @@ data class Matrix3(
 	}
 
 	override fun getScale(out: Vector2): Vector2 {
-		out.x = Math.sqrt((values[M00] * values[M00] + values[M01] * values[M01]).toDouble()).toFloat()
-		out.y = Math.sqrt((values[M10] * values[M10] + values[M11] * values[M11]).toDouble()).toFloat()
+		out.x = sqrt((values[M00] * values[M00] + values[M01] * values[M01]).toDouble()).toFloat()
+		out.y = sqrt((values[M10] * values[M10] + values[M11] * values[M11]).toDouble()).toFloat()
 		return out
 	}
 
 	override fun getRotation(): Float {
-		return MathUtils.radDeg * Math.atan2(values[M10].toDouble(), values[M00].toDouble()).toFloat()
+		return MathUtils.radDeg * atan2(values[M10].toDouble(), values[M00].toDouble()).toFloat()
 	}
 
 	override fun getRotationRad(): Float {
-		return Math.atan2(values[M10].toDouble(), values[M00].toDouble()).toFloat()
+		return atan2(values[M10].toDouble(), values[M00].toDouble()).toFloat()
 	}
 
 	/**

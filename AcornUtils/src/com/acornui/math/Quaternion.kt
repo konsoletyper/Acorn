@@ -18,6 +18,11 @@
 
 package com.acornui.math
 
+import kotlin.math.acos
+import kotlin.math.asin
+import kotlin.math.pow
+import kotlin.math.sqrt
+
 interface QuaternionRo {
 
 	val x: Float
@@ -227,7 +232,7 @@ data class Quaternion(
 	 * @return the euclidian length of this quaternion
 	 */
 	override fun len(): Float {
-		return Math.sqrt(x * x + y * y + z * z + w * w.toDouble()).toFloat()
+		return sqrt(x * x + y * y + z * z + w * w.toDouble()).toFloat()
 	}
 
 	override fun toString(): String {
@@ -287,7 +292,7 @@ data class Quaternion(
 	 */
 	override fun getPitchRad(): Float {
 		val pole = getGimbalPole()
-		return if (pole == 0) Math.asin(MathUtils.clamp(2f * (w * x - z * y), -1f, 1f).toDouble()).toFloat() else pole.toFloat() * PI * 0.5f
+		return if (pole == 0) asin(MathUtils.clamp(2f * (w * x - z * y), -1f, 1f).toDouble()).toFloat() else pole.toFloat() * PI * 0.5f
 	}
 
 	/**
@@ -312,7 +317,7 @@ data class Quaternion(
 	fun nor(): Quaternion {
 		var len = len2()
 		if (len != 0f && !MathUtils.isEqual(len, 1f)) {
-			len = Math.sqrt(len.toDouble()).toFloat()
+			len = sqrt(len.toDouble()).toFloat()
 			w /= len
 			x /= len
 			y /= len
@@ -624,28 +629,28 @@ data class Quaternion(
 		// we protect the division by s by ensuring that s>=1
 		if (t >= 0) {
 			// |w| >= .5
-			var s = Math.sqrt((t + 1).toDouble()).toFloat() // |s|>=1 ...
+			var s = sqrt((t + 1).toDouble()).toFloat() // |s|>=1 ...
 			w = 0.5f * s
 			s = 0.5f / s // so this division isn't bad
 			x = (zy - yz) * s
 			y = (xz - zx) * s
 			z = (yx - xy) * s
 		} else if ((xx > yy) && (xx > zz)) {
-			var s = Math.sqrt(1.0 + xx.toDouble() - yy.toDouble() - zz.toDouble()).toFloat() // |s|>=1
+			var s = sqrt(1.0 + xx.toDouble() - yy.toDouble() - zz.toDouble()).toFloat() // |s|>=1
 			x = s * 0.5f // |x| >= .5
 			s = 0.5f / s
 			y = (yx + xy) * s
 			z = (xz + zx) * s
 			w = (zy - yz) * s
 		} else if (yy > zz) {
-			var s = Math.sqrt(1.0 + yy.toDouble() - xx.toDouble() - zz.toDouble()).toFloat() // |s|>=1
+			var s = sqrt(1.0 + yy.toDouble() - xx.toDouble() - zz.toDouble()).toFloat() // |s|>=1
 			y = s * 0.5f // |y| >= .5
 			s = 0.5f / s
 			x = (yx + xy) * s
 			z = (zy + yz) * s
 			w = (xz - zx) * s
 		} else {
-			var s = Math.sqrt(1.0 + zz.toDouble() - xx.toDouble() - yy.toDouble()).toFloat() // |s|>=1
+			var s = sqrt(1.0 + zz.toDouble() - xx.toDouble() - yy.toDouble()).toFloat() // |s|>=1
 			z = s * 0.5f // |z| >= .5
 			s = 0.5f / s
 			x = (xz + zx) * s
@@ -664,7 +669,7 @@ data class Quaternion(
 	 */
 	fun setFromCross(v1: Vector3Ro, v2: Vector3Ro): Quaternion {
 		val dot = MathUtils.clamp(v1.dot(v2), -1.toFloat(), 1f)
-		val angle = Math.acos(dot.toDouble()).toFloat()
+		val angle = acos(dot.toDouble()).toFloat()
 		return setFromAxis(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x, angle)
 	}
 
@@ -680,7 +685,7 @@ data class Quaternion(
 	 */
 	fun setFromCross(x1: Float, y1: Float, z1: Float, x2: Float, y2: Float, z2: Float): Quaternion {
 		val dot = MathUtils.clamp(Vector3.dot(x1, y1, z1, x2, y2, z2), -1f, 1f)
-		val angle = Math.acos(dot.toDouble()).toFloat()
+		val angle = acos(dot.toDouble()).toFloat()
 		return setFromAxis(y1 * z2 - z1 * y2, z1 * x2 - x1 * z2, x1 * y2 - y1 * x2, angle)
 	}
 
@@ -703,7 +708,7 @@ data class Quaternion(
 		if ((1f - absDot) > 0.1f) {
 			// Get the angle between the 2 quaternions,
 			// and then store the sin() of that angle
-			val angle = Math.acos(absDot.toDouble()).toFloat()
+			val angle = acos(absDot.toDouble()).toFloat()
 			val invSinTheta = 1f / MathUtils.sin(angle)
 
 			// Calculate the scale for q1 and q2, according to the angle and its sine value
@@ -770,10 +775,10 @@ data class Quaternion(
 
 		//Calculate |q|^alpha
 		val norm = len()
-		val normExp = Math.pow(norm.toDouble(), alpha.toDouble()).toFloat()
+		val normExp = norm.toDouble().pow(alpha.toDouble()).toFloat()
 
 		//Calculate theta
-		val theta = Math.acos((w / norm).toDouble()).toFloat()
+		val theta = acos((w / norm).toDouble()).toFloat()
 
 		//Calculate coefficient of basis elements
 		val coeff: Float
@@ -847,8 +852,8 @@ data class Quaternion(
 	 */
 	override fun getAxisAngleRad(axis: Vector3): Float {
 		if (this.w > 1) this.nor() // if w>1 acos and sqrt will produce errors, this cant happen if quaternion is normalised
-		val angle = (2.0 * Math.acos(this.w.toDouble())).toFloat()
-		val s = Math.sqrt((1 - this.w * this.w).toDouble()) // assuming quaternion normalised then w is less than 1, so term always positive.
+		val angle = (2.0 * acos(this.w.toDouble())).toFloat()
+		val s = sqrt((1 - this.w * this.w).toDouble()) // assuming quaternion normalised then w is less than 1, so term always positive.
 		if (s < MathUtils.FLOAT_ROUNDING_ERROR) {
 			// test to avoid divide by zero, s is always positive due to sqrt
 			// if s close to zero then direction of axis not important
@@ -871,7 +876,7 @@ data class Quaternion(
 	 * @return the angle in radians of the rotation
 	 */
 	override fun getAngleRad(): Float {
-		return (2.0 * Math.acos((if ((this.w > 1)) (this.w / len()) else this.w).toDouble())).toFloat()
+		return (2.0 * acos((if ((this.w > 1)) (this.w / len()) else this.w).toDouble())).toFloat()
 	}
 
 	/**
@@ -920,7 +925,7 @@ data class Quaternion(
 	override fun getAngleAroundRad(axisX: Float, axisY: Float, axisZ: Float): Float {
 		val d = Vector3.dot(this.x, this.y, this.z, axisX, axisY, axisZ)
 		val l2 = Quaternion.len2(axisX * d, axisY * d, axisZ * d, this.w)
-		return if (MathUtils.isZero(l2)) 0f else (2.0 * Math.acos(MathUtils.clamp((this.w.toDouble() / Math.sqrt(l2.toDouble())).toFloat(), -1f, 1f).toDouble())).toFloat()
+		return if (MathUtils.isZero(l2)) 0f else (2.0 * acos(MathUtils.clamp((this.w.toDouble() / sqrt(l2.toDouble())).toFloat(), -1f, 1f).toDouble())).toFloat()
 	}
 
 	/**
@@ -941,7 +946,7 @@ data class Quaternion(
 		 * @return the euclidian length of the specified quaternion
 		 */
 		fun len(x: Float, y: Float, z: Float, w: Float): Float {
-			return Math.sqrt(x * x + y * y + z * z + w * w.toDouble()).toFloat()
+			return sqrt(x * x + y * y + z * z + w * w.toDouble()).toFloat()
 		}
 
 		fun len2(x: Float, y: Float, z: Float, w: Float): Float {

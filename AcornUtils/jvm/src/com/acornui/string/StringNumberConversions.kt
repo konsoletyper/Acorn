@@ -14,17 +14,6 @@
  * limitations under the License.
  */
 
-package com.acornui.core
+package com.acornui.string
 
-import com.acornui.core.time.time
-import com.acornui.math.MathUtils
-import com.acornui.math.MathUtils.random
-import com.acornui.string.toRadix
-
-object UidUtil {
-
-	fun createUid(): String {
-		return MathUtils.abs(time.nowMs().toInt()).toRadix(36) + (random() * INT_MAX_VALUE).toInt().toRadix(36)
-	}
-
-}
+actual fun Int.toRadix(radix: Int): String = toString(radix)

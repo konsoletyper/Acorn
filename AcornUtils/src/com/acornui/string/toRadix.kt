@@ -16,4 +16,4 @@
 
 package com.acornui.string
 
-fun Int.toRadix(radix: Int): String = toString(radix)
+expect fun Int.toRadix(radix: Int): String

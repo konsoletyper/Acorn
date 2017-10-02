@@ -22,6 +22,7 @@ import com.acornui.core.input.InteractionEventBase
 import com.acornui.core.input.InteractionType
 import com.acornui.core.input.WhichButton
 import com.acornui.math.Vector2
+import kotlin.math.sqrt
 
 /**
  * A data class representing a mouse event, as provided to [InteractiveElement] objects by the [InteractivityManager]
@@ -91,7 +92,7 @@ open class MouseInteraction : InteractionEventBase() {
 	fun velocity(previous: MouseInteraction): Float {
 		val xDiff = previous.canvasX - canvasX
 		val yDiff = previous.canvasY - canvasY
-		val distance = Math.sqrt((xDiff * xDiff + yDiff * yDiff).toDouble()).toFloat()
+		val distance = sqrt((xDiff * xDiff + yDiff * yDiff).toDouble()).toFloat()
 		val time = timestamp - previous.timestamp
 		return distance / time
 	}

@@ -20,6 +20,7 @@ package com.acornui.math
 
 import com.acornui.core.LONG_MAX_VALUE
 import com.acornui.core.LONG_MIN_VALUE
+import com.acornui.math.MathUtils.random
 
 // TODO: This is probably slow in JS due to Long objects.
 
@@ -46,7 +47,7 @@ open class Random(var seed0: Long = 0, var seed1: Long = 0) {
 
 	init {
 		if (seed0 == 0L) {
-			setSeed((Math.random() * LONG_MAX_VALUE).toLong())
+			setSeed((random() * LONG_MAX_VALUE).toLong())
 		} else if (seed1 == 0L) {
 			setSeed(seed0)
 		}

@@ -23,6 +23,7 @@ import com.acornui.math.MathUtils
 import com.acornui.math.Matrix4
 import com.acornui.math.Vector2
 import com.acornui.math.Vector3
+import kotlin.math.tan
 
 /**
  * @author nbilyk
@@ -73,7 +74,7 @@ fun Owned.perspectiveCamera(autoCenter: Boolean = false, init: PerspectiveCamera
  */
 fun Matrix4.setToProjection(near: Float, far: Float, fovy: Float, aspectRatio: Float): Matrix4 {
 	idt()
-	val l_fd = (1.0 / Math.tan((fovy.toDouble()) / 2.0)).toFloat()
+	val l_fd = (1.0 / tan((fovy.toDouble()) / 2.0)).toFloat()
 	val l_a1 = (far + near) / (near - far)
 	val l_a2 = (2 * far * near) / (near - far)
 	values[0] = l_fd / aspectRatio

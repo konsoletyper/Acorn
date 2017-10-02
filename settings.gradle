@@ -1,0 +1,5 @@
+include ':AcornUtils', ':AcornUtils:jvm', ':AcornUtils:js',
+        ':AcornUiCore', ':AcornUiCore:jvm', ':AcornUiCore:js',
+        ':AcornSpine', ':AcornSpine:jvm', ':AcornSpine:js',
+        ':AcornGame', ':AcornGame:jvm', ':AcornGame:js',
+        ':AcornUiJsBackend', ':AcornUiLwjglBackend'

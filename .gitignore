@@ -1,6 +1,8 @@
+/.gradle
+/.idea
 dist
+build
 out
 externalLib
 /www
-/.idea/workspace.xml
-/Tools/BuildTasks/testOut
+*.iml
