@@ -1,5 +1,18 @@
-include ':AcornUtils', ':AcornUtils:jvm', ':AcornUtils:js',
-        ':AcornUiCore', ':AcornUiCore:jvm', ':AcornUiCore:js',
-        ':AcornSpine', ':AcornSpine:jvm', ':AcornSpine:js',
-        ':AcornGame', ':AcornGame:jvm', ':AcornGame:js',
-        ':AcornUiJsBackend', ':AcornUiLwjglBackend'
+def includeMultiplatform(List<String> projectNames) {
+    for (projectName in projectNames) {
+        include(":$projectName")
+
+        include(":${projectName}_jvm")
+        include(":${projectName}_js")
+
+        project(":${projectName}_jvm").projectDir = "$rootDir/$projectName/jvm" as File
+        project(":${projectName}_js").projectDir = "$rootDir/$projectName/js" as File
+    }
+}
+
+includeMultiplatform(["AcornUtils", "AcornUiCore", "AcornSpine", "AcornGame"])
+
+include ':AcornUiJsBackend', ':AcornUiLwjglBackend', ':AcornTexturePacker', ':AcornTexturePacker_jvm', ":AcornTest"
+
+project(':AcornTexturePacker').projectDir = "$rootDir/Tools/AcornTexturePacker/core" as File
+project(':AcornTexturePacker_jvm').projectDir = "$rootDir/Tools/AcornTexturePacker/jvm" as File

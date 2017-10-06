@@ -187,7 +187,7 @@ open class GlTextField(owner: Owned) : ContainerImpl(owner), TextField {
 	}
 
 	companion object {
-		private val TEXT_DRAG_ATTACHMENT = object {}
+		private val TEXT_DRAG_ATTACHMENT: Any = object {}
 	}
 }
 

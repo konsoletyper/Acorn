@@ -18,6 +18,8 @@ package com.acornui.async
 
 import kotlin.coroutines.experimental.*
 
+expect suspend fun delay(timeout: Long)
+
 fun <T> async(block: suspend () -> T): Deferred<T> = DeferredImpl(block)
 
 fun launch(block: suspend () -> Unit) {

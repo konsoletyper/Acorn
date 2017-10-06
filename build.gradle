@@ -2,6 +2,7 @@ buildscript {
     apply from: "versions.gradle"
 
     repositories {
+        mavenLocal()
         maven { url('http://dl.bintray.com/kotlin/kotlin-eap-1.2') }
         mavenCentral()
     }
@@ -15,51 +16,95 @@ version "1.0-SNAPSHOT"
 
 allprojects {
     repositories {
+        mavenLocal()
         maven { url('http://dl.bintray.com/kotlin/kotlin-eap-1.2') }
         mavenCentral()
     }
+
+    apply plugin: "maven"
 }
 
-configure([project(":AcornUtils"), project(":AcornUiCore"), project(":AcornSpine"), project(":AcornGame")]) {
+configure([project(":AcornUtils"), project(":AcornUiCore"), project(":AcornSpine"), project(":AcornGame"),
+           project(":AcornTexturePacker")]) {
     apply plugin: 'kotlin-platform-common'
 
     dependencies {
         compile "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version"
         testCompile "org.jetbrains.kotlin:kotlin-test-common:$kotlin_version"
     }
+
+    kotlin {
+        experimental {
+            coroutines 'enable'
+        }
+    }
 }
 
-configure([project(":AcornUtils:jvm"), project(":AcornUiCore:jvm"), project(":AcornSpine:jvm"),
-           project(":AcornGame:jvm"), project(":AcornUiLwjglBackend")]) {
+configure([project(":AcornUtils_jvm"), project(":AcornUiCore_jvm"), project(":AcornSpine_jvm"),
+           project(":AcornGame_jvm"), project(":AcornTexturePacker_jvm"), project(":AcornUiLwjglBackend")]) {
     apply plugin: 'kotlin-platform-jvm'
 
     dependencies {
         compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
         testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+        testCompile "junit:junit:$junit_version"
+    }
+
+    kotlin {
+        experimental {
+            coroutines 'enable'
+        }
     }
 }
 
-configure([project(":AcornUtils:js"), project(":AcornUiCore:js"), project(":AcornSpine:js"),
-           project(":AcornGame:js"), project(":AcornUiJsBackend")]) {
+project(":AcornTest") {
+    apply plugin: 'kotlin-platform-jvm'
+
+    dependencies {
+        compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+        compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+        compile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+        compile "junit:junit:$junit_version"
+        compile project(":AcornUtils_jvm")
+    }
+
+    kotlin {
+        experimental {
+            coroutines 'enable'
+        }
+    }
+
+    sourceSets {
+        test.kotlin.srcDirs += "${projectDir}/test"
+    }
+}
+
+configure([project(":AcornUtils_js"), project(":AcornUiCore_js"), project(":AcornSpine_js"),
+           project(":AcornGame_js"), project(":AcornUiJsBackend")]) {
     apply plugin: 'kotlin-platform-js'
 
     dependencies {
         compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
         testCompile "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
     }
+
+    kotlin {
+        experimental {
+            coroutines 'enable'
+        }
+    }
 }
 
 project("AcornUtils") {
-    project("jvm") {
-        dependencies {
-            implement project(":AcornUtils")
-        }
+}
+project("AcornUtils_jvm") {
+    dependencies {
+        implement project(":AcornUtils")
     }
-
-    project("js") {
-        dependencies {
-            implement project(":AcornUtils")
-        }
+}
+project("AcornUtils_js") {
+    dependencies {
+        implement project(":AcornUtils")
     }
 }
 
@@ -67,54 +112,38 @@ project("AcornUiCore") {
     dependencies {
         compile project(":AcornUtils")
     }
-    
-    project("jvm") {
-        dependencies {
-            compile project(":AcornUtils:jvm")
-        }
-    }
-
-    project("js") {
-        dependencies {
-            compile project(":AcornUtils:js")
-        }
-    }
 }
-
-project("AcornUiCore") {
+project("AcornUiCore_jvm") {
     dependencies {
-        compile project(":AcornUtils")
-    }
-
-    project("jvm") {
-        dependencies {
-            compile project(":AcornUtils:jvm")
-        }
-    }
-
-    project("js") {
-        dependencies {
-            compile project(":AcornUtils:js")
-        }
+        implement project(":AcornUiCore")
+        compile project(":AcornUtils_jvm")
+        testCompile project(":AcornTest")
+        testCompile "org.mockito:mockito-core:$mockito_version"
     }
 }
-
+project("AcornUiCore_js") {
+    dependencies {
+        implement project(":AcornUiCore")
+        compile project(":AcornUtils_js")
+    }
+}
 
 project("AcornSpine") {
     dependencies {
-        compile project(":AcornUtils")
+        compile project(":AcornUiCore")
     }
-
-    project("jvm") {
-        dependencies {
-            compile project(":AcornUtils:jvm")
-        }
+}
+project("AcornSpine_jvm") {
+    dependencies {
+        implement project(":AcornSpine")
+        compile project(":AcornUiCore_jvm")
+        testCompile project(":AcornTest")
     }
-
-    project("js") {
-        dependencies {
-            compile project(":AcornUtils:js")
-        }
+}
+project("AcornSpine_js") {
+    dependencies {
+        implement project(":AcornSpine")
+        compile project(":AcornUiCore_js")
     }
 }
 
@@ -123,38 +152,65 @@ project("AcornGame") {
         compile project(":AcornUtils")
         compile project(":AcornUiCore")
     }
-
-    project("jvm") {
-        dependencies {
-            compile project(":AcornUtils:jvm")
-            compile project(":AcornUiCore:jvm")
-        }
+}
+project("AcornGame_jvm") {
+    dependencies {
+        implement project(":AcornGame")
+        compile project(":AcornUtils_jvm")
+        compile project(":AcornUiCore_jvm")
+        testCompile project(":AcornTest")
+        testCompile "org.mockito:mockito-core:$mockito_version"
     }
-
-    project("js") {
-        dependencies {
-            compile project(":AcornUtils:js")
-            compile project(":AcornUiCore:js")
-        }
+}
+project("AcornGame_js") {
+    dependencies {
+        implement project(":AcornGame")
+        compile project(":AcornUtils_js")
+        compile project(":AcornUiCore_js")
     }
 }
 
 project("AcornUiLwjglBackend") {
     dependencies {
-        compile project(":AcornUiCore:jvm")
+        compile project(":AcornUiCore_jvm")
+        compile "org.lwjgl:lwjgl:$lwjgl_version"
+        compile "org.lwjgl:lwjgl-glfw:$lwjgl_version"
+        compile "org.lwjgl:lwjgl-opengl:$lwjgl_version"
+        compile "org.lwjgl:lwjgl-openal:$lwjgl_version"
+        compile "com.badlogicgames.jlayer:jlayer:$jlayer_version"
+        compile "com.googlecode.soundlibs:jorbis:$jorbis_version"
     }
 }
 
 project("AcornUiJsBackend") {
     dependencies {
-        compile project(":AcornUiCore:js")
+        compile project(":AcornUiCore_js")
     }
 }
 
+project("AcornTexturePacker") {
+    dependencies {
+        compile project(":AcornUtils")
+        compile project(":AcornUiCore")
+    }
+}
+project("AcornTexturePacker_jvm") {
+    dependencies {
+        implement project(":AcornTexturePacker")
+        compile project(":AcornUtils_jvm")
+        compile project(":AcornUiCore_jvm")
+        compile project(":AcornUiLwjglBackend")
+    }
+}
 
 configure(subprojects.findAll { it.name != "Acorn" }) {
     sourceSets {
         main.kotlin.srcDirs += "${projectDir}/src"
-        main.java.srcDirs += "${projectDir}/src"
+    }
+}
+
+configure([project(":AcornUtils_jvm"), project(":AcornUiCore_jvm"), project(":AcornGame_jvm")]) {
+    sourceSets {
+        test.kotlin.srcDirs += "${projectDir}/../test"
     }
 }

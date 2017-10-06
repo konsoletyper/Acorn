@@ -20,7 +20,6 @@ package com.acornui.math
 
 import com.acornui.core.LONG_MAX_VALUE
 import com.acornui.core.LONG_MIN_VALUE
-import com.acornui.math.MathUtils.random
 
 // TODO: This is probably slow in JS due to Long objects.
 
@@ -36,6 +35,8 @@ import com.acornui.math.MathUtils.random
  * @author Inferno
  * @author davebaol
  */
+
+expect internal fun random(): Double
 
 /**
  * A Random number generator
@@ -58,12 +59,12 @@ open class Random(var seed0: Long = 0, var seed1: Long = 0) {
 		/**
 		 * Normalization constant for double.
 		 */
-		private val NORM_DOUBLE = 1.0 / (1 shl 53).toDouble()
+		private const val NORM_DOUBLE = 1.0 / (1 shl 53).toDouble()
 
 		/**
 		 * Normalization constant for float.
 		 */
-		private val NORM_FLOAT = 1.0 / (1 shl 24).toDouble()
+		private const val NORM_FLOAT = 1.0 / (1 shl 24).toDouble()
 
 		private fun murmurHash3(x: Long): Long {
 			var xV = x

@@ -18,7 +18,9 @@ package com.acornui.texturepacker
 
 import com.acornui.math.IntRectangle
 import com.acornui.math.MathUtils
-import java.util.*
+import kotlin.math.abs
+import kotlin.math.ln
+import kotlin.math.pow
 
 
 /**
@@ -85,15 +87,10 @@ class MaxRectsPacker(algorithmSettings: PackerAlgorithmSettingsData) : Rectangle
 		if (settings.fast) {
 			if (settings.rotation) {
 				// Sort by longest side if rotation is enabled.
-				Collections.sort(rects) {
-					o1, o2 ->
-					val n1 = if (o1.width > o1.height) o1.width else o1.height
-					val n2 = if (o2.width > o2.height) o2.width else o2.height
-					n2 - n1
-				}
+				rects.sortBy { maxOf(it.width, it.height) }
 			} else {
 				// Sort only by width (largest to smallest) if rotation is disabled.
-				Collections.sort(rects) { o1, o2 -> o2.width - o1.width }
+				rects.sortBy { it.width }
 			}
 		}
 
@@ -107,8 +104,8 @@ class MaxRectsPacker(algorithmSettings: PackerAlgorithmSettingsData) : Rectangle
 	}
 
 	private fun packPage(inputRects: MutableList<Rect>): Page {
-		var minWidth = Integer.MAX_VALUE
-		var minHeight = Integer.MAX_VALUE
+		var minWidth = Int.MAX_VALUE
+		var minHeight = Int.MAX_VALUE
 		val padW = if (settings.edgePadding) settings.paddingX * 2 else 0
 		val padH = if (settings.edgePadding) settings.paddingY * 2 else 0
 		val maxWidth = settings.maxWidth
@@ -135,7 +132,7 @@ class MaxRectsPacker(algorithmSettings: PackerAlgorithmSettingsData) : Rectangle
 		minWidth = maxOf(minWidth, settings.minWidth)
 		minHeight = maxOf(minHeight, settings.minHeight)
 
-		if (!settings.silent) System.out.print("Packing")
+		if (!settings.silent) print("Packing")
 
 		// Find the minimal page size that fits all rects.
 		var bestResult: Page? = null
@@ -148,16 +145,16 @@ class MaxRectsPacker(algorithmSettings: PackerAlgorithmSettingsData) : Rectangle
 			while (size != -1) {
 				val result = packAtSize(true, size, size, inputRects)
 				if (!settings.silent) {
-					if (++i % 70 == 0) System.out.println()
-					System.out.print(".")
+					if (++i % 70 == 0) println()
+					print(".")
 				}
 				bestResult = getBest(bestResult, result)
 				size = sizeSearch.next(result == null)
 			}
-			if (!settings.silent) System.out.println()
+			if (!settings.silent) println()
 			// Rects don't fit on one page. Fill a whole page and return.
 			if (bestResult == null) bestResult = packAtSize(false, maxSize, maxSize, inputRects)
-			Collections.sort(bestResult!!.outputRects, rectComparator)
+			bestResult!!.outputRects.sortWith(rectComparator)
 			bestResult.width = maxOf(bestResult.width, bestResult.height)
 			bestResult.height = maxOf(bestResult.width, bestResult.height)
 			return bestResult
@@ -172,8 +169,8 @@ class MaxRectsPacker(algorithmSettings: PackerAlgorithmSettingsData) : Rectangle
 				while (width != -1) {
 					val result = packAtSize(true, width, height, inputRects)
 					if (!settings.silent) {
-						if (++i % 70 == 0) System.out.println()
-						System.out.print(".")
+						if (++i % 70 == 0) println()
+						print(".")
 					}
 					bestWidthResult = getBest(bestWidthResult, result)
 					width = widthSearch.next(result == null)
@@ -185,11 +182,11 @@ class MaxRectsPacker(algorithmSettings: PackerAlgorithmSettingsData) : Rectangle
 				if (height == -1) break
 				width = widthSearch.reset()
 			}
-			if (!settings.silent) System.out.println()
+			if (!settings.silent) println()
 			// Rects don't fit on one page. Fill a whole page and return.
 			if (bestResult == null)
 				bestResult = packAtSize(false, maxWidth, maxHeight, inputRects)
-			Collections.sort(bestResult!!.outputRects, rectComparator)
+			bestResult!!.outputRects.sortWith(rectComparator)
 			return bestResult
 		}
 	}
@@ -248,15 +245,15 @@ class BinarySearch(min: Int, max: Int, fuzziness: Int, var pot: Boolean) {
 
 	init {
 		this.fuzziness = if (pot) 0 else fuzziness
-		this.min = if (pot) (Math.log(MathUtils.nextPowerOfTwo(min).toDouble()) / Math.log(2.0)).toInt() else min
-		this.max = if (pot) (Math.log(MathUtils.nextPowerOfTwo(max).toDouble()) / Math.log(2.0)).toInt() else max
+		this.min = if (pot) (ln(MathUtils.nextPowerOfTwo(min).toDouble()) / ln(2.0)).toInt() else min
+		this.max = if (pot) (ln(MathUtils.nextPowerOfTwo(max).toDouble()) / ln(2.0)).toInt() else max
 	}
 
 	fun reset(): Int {
 		low = min
 		high = max
 		current = (low + high).ushr(1)
-		return if (pot) Math.pow(2.0, current.toDouble()).toInt() else current
+		return if (pot) 2.0.pow(current.toDouble()).toInt() else current
 	}
 
 	fun next(result: Boolean): Int {
@@ -266,8 +263,8 @@ class BinarySearch(min: Int, max: Int, fuzziness: Int, var pot: Boolean) {
 		else
 			high = current - 1
 		current = (low + high).ushr(1)
-		if (Math.abs(low - high) < fuzziness) return -1
-		return if (pot) Math.pow(2.0, current.toDouble()).toInt() else current
+		if (abs(low - high) < fuzziness) return -1
+		return if (pot) 2.0.pow(current.toDouble()).toInt() else current
 	}
 }
 
@@ -359,8 +356,8 @@ private class MaxRects(val settings: MaxRectsSettings) {
 		while (r.size > 0) {
 			var bestRectIndex = -1
 			val bestNode = Rect()
-			bestNode.score1 = Integer.MAX_VALUE
-			bestNode.score2 = Integer.MAX_VALUE
+			bestNode.score1 = Int.MAX_VALUE
+			bestNode.score2 = Int.MAX_VALUE
 
 			// Find the next rectangle that packs best.
 			for (i in 0..r.size - 1) {
@@ -456,8 +453,8 @@ private class MaxRects(val settings: MaxRectsSettings) {
 
 		// Cannot fit the current rectangle.
 		if (newNode.height == 0) {
-			newNode.score1 = Integer.MAX_VALUE
-			newNode.score2 = Integer.MAX_VALUE
+			newNode.score1 = Int.MAX_VALUE
+			newNode.score2 = Int.MAX_VALUE
 		}
 
 		return newNode
@@ -476,7 +473,7 @@ private class MaxRects(val settings: MaxRectsSettings) {
 	private fun findPositionForNewNodeBottomLeft(width: Int, height: Int, rotatedWidth: Int, rotatedHeight: Int, rotate: Boolean): Rect {
 		val bestNode = Rect()
 
-		bestNode.score1 = Integer.MAX_VALUE // best y, score2 is best x
+		bestNode.score1 = Int.MAX_VALUE // best y, score2 is best x
 
 		for (i in 0..freeRectangles.size - 1) {
 			// Try to place the rectangle in upright (non-rotated) orientation.
@@ -510,13 +507,13 @@ private class MaxRects(val settings: MaxRectsSettings) {
 
 	private fun findPositionForNewNodeBestShortSideFit(width: Int, height: Int, rotatedWidth: Int, rotatedHeight: Int, rotate: Boolean): Rect {
 		val bestNode = Rect()
-		bestNode.score1 = Integer.MAX_VALUE
+		bestNode.score1 = Int.MAX_VALUE
 
 		for (i in 0..freeRectangles.size - 1) {
 			// Try to place the rectangle in upright (non-rotated) orientation.
 			if (freeRectangles[i].width >= width && freeRectangles[i].height >= height) {
-				val leftoverHoriz = Math.abs(freeRectangles[i].width - width)
-				val leftoverVert = Math.abs(freeRectangles[i].height - height)
+				val leftoverHoriz = abs(freeRectangles[i].width - width)
+				val leftoverVert = abs(freeRectangles[i].height - height)
 				val shortSideFit = minOf(leftoverHoriz, leftoverVert)
 				val longSideFit = maxOf(leftoverHoriz, leftoverVert)
 
@@ -532,8 +529,8 @@ private class MaxRects(val settings: MaxRectsSettings) {
 			}
 
 			if (rotate && freeRectangles[i].width >= rotatedWidth && freeRectangles[i].height >= rotatedHeight) {
-				val flippedLeftoverHoriz = Math.abs(freeRectangles[i].width - rotatedWidth)
-				val flippedLeftoverVert = Math.abs(freeRectangles[i].height - rotatedHeight)
+				val flippedLeftoverHoriz = abs(freeRectangles[i].width - rotatedWidth)
+				val flippedLeftoverVert = abs(freeRectangles[i].height - rotatedHeight)
 				val flippedShortSideFit = minOf(flippedLeftoverHoriz, flippedLeftoverVert)
 				val flippedLongSideFit = maxOf(flippedLeftoverHoriz, flippedLeftoverVert)
 
@@ -555,13 +552,13 @@ private class MaxRects(val settings: MaxRectsSettings) {
 	private fun findPositionForNewNodeBestLongSideFit(width: Int, height: Int, rotatedWidth: Int, rotatedHeight: Int, rotate: Boolean): Rect {
 		val bestNode = Rect()
 
-		bestNode.score2 = Integer.MAX_VALUE
+		bestNode.score2 = Int.MAX_VALUE
 
 		for (i in 0..freeRectangles.size - 1) {
 			// Try to place the rectangle in upright (non-rotated) orientation.
 			if (freeRectangles[i].width >= width && freeRectangles[i].height >= height) {
-				val leftoverHoriz = Math.abs(freeRectangles[i].width - width)
-				val leftoverVert = Math.abs(freeRectangles[i].height - height)
+				val leftoverHoriz = abs(freeRectangles[i].width - width)
+				val leftoverVert = abs(freeRectangles[i].height - height)
 				val shortSideFit = minOf(leftoverHoriz, leftoverVert)
 				val longSideFit = maxOf(leftoverHoriz, leftoverVert)
 
@@ -577,8 +574,8 @@ private class MaxRects(val settings: MaxRectsSettings) {
 			}
 
 			if (rotate && freeRectangles[i].width >= rotatedWidth && freeRectangles[i].height >= rotatedHeight) {
-				val leftoverHoriz = Math.abs(freeRectangles[i].width - rotatedWidth)
-				val leftoverVert = Math.abs(freeRectangles[i].height - rotatedHeight)
+				val leftoverHoriz = abs(freeRectangles[i].width - rotatedWidth)
+				val leftoverVert = abs(freeRectangles[i].height - rotatedHeight)
 				val shortSideFit = minOf(leftoverHoriz, leftoverVert)
 				val longSideFit = maxOf(leftoverHoriz, leftoverVert)
 
@@ -599,15 +596,15 @@ private class MaxRects(val settings: MaxRectsSettings) {
 	private fun findPositionForNewNodeBestAreaFit(width: Int, height: Int, rotatedWidth: Int, rotatedHeight: Int, rotate: Boolean): Rect {
 		val bestNode = Rect()
 
-		bestNode.score1 = Integer.MAX_VALUE // best area fit, score2 is best short side fit
+		bestNode.score1 = Int.MAX_VALUE // best area fit, score2 is best short side fit
 
 		for (i in 0..freeRectangles.size - 1) {
 			val areaFit = freeRectangles[i].width * freeRectangles[i].height - width * height
 
 			// Try to place the rectangle in upright (non-rotated) orientation.
 			if (freeRectangles[i].width >= width && freeRectangles[i].height >= height) {
-				val leftoverHoriz = Math.abs(freeRectangles[i].width - width)
-				val leftoverVert = Math.abs(freeRectangles[i].height - height)
+				val leftoverHoriz = abs(freeRectangles[i].width - width)
+				val leftoverVert = abs(freeRectangles[i].height - height)
 				val shortSideFit = minOf(leftoverHoriz, leftoverVert)
 
 				if (areaFit < bestNode.score1 || (areaFit == bestNode.score1 && shortSideFit < bestNode.score2)) {
@@ -622,8 +619,8 @@ private class MaxRects(val settings: MaxRectsSettings) {
 			}
 
 			if (rotate && freeRectangles[i].width >= rotatedWidth && freeRectangles[i].height >= rotatedHeight) {
-				val leftoverHoriz = Math.abs(freeRectangles[i].width - rotatedWidth)
-				val leftoverVert = Math.abs(freeRectangles[i].height - rotatedHeight)
+				val leftoverHoriz = abs(freeRectangles[i].width - rotatedWidth)
+				val leftoverVert = abs(freeRectangles[i].height - rotatedHeight)
 				val shortSideFit = minOf(leftoverHoriz, leftoverVert)
 
 				if (areaFit < bestNode.score1 || (areaFit == bestNode.score1 && shortSideFit < bestNode.score2)) {
