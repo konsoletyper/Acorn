@@ -11,10 +11,10 @@ buildscript {
     }
 }
 
-group "org.acornui"
-version "1.0-SNAPSHOT"
-
 allprojects {
+    group "org.acornui"
+    version "1.0-SNAPSHOT"
+
     repositories {
         mavenLocal()
         maven { url('http://dl.bintray.com/kotlin/kotlin-eap-1.2') }
@@ -22,6 +22,14 @@ allprojects {
     }
 
     apply plugin: "maven"
+
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                mavenLocal()
+            }
+        }
+    }
 }
 
 configure([project(":AcornUtils"), project(":AcornUiCore"), project(":AcornSpine"), project(":AcornGame"),

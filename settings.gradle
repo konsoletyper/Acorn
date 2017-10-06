@@ -10,6 +10,8 @@ def includeMultiplatform(List<String> projectNames) {
     }
 }
 
+rootProject.name = "Acorn"
+
 includeMultiplatform(["AcornUtils", "AcornUiCore", "AcornSpine", "AcornGame"])
 
 include ':AcornUiJsBackend', ':AcornUiLwjglBackend', ':AcornTexturePacker', ':AcornTexturePacker_jvm', ":AcornTest"
